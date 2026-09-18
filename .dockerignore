@@ -1,0 +1,17 @@
+**/bin/
+**/obj/
+**/.vs/
+**/.vscode/
+**/.idea/
+**/*.user
+**/TestResults/
+**/node_modules/
+.git/
+.github/
+.env
+.env.*
+!.env.example
+*.md
+data/
+backups/
+tests/

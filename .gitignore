@@ -1,0 +1,53 @@
+# ---------- .NET build output ----------
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+artifacts/
+publish/
+*.nupkg
+*.snupkg
+TestResults/
+coverage*/
+*.trx
+
+# ---------- IDEs ----------
+.vs/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
+.idea/
+*.user
+*.suo
+*.userprefs
+*.DotSettings.user
+
+# ---------- Secrets & local config ----------
+.env
+.env.*
+!.env.example
+appsettings.*.local.json
+*.pfx
+*.key
+
+# ---------- Generated front-end assets ----------
+src/PersonalSite.Web/wwwroot/css/app.css
+tools/bin/
+tools/tailwindcss*
+!tools/*.ps1
+!tools/*.sh
+node_modules/
+
+# ---------- Runtime data (lives in Docker volumes) ----------
+data/
+uploads/
+dp-keys/
+backups/
+*.dump
+
+# ---------- OS ----------
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store

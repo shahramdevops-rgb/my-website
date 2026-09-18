@@ -1,0 +1,15 @@
+<Project>
+  <!--
+    Central Package Management (CPM): every NuGet package version is declared ONCE here.
+    Project files reference packages WITHOUT a version:  <PackageReference Include="Serilog.AspNetCore" />
+    Packages are added task by task (see TASKS.md), so this list starts empty.
+  -->
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- <PackageVersion Include="PackageName" Version="x.y.z" /> -->
+  </ItemGroup>
+</Project>
