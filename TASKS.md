@@ -14,8 +14,8 @@
   Done when: files exist; first commit made.
   Learn: Central Package Management, `global.json`.
 
-- [ ] **P0-T2 Solution & projects**
-  Scope: `PersonalSite.sln`; `src/` Domain, Application, Infrastructure (classlib), Web (Razor Pages, `--no-https` template then clean up); `tests/` UnitTests, IntegrationTests (xUnit v3). Project references per architecture §3.1. Remove template boilerplate.
+- [x] **P0-T2 Solution & projects**
+  Scope: `PersonalSite.slnx`; `src/` Domain, Application, Infrastructure (classlib), Web (Razor Pages, `--no-https` template then clean up); `tests/` UnitTests, IntegrationTests (xUnit v3). Project references per architecture §3.1. Remove template boilerplate.
   Done when: `dotnet build` and `dotnet test` pass; reference graph matches the dependency rule.
   Learn: dependency rule / Clean Architecture.
 
@@ -35,7 +35,7 @@
   Learn: DbContext lifetime, migrations, why auto-migrate is dev-only.
 
 - [ ] **P0-T6 Test infrastructure**
-  Scope: Shouldly, NSubstitute; `PostgresFixture` using Testcontainers; `WebAppFactory : WebApplicationFactory<Program>` wired to the container DB; one smoke test (`GET /health` → 200).
+  Scope: Shouldly, NSubstitute; `PostgresFixture` using Testcontainers; `WebAppFactory : WebApplicationFactory<Program>` wired to the container DB; one smoke test (`GET /health` → 200). Remove the temporary `--ignore-exit-code 8` from `PersonalSite.IntegrationTests.csproj`.
   Done when: `dotnet test` spins up Postgres and passes (Docker required).
   Learn: unit vs integration tests, why not EF InMemory.
 

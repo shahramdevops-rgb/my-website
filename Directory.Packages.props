@@ -10,6 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- <PackageVersion Include="PackageName" Version="x.y.z" /> -->
+    <!-- Testing (P0-T2) -->
+    <PackageVersion Include="xunit.v3" Version="4.0.1" />
   </ItemGroup>
 </Project>

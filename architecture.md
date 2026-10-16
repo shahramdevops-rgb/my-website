@@ -52,7 +52,7 @@ the site both reliable on an Iranian server *and* trivial to move to an internat
 | Validation | FluentValidation (Application layer) | |
 | Feature flags | Microsoft.FeatureManagement | Config-driven |
 | Logging | Serilog → console (JSON in prod) | Docker collects stdout |
-| Tests | xUnit v3, Shouldly, NSubstitute, Testcontainers (PostgreSQL), WebApplicationFactory | |
+| Tests | xUnit v3, Shouldly, NSubstitute, Testcontainers (PostgreSQL), WebApplicationFactory | Run on Microsoft.Testing.Platform (opt-in in `global.json`) |
 | Reverse proxy | Caddy 2 | Automatic HTTPS once a domain exists |
 | Analytics | Umami (self-hosted) | Cookieless |
 | CI | GitHub Actions | Builds images **outside Iran**, pushes to GHCR |
@@ -66,7 +66,7 @@ my-website/
 ├─ Directory.Build.props           # Nullable, ImplicitUsings, TreatWarningsAsErrors, LangVersion
 ├─ Directory.Packages.props        # Central Package Management: every NuGet version lives here
 ├─ .editorconfig  .gitignore  .dockerignore  .env.example
-├─ PersonalSite.sln
+├─ PersonalSite.slnx                # new XML solution format (.NET 9+/VS 17.13+)
 ├─ compose.yaml                    # shared service definitions
 ├─ compose.override.yaml           # dev (auto-loaded by `docker compose up`)
 ├─ compose.prod.yaml               # prod (`docker compose -f compose.yaml -f compose.prod.yaml up -d`)

@@ -1,0 +1,18 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="global.json" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/PersonalSite.Domain/PersonalSite.Domain.csproj" />
+    <Project Path="src/PersonalSite.Application/PersonalSite.Application.csproj" />
+    <Project Path="src/PersonalSite.Infrastructure/PersonalSite.Infrastructure.csproj" />
+    <Project Path="src/PersonalSite.Web/PersonalSite.Web.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/PersonalSite.UnitTests/PersonalSite.UnitTests.csproj" />
+    <Project Path="tests/PersonalSite.IntegrationTests/PersonalSite.IntegrationTests.csproj" />
+  </Folder>
+</Solution>

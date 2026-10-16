@@ -202,3 +202,11 @@ A config switch (`Newsletter.Sending: false`) that turns code paths on/off witho
 
 ### 7.8 Self-hosted analytics (Umami)
 Umami counts visits without cookies or personal data, runs in our own container, and doesn't depend on Google Analytics (which may be blocked and requires cookie banners).
+
+### 7.9 Microsoft.Testing.Platform (MTP)
+The old test runner (VSTest) loaded test DLLs into a separate host process. With MTP, every test project is a small executable that runs its own tests, so you can even start it directly (`dotnet run --project tests/PersonalSite.UnitTests`). xUnit v3 is built on MTP, and on the .NET 10 SDK `dotnet test` must be told to use it:
+```json
+// global.json
+"test": { "runner": "Microsoft.Testing.Platform" }
+```
+Result: no `Microsoft.NET.Test.Sdk` or `xunit.runner.visualstudio` packages needed. One gotcha: MTP fails a run with exit code 8 when a project has *zero* tests, which catches mis-configured projects that silently discover nothing.

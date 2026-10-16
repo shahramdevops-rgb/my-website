@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Infrastructure: EF Core, file storage, email, markdown. Implements Application interfaces. -->
+
+  <ItemGroup>
+    <ProjectReference Include="..\PersonalSite.Application\PersonalSite.Application.csproj" />
+    <ProjectReference Include="..\PersonalSite.Domain\PersonalSite.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

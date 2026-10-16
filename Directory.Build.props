@@ -11,7 +11,9 @@
     <AnalysisLevel>latest</AnalysisLevel>
     <AnalysisMode>Recommended</AnalysisMode>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <!-- Needed so IDE0005 (unused usings) can run during build; CS1591 = "missing XML comment" is silenced. -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
 
     <!-- Reproducible, deterministic builds (same source => same binary). -->
     <Deterministic>true</Deterministic>

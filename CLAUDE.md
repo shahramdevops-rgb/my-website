@@ -15,8 +15,10 @@ It is also a **learning project**: Adam wants to understand *why* each technical
 
 ## 2. Current status
 
-- **Phase:** P0 — Foundation. Planning docs + repo hygiene done (`P0-T1`).
-- **Next task:** `P0-T2` (solution & projects) in `TASKS.md`.
+- **Phase:** P0 — Foundation. `P0-T1` and `P0-T2` done.
+- **Next task:** `P0-T3` (web host basics).
+- **Tooling note:** when Claude runs locally (VS Code extension) it can use `dotnet` and reach nuget.org; in cloud sandboxes it may not — then Adam runs the `dotnet` commands.
+- **Tests** run on Microsoft.Testing.Platform (`global.json` → `test.runner`); `dotnet test` from the repo root.
 - Keep this section updated: after finishing a task, set "Next task" to the next unchecked item.
 
 ## 3. Communication with Adam

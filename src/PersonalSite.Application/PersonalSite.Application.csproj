@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Application: use cases (services), DTOs, validators, interfaces for external concerns. -->
+
+  <ItemGroup>
+    <ProjectReference Include="..\PersonalSite.Domain\PersonalSite.Domain.csproj" />
+  </ItemGroup>
+
+</Project>
