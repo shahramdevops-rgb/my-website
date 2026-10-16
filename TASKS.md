@@ -114,7 +114,7 @@
 ## Phase 3 — First deployment (walking skeleton)
 
 - [ ] **P3-T1 Production compose & Caddy**
-  Scope: `compose.prod.yaml` (image from GHCR, restart policies, no DB port exposed, volumes `pgdata`/`uploads`/`dpkeys`/`caddy_data`), `deploy/Caddyfile` (`tls internal` or IP for now; domain block commented, ready), security headers baseline, compression.
+  Scope: `compose.prod.yaml` (image from GHCR, restart policies, no DB port exposed, volumes `pgdata`/`uploads`/`dpkeys`/`caddy_data`), `deploy/Caddyfile` (canonical domain served with Let's Encrypt, the other domain + `www.` variants 301 → canonical per architecture §9.1; hostnames from env), security headers baseline, compression. Needs Adam's choice of canonical domain first.
   Done when: `docker compose -f compose.yaml -f compose.prod.yaml config` validates; runs locally.
 
 - [ ] **P3-T2 App production settings**

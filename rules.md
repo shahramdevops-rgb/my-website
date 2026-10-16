@@ -11,6 +11,7 @@
 4. **No external runtime dependencies** (CDNs, Google Fonts, hosted APIs, Iranian-only services). Vendor assets into `wwwroot/lib` with the version in the folder name.
 5. **Docs follow code.** A change to structure, data model or a decision updates `architecture.md`; a new concept worth learning gets a short entry in `learning.md`.
 6. Code, identifiers, comments, commit messages and docs: **English**. User-facing strings: **Persian via resource files** — never hard-coded in `.cshtml`/C#.
+7. **No hard-coded hostnames.** The site domains (`mahdiazghandi.ir`, `shahramazghandi.ir`) and the canonical base URL come from config (`SiteOptions.BaseUrl`, `deploy/Caddyfile`, `.env`) — never from C#/Razor. See `architecture.md §9.1`.
 
 ## 2. C# style
 

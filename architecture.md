@@ -53,7 +53,7 @@ the site both reliable on an Iranian server *and* trivial to move to an internat
 | Feature flags | Microsoft.FeatureManagement | Config-driven |
 | Logging | Serilog → console (JSON in prod) | Docker collects stdout |
 | Tests | xUnit v3, Shouldly, NSubstitute, Testcontainers (PostgreSQL), WebApplicationFactory | Run on Microsoft.Testing.Platform (opt-in in `global.json`) |
-| Reverse proxy | Caddy 2 | Automatic HTTPS once a domain exists |
+| Reverse proxy | Caddy 2 | Automatic HTTPS (Let's Encrypt) for the site domains |
 | Analytics | Umami (self-hosted) | Cookieless |
 | CI | GitHub Actions | Builds images **outside Iran**, pushes to GHCR |
 
@@ -349,7 +349,7 @@ All text/background pairs must meet WCAG AA (≥ 4.5:1). Verify when tokens chan
 |---|---|---|
 | Start | `docker compose up` (db + umami) + `dotnet watch` locally, **or** everything in compose | `docker compose -f compose.yaml -f compose.prod.yaml up -d` |
 | DB migrations | applied automatically at startup (Development only) | explicit step: `docker compose run --rm web --migrate` (migration bundle / flag), run by `deploy.sh` before switching |
-| TLS | none | Caddy (self-signed/`tls internal` until a domain exists, then Let's Encrypt) |
+| TLS | none | Caddy + Let's Encrypt for both domains (§9.1); `tls internal` only for IP-based testing |
 | Seed | `DevDataSeeder` fake posts/projects | only `AdminSeeder` from env vars |
 | Images | built locally | built in GitHub Actions, pushed to GHCR, pulled by server |
 
@@ -359,6 +359,24 @@ All text/background pairs must meet WCAG AA (≥ 4.5:1). Verify when tokens chan
   Registry mirrors, if any, are configured in the server's `/etc/docker/daemon.json`, never in the repo.
 - Nothing in the app depends on Iranian services (payment gateways, SMS panels, Iranian CDNs). Moving servers =
   copy volumes + `pg_dump` restore + DNS change. See `deploy/README` (created in Phase 3).
+
+### 9.1 Domains
+
+| Domain | Role |
+|---|---|
+| `mahdiazghandi.ir` | site domain — canonical **or** redirect (decision pending) |
+| `shahramazghandi.ir` | site domain — canonical **or** redirect (decision pending) |
+
+- **One canonical host.** Search engines treat two domains with the same content as duplicates, so exactly one
+  serves the site; the other domain and every `www.` variant answer with a **301** to the same path on the canonical
+  host (`https://<other>/fa/blog/x` → `https://<canonical>/fa/blog/x`).
+- **DNS:** `A` records (apex + `www`) for both domains → the VPS IP. Analytics later uses `analytics.<canonical>`.
+- **TLS:** Caddy obtains Let's Encrypt certificates for all four hostnames (HTTP-01 on port 80, which must stay
+  open). If validation from abroad is unreliable, switch to the DNS-01 challenge — a Caddyfile change only.
+- **Config, not code:** the canonical URL is `SiteOptions.BaseUrl` (env `Site__BaseUrl`), used for canonical links,
+  sitemap, feed and OG tags. Hostnames appear only in `deploy/Caddyfile` and `.env`. Switching the canonical
+  domain or moving servers is a config + DNS change.
+- `.ir` domains are registered at IRNIC (nic.ir) — keep renewal dates in the deploy notes.
 
 ## 10. Testing strategy
 
