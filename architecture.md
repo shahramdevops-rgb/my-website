@@ -364,8 +364,9 @@ All text/background pairs must meet WCAG AA (≥ 4.5:1). Verify when tokens chan
 
 | Domain | Role |
 |---|---|
-| `mahdiazghandi.ir` | site domain — canonical **or** redirect (decision pending) |
-| `shahramazghandi.ir` | site domain — canonical **or** redirect (decision pending) |
+| `mahdiazghandi.ir` | **canonical** — serves the site (`SiteOptions.BaseUrl = https://mahdiazghandi.ir`) |
+| `www.mahdiazghandi.ir` | 301 → `https://mahdiazghandi.ir{path}` |
+| `shahramazghandi.ir`, `www.shahramazghandi.ir` | 301 → `https://mahdiazghandi.ir{path}` |
 
 - **One canonical host.** Search engines treat two domains with the same content as duplicates, so exactly one
   serves the site; the other domain and every `www.` variant answer with a **301** to the same path on the canonical

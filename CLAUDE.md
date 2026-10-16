@@ -125,7 +125,7 @@ Application services only — never `AppDbContext`.
 | Cache tags | `blog`, `post:{id}`, `projects` |
 | Cultures | `fa` (now), `en` (P13) |
 | Volumes | `pgdata`, `uploads`, `dpkeys`, `caddy_data` |
-| Domains | `mahdiazghandi.ir`, `shahramazghandi.ir` (canonical: TBD) |
+| Domains | `mahdiazghandi.ir` (canonical), `shahramazghandi.ir` (301 → canonical) |
 
 ## 11. How to execute a task
 
@@ -151,9 +151,8 @@ no new hard-coded Persian strings · docs updated · task ticked.
   bash when relevant (server is Linux).
 - Production: an **Iranian VPS** (Linux, Docker). Docker Hub/NuGet/GitHub can be slow or blocked from there → images
   are built in GitHub Actions and pulled from GHCR (fallback: `docker save/load`). Never assume the server can `dotnet restore`.
-- **Domains (purchased, `.ir`):** `mahdiazghandi.ir` and `shahramazghandi.ir`. One is canonical, the other (and all
-  `www.` variants) 301-redirect to it. **Which one is canonical is still open — ask Adam before P3-T1.** Caddy gets real
-  Let's Encrypt certificates for both. Domain names live only in config (`SiteOptions.BaseUrl`, Caddyfile, env) —
+- **Domains (purchased, `.ir`):** **`mahdiazghandi.ir` is canonical.** `shahramazghandi.ir` and all `www.` variants
+  301-redirect to it (same path). Caddy gets real Let's Encrypt certificates for all of them. Domain names live only in config (`SiteOptions.BaseUrl`, Caddyfile, env) —
   never hard-coded in C#/Razor. Details: `architecture.md §9.1`.
 - Future migration to an international server → all state in volumes + env config, nothing host-specific in code.
 
