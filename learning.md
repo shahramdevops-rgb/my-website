@@ -195,7 +195,10 @@ Only the root `/` decides where to send you: your saved choice (cookie) → coun
 *Image* = a read-only template (your built app). *Container* = a running instance of it. *Volume* = storage that survives container replacement (DB data, uploads, keys). Rule: anything you'd cry about losing goes in a volume.
 
 ### 7.2 Multi-stage Dockerfile
-Stage 1 uses the big SDK image to build; stage 2 copies only the output into a small runtime image. Result: smaller, safer images (no compilers in production).
+Stage 1 uses the big SDK image to build; stage 2 copies only the output into a small runtime image. Result: smaller, safer images (no compilers in production). Our runtime image is **chiseled** (~240 MB total): no shell,
+no package manager, no curl, non-root user. Less software = less to attack. The catch: a healthcheck can't call `curl`,
+so the app probes itself: `HEALTHCHECK CMD ["dotnet", "PersonalSite.Web.dll", "--healthcheck"]`.
+Copying the `.csproj` files and running `dotnet restore` *before* copying the code keeps the restore layer cached.
 
 ### 7.3 Docker Compose files
 `compose.yaml` holds shared definitions; `compose.override.yaml` is auto-loaded for dev (ports, hot settings); prod explicitly adds `compose.prod.yaml`. Same services, different environment tweaks.

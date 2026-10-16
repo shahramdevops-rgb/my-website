@@ -1,0 +1,36 @@
+# Shared service definitions for every environment.
+#   Dev:  docker compose up --build            (auto-merges compose.override.yaml)
+#   Prod: docker compose -f compose.yaml -f compose.prod.yaml up -d   (P3-T1)
+# Values like ${POSTGRES_PASSWORD} come from the git-ignored .env file (template: .env.example).
+name: personalsite
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: personalsite-web:dev
+    depends_on:
+      db:
+        condition: service_healthy
+    # Healthcheck itself is defined in the Dockerfile (HEALTHCHECK), so it travels with the image.
+
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-site}
+      POSTGRES_USER: ${POSTGRES_USER:-site}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is not set - copy .env.example to .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  # Named volume: lives outside the container, survives `docker compose down`.
+  # Only `docker compose down -v` deletes it.
+  pgdata:

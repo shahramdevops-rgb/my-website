@@ -24,7 +24,7 @@
   Done when: `dotnet run` → `/health` returns `Healthy`; logs are structured.
   Learn: middleware pipeline order, Options pattern.
 
-- [ ] **P0-T4 Docker for development**
+- [x] **P0-T4 Docker for development**
   Scope: multi-stage `Dockerfile` (sdk → `aspnet:10.0-noble-chiseled-extra`, non-root, port 8080), `compose.yaml` (web, db `postgres:17-alpine` with healthcheck & `pgdata` volume), `compose.override.yaml` (dev ports, env), `.env.example`.
   Done when: `docker compose up --build` serves `/health`; DB healthy; data survives `docker compose down`/`up`.
   Learn: images vs containers, volumes, multi-stage builds, why ICU matters.

@@ -47,6 +47,9 @@ docker compose up --build
 
 App: http://localhost:8080 · Health: http://localhost:8080/health · Admin: http://localhost:8080/admin
 
+PostgreSQL (dev): `localhost:5433` (host port 5433 avoids clashing with another local PostgreSQL).
+`docker compose down` keeps the database (named volume `pgdata`); `docker compose down -v` **deletes** it.
+
 ## Common commands
 
 ```powershell
@@ -59,7 +62,7 @@ dotnet ef migrations script -p src/PersonalSite.Infrastructure -s src/PersonalSi
 
 ## Environment variables
 
-Documented in `.env.example` (created in P0-T4). Key ones:
+Documented in `.env.example`. Key ones (some arrive in later phases):
 
 | Variable | Example | Notes |
 |---|---|---|

@@ -6,6 +6,12 @@ using PersonalSite.Web.Endpoints;
 using PersonalSite.Web.Infrastructure;
 using Serilog;
 
+// Container healthcheck mode: probe /health and exit, without starting a web host (see HealthProbe).
+if (args is [HealthProbe.Argument])
+{
+    return await HealthProbe.RunAsync();
+}
+
 // Bootstrap logger: records failures that happen before the host's real logger exists
 // (e.g. invalid options caught by ValidateOnStart). AddWeb() replaces it once the host is built.
 Log.Logger = new LoggerConfiguration()

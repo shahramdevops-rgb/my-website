@@ -67,8 +67,9 @@ my-website/
 ├─ Directory.Packages.props        # Central Package Management: every NuGet version lives here
 ├─ .editorconfig  .gitignore  .dockerignore  .env.example
 ├─ PersonalSite.slnx                # new XML solution format (.NET 9+/VS 17.13+)
-├─ compose.yaml                    # shared service definitions
-├─ compose.override.yaml           # dev (auto-loaded by `docker compose up`)
+├─ Dockerfile                      # multi-stage: sdk → aspnet:10.0-noble-chiseled-extra (non-root, :8080)
+├─ compose.yaml                    # shared service definitions (web, db + pgdata volume)
+├─ compose.override.yaml           # dev (auto-loaded): ports 127.0.0.1:8080 (web), 127.0.0.1:5433 (db)
 ├─ compose.prod.yaml               # prod (`docker compose -f compose.yaml -f compose.prod.yaml up -d`)
 ├─ deploy/
 │  ├─ Caddyfile
@@ -153,7 +154,7 @@ PersonalSite.Web/
 ├─ Areas/Admin/Pages/            Dashboard, Posts/*, Projects/*, Comments/*, Messages/*, Resume/*, Subscribers/*, Account/Login
 ├─ Localization/                 SharedResource.cs (marker), CultureRouteConstraint, LanguageResolver
 ├─ Resources/                    SharedResource.fa.resx (later SharedResource.en.resx), view resx files
-├─ Infrastructure/               Routes (path constants), SecurityHeadersMiddleware, SeoHelpers, TagHelpers (e.g. <persian-date>)
+├─ Infrastructure/               Routes (path constants), HealthProbe (container healthcheck), SecurityHeadersMiddleware, SeoHelpers, TagHelpers (e.g. <persian-date>)
 ├─ Endpoints/                    minimal APIs: /sitemap.xml, /feed.xml, /robots.txt, /health, /admin/api/markdown-preview, /resume/download
 ├─ Styles/app.css                Tailwind v4 input (tokens via @theme)
 └─ wwwroot/                      css/app.css (generated, git-ignored), js/*.js, lib/alpine, lib/hljs, fonts/, img/
