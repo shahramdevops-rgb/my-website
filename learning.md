@@ -75,6 +75,18 @@ ASP.NET encrypts auth cookies and our anti-spam tokens with keys. By default in 
 ### 2.9 Reverse proxy & forwarded headers
 Caddy receives HTTPS and forwards plain HTTP to the app. Without `ForwardedHeaders` the app thinks every request is `http://` from Caddy's IP — breaking redirects, secure cookies and rate limiting by IP.
 
+### 2.10 Structured logging (Serilog) & health checks
+A plain log line is just text; a **structured** log keeps the values as fields:
+```csharp
+logger.LogInformation("Post {PostId} published", post.Id);
+// Production output: {"@mt":"Post {PostId} published","PostId":"0192…","@t":"2026-…"}
+```
+Now you can query "all events for PostId X" instead of grepping. Rules: use message templates (never string
+interpolation), never log PII (emails), and keep logs culture-invariant — the site runs in `fa`, but Persian digits
+in logs break searching (analyzer CA1305 reminds you).
+`/health` is a **liveness** check (is the process alive?) with no dependencies — if it checked the DB, a DB outage
+would make Docker restart a perfectly fine web container. `/health/ready` (**readiness**) checks the DB.
+
 ---
 
 ## Part 3 — Data

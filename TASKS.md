@@ -19,7 +19,7 @@
   Done when: `dotnet build` and `dotnet test` pass; reference graph matches the dependency rule.
   Learn: dependency rule / Clean Architecture.
 
-- [ ] **P0-T3 Web host basics**
+- [x] **P0-T3 Web host basics**
   Scope: `Program.cs` structure (`AddApplication`, `AddInfrastructure`, `AddWeb` extension methods), Serilog (console; JSON in Production), `/health` endpoint, `LowercaseUrls`, ProblemDetails, exception handler page, strongly-typed options pattern example with `ValidateOnStart`.
   Done when: `dotnet run` → `/health` returns `Healthy`; logs are structured.
   Learn: middleware pipeline order, Options pattern.

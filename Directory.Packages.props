@@ -10,6 +10,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- Hosting & logging (P0-T3) -->
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.12" />
+    <PackageVersion Include="Serilog.AspNetCore" Version="10.0.0" />
+
     <!-- Testing (P0-T2) -->
     <PackageVersion Include="xunit.v3" Version="4.0.1" />
   </ItemGroup>

@@ -3,6 +3,10 @@
   <!-- Web: Razor Pages UI (public site + admin area). Talks to Application services only. -->
 
   <ItemGroup>
+    <PackageReference Include="Serilog.AspNetCore" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\PersonalSite.Application\PersonalSite.Application.csproj" />
     <!-- Referenced only so Program.cs can call AddInfrastructure() (composition root). -->
     <ProjectReference Include="..\PersonalSite.Infrastructure\PersonalSite.Infrastructure.csproj" />

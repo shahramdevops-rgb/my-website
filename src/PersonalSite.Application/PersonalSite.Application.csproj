@@ -3,6 +3,10 @@
   <!-- Application: use cases (services), DTOs, validators, interfaces for external concerns. -->
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\PersonalSite.Domain\PersonalSite.Domain.csproj" />
   </ItemGroup>
 

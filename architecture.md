@@ -113,8 +113,8 @@ PersonalSite.Application/
 ├─ Common/
 │  ├─ Abstractions/   IAppDbContext, IFileStorage, IEmailSender, IMarkdownRenderer, ISpamGuard   (time: built-in TimeProvider)
 │  ├─ Results/        Result.cs, Error.cs
-│  ├─ Paging/         PagedList<T>, PageRequest
-│  └─ DependencyInjection.cs   (AddApplication)
+│  └─ Paging/         PagedList<T>, PageRequest
+├─ DependencyInjection.cs      (AddApplication)
 ├─ Blog/              PostService (public reads), PostAdminService, CommentService, DTOs, Validators
 ├─ Projects/          ProjectService, ProjectAdminService, DTOs, Validators
 ├─ Contact/           ContactService
@@ -136,7 +136,9 @@ PersonalSite.Infrastructure/
 └─ DependencyInjection.cs        (AddInfrastructure)
 
 PersonalSite.Web/
-├─ Program.cs
+├─ Program.cs                    composition root: AddApplication → AddInfrastructure → AddWeb, middleware order
+├─ DependencyInjection.cs        (AddWeb: Serilog, options, routing, ProblemDetails, health checks, Razor Pages)
+├─ Configuration/                Options classes bound from config (SiteOptions …), all with ValidateOnStart
 ├─ Pages/                        public Razor Pages
 │  ├─ Index.cshtml               Home
 │  ├─ About.cshtml
@@ -151,7 +153,7 @@ PersonalSite.Web/
 ├─ Areas/Admin/Pages/            Dashboard, Posts/*, Projects/*, Comments/*, Messages/*, Resume/*, Subscribers/*, Account/Login
 ├─ Localization/                 SharedResource.cs (marker), CultureRouteConstraint, LanguageResolver
 ├─ Resources/                    SharedResource.fa.resx (later SharedResource.en.resx), view resx files
-├─ Infrastructure/               SecurityHeadersMiddleware, SeoHelpers, TagHelpers (e.g. <persian-date>)
+├─ Infrastructure/               Routes (path constants), SecurityHeadersMiddleware, SeoHelpers, TagHelpers (e.g. <persian-date>)
 ├─ Endpoints/                    minimal APIs: /sitemap.xml, /feed.xml, /robots.txt, /health, /admin/api/markdown-preview, /resume/download
 ├─ Styles/app.css                Tailwind v4 input (tokens via @theme)
 └─ wwwroot/                      css/app.css (generated, git-ignored), js/*.js, lib/alpine, lib/hljs, fonts/, img/
