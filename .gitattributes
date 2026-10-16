@@ -1,5 +1,7 @@
-# Normalize line endings in the repo (LF), let Git convert on checkout.
-* text=auto
+# Text files are LF in the repo AND in the working copy (matches .editorconfig `end_of_line = lf`),
+# regardless of a machine's core.autocrlf setting. Without eol=lf, Git for Windows checks out CRLF
+# and `dotnet format --verify-no-changes` fails.
+* text=auto eol=lf
 
 # Shell scripts must stay LF (they run on the Linux server / in containers).
 *.sh text eol=lf
