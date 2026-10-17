@@ -10,6 +10,9 @@ services:
       context: .
       dockerfile: Dockerfile
     image: personalsite-web:dev
+    environment:
+      # Built from the same .env values as the db service; "db" is the service name on the compose network.
+      ConnectionStrings__Default: Host=db;Port=5432;Database=${POSTGRES_DB:-site};Username=${POSTGRES_USER:-site};Password=${POSTGRES_PASSWORD}
     depends_on:
       db:
         condition: service_healthy

@@ -3,8 +3,20 @@
   <!-- Infrastructure: EF Core, file storage, email, markdown. Implements Application interfaces. -->
 
   <ItemGroup>
+    <PackageReference Include="EFCore.NamingConventions" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\PersonalSite.Application\PersonalSite.Application.csproj" />
     <ProjectReference Include="..\PersonalSite.Domain\PersonalSite.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Lets unit tests call internal helpers such as AuditInterceptor.ApplyAuditTimestamps. -->
+    <InternalsVisibleTo Include="PersonalSite.UnitTests" />
   </ItemGroup>
 
 </Project>

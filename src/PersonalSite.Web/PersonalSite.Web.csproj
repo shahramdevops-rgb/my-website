@@ -2,8 +2,15 @@
 
   <!-- Web: Razor Pages UI (public site + admin area). Talks to Application services only. -->
 
+  <PropertyGroup>
+    <!-- Local dev secrets (e.g. the DB connection string) live outside the repo: `dotnet user-secrets`. -->
+    <UserSecretsId>personalsite-web-dev</UserSecretsId>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Serilog.AspNetCore" />
+    <!-- Needed by `dotnet ef` (this is the startup project); PrivateAssets keeps it out of the published app. -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>

@@ -62,6 +62,7 @@ services.AddOptions<SiteOptions>().BindConfiguration("Site").ValidateDataAnnotat
 
 ### 2.5 Configuration & environment variables
 `appsettings.json` → `appsettings.Production.json` → environment variables (later wins). In Docker you set `ConnectionStrings__Default=...` — double underscore = nested key. Secrets live only in env vars / `.env`, never in git.
+When the app runs on your machine (not in Docker), local secrets go in **user-secrets** (`dotnet user-secrets set ...`): a JSON file in your user profile, loaded only in Development, so it can never be committed.
 
 ### 2.6 `TimeProvider` instead of `DateTime.Now`
 `DateTime.Now` is server-local and untestable. `TimeProvider` (built into .NET 8+) can be faked in tests (`FakeTimeProvider`) — e.g. to test "comment submitted 2 seconds after page load".
@@ -111,6 +112,18 @@ The InMemory provider isn't a real database: no unique constraints, different st
 
 ### 3.7 Storing enums as strings
 `status = 'Published'` is readable in the DB and doesn't break if someone reorders the enum (which silently changes integer values).
+
+### 3.8 DbContext lifetime (scoped)
+A `DbContext` remembers every entity it loaded (change tracking) and is **not thread-safe**. So it is registered as
+*scoped*: one instance per HTTP request, disposed when the request ends. Singleton would share one tracker across all
+users (wrong data, crashes); transient would give two services in the same request two separate units of work.
+Outside a request (e.g. migrating at startup) there is no scope, so you create one:
+```csharp
+await using var scope = services.CreateAsyncScope();
+var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+```
+Our `AuditInterceptor` is a singleton (it holds no per-request state) and stamps `CreatedAt`/`UpdatedAt` on every
+save, so services never have to remember to.
 
 ---
 

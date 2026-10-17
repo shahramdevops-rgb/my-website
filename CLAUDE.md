@@ -15,9 +15,9 @@ It is also a **learning project**: Adam wants to understand *why* each technical
 
 ## 2. Current status
 
-- **Phase:** P0 — Foundation. `P0-T1`…`P0-T4` done. Code is on GitHub: `shahramdevops-rgb/my-website` (`origin`).
-- **Next task:** `P0-T5` (EF Core & PostgreSQL).
-- **Dev DB** is published on host port **5433** (Adam has another project's PostgreSQL on 5432).
+- **Phase:** P0 — Foundation. `P0-T1`…`P0-T5` done. Code is on GitHub: `shahramdevops-rgb/my-website` (`origin`).
+- **Next task:** `P0-T6` (Test infrastructure).
+- **Dev DB** is published on host port **5433** (Adam has another project's PostgreSQL on 5432). For `dotnet watch` on the host, the connection string lives in **user-secrets** (`ConnectionStrings:Default`); in Docker, `compose.yaml` builds it from `.env`.
 - **Tooling note:** when Claude runs locally (VS Code extension) it can use `dotnet` and reach nuget.org; in cloud sandboxes it may not — then Adam runs the `dotnet` commands.
 - **Tests** run on Microsoft.Testing.Platform (`global.json` → `test.runner`); `dotnet test` from the repo root.
 - Keep this section updated: after finishing a task, set "Next task" to the next unchecked item.

@@ -29,7 +29,7 @@
   Done when: `docker compose up --build` serves `/health`; DB healthy; data survives `docker compose down`/`up`.
   Learn: images vs containers, volumes, multi-stage builds, why ICU matters.
 
-- [ ] **P0-T5 EF Core & PostgreSQL**
+- [x] **P0-T5 EF Core & PostgreSQL**
   Scope: packages (Npgsql EF provider, NamingConventions, Design), `AppDbContext` implementing `IAppDbContext`, `AuditInterceptor`, snake_case, connection string from config, `InitialCreate` migration, auto-migrate **only in Development**, `/health/ready` with DB check.
   Done when: tables created in the container DB; readiness check reports DB status.
   Learn: DbContext lifetime, migrations, why auto-migrate is dev-only.

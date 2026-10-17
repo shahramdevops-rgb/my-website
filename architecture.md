@@ -125,7 +125,9 @@ PersonalSite.Application/
 
 PersonalSite.Infrastructure/
 ├─ Persistence/
-│  ├─ AppDbContext.cs            (IdentityDbContext<AppUser> + IAppDbContext)
+│  ├─ AppDbContext.cs            (IdentityDbContext<AppUser> + IAppDbContext; plain DbContext until P4)
+│  ├─ DatabaseOptions.cs         (ConnectionStrings:Default, validated on start)
+│  ├─ DatabaseMigrator.cs        (MigrateDatabaseAsync – called at startup in Development only)
 │  ├─ Configurations/            one IEntityTypeConfiguration<T> per entity
 │  ├─ Migrations/
 │  ├─ Interceptors/AuditInterceptor.cs  (sets CreatedAt/UpdatedAt)
@@ -312,7 +314,7 @@ URLs use lowercase (`RouteOptions.LowercaseUrls = true`) and no trailing slash.
 | Files | `IFileStorage` → `LocalFileStorage` (volume). Upload rules: allow-list of content types + magic-byte check, max size, random storage key, never serve from user-supplied names. Swappable for S3-compatible storage later. |
 | Email | `IEmailSender` → `LoggingEmailSender` by default; `SmtpEmailSender` when `Notifications.Email` or `Newsletter.Sending` is on. |
 | Time | `TimeProvider` (built-in .NET abstraction) injected everywhere; never `DateTime.Now`. |
-| Health | `/health` (liveness) and `/health/ready` (DB check) for Docker healthchecks. |
+| Health | `/health` (liveness, runs no checks) for the Docker healthcheck; `/health/ready` (readiness: runs all checks, today the DB) returns JSON `{"status","checks":{"database":…}}`, 503 when unhealthy. |
 | Globalization | Container image **must include ICU** (`aspnet:10.0-noble-chiseled-extra` or non-chiseled); `fa-IR` culture gives Persian calendar. |
 
 ## 8. Front-end architecture

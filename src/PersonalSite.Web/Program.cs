@@ -1,6 +1,7 @@
 using System.Globalization;
 using PersonalSite.Application;
 using PersonalSite.Infrastructure;
+using PersonalSite.Infrastructure.Persistence;
 using PersonalSite.Web;
 using PersonalSite.Web.Endpoints;
 using PersonalSite.Web.Infrastructure;
@@ -28,6 +29,12 @@ try
         .AddWeb();
 
     var app = builder.Build();
+
+    if (app.Environment.IsDevelopment())
+    {
+        // Dev convenience: the local DB always matches the code. Production migrates as a deploy step instead.
+        await app.Services.MigrateDatabaseAsync(CancellationToken.None);
+    }
 
     // Middleware order matters: each component only sees what runs after it.
     // The exception handler goes first so it can catch failures from everything below.

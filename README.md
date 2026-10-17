@@ -38,6 +38,8 @@ Copy-Item .env.example .env        # then edit values
 
 # Option A — app on host, DB in Docker (best for debugging)
 docker compose up -d db
+# once: connection string for the host app (stored outside the repo; use the password from .env)
+dotnet user-secrets set "ConnectionStrings:Default" "Host=localhost;Port=5433;Database=site;Username=site;Password=<POSTGRES_PASSWORD>" --project src/PersonalSite.Web
 dotnet watch --project src/PersonalSite.Web
 ./tools/tailwind-watch.ps1         # second terminal
 
@@ -45,7 +47,9 @@ dotnet watch --project src/PersonalSite.Web
 docker compose up --build
 ```
 
-App: http://localhost:8080 · Health: http://localhost:8080/health · Admin: http://localhost:8080/admin
+App: http://localhost:8080 · Health: http://localhost:8080/health (`/health/ready` checks the DB) · Admin: http://localhost:8080/admin
+
+In Development the app applies pending EF Core migrations at startup; in production that is a separate deploy step.
 
 PostgreSQL (dev): `localhost:5433` (host port 5433 avoids clashing with another local PostgreSQL).
 `docker compose down` keeps the database (named volume `pgdata`); `docker compose down -v` **deletes** it.
