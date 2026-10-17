@@ -45,7 +45,7 @@
 
 ## Phase 1 — Design system, layout & i18n infrastructure
 
-- [ ] **P1-T1 Tailwind v4 pipeline + design tokens**
+- [x] **P1-T1 Tailwind v4 pipeline + design tokens**
   Scope: download Tailwind standalone CLI (script `tools/get-tailwind.ps1` + `.sh`, version pinned), `Styles/app.css` with `@theme` tokens from architecture §8.1, `data-theme` dark/light variants, MSBuild target to compile on build, watch script for dev; Docker build stage runs the CLI with `--minify`.
   Done when: utilities like `bg-surface text-primary` work; both themes' contrast pairs verified ≥ 4.5:1 (list results in PR).
   Learn: utility-first CSS, CSS variables, Tailwind v4 `@theme`.

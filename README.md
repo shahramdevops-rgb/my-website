@@ -37,7 +37,7 @@ Docker Compose · Caddy · Umami · xUnit + Testcontainers · GitHub Actions.
 git clone <repo-url> my-website
 cd my-website
 Copy-Item .env.example .env        # then edit values
-./tools/get-tailwind.ps1           # downloads pinned Tailwind CLI (Phase 1)
+./tools/get-tailwind.ps1           # once: pinned Tailwind CLI (the build needs it)
 
 # Option A — app on host, DB in Docker (best for debugging)
 docker compose up -d db

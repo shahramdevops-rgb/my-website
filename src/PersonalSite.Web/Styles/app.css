@@ -1,0 +1,73 @@
+/*
+  Tailwind v4 input. Compiled by the standalone CLI to wwwroot/css/app.css (git-ignored):
+  on every build by the MSBuild target in PersonalSite.Web.csproj, and live by tools/tailwind-watch.ps1.
+*/
+
+/* source(none): scan only the folders listed below, not the whole project (bin/, obj/ hold no markup). */
+@import "tailwindcss" source(none);
+
+@source "../Pages";
+
+/*
+  Theme switch: data-theme="dark|light" on <html> (architecture.md §8). Dark is the default, so the dark
+  variant matches whenever the page is NOT explicitly light — also when no attribute is set (JS disabled).
+*/
+@custom-variant dark (&:where(:root:not([data-theme="light"]), :root:not([data-theme="light"]) *));
+@custom-variant light (&:where([data-theme="light"], [data-theme="light"] *));
+
+/*
+  Design tokens (architecture.md §8.1). Values here are the DARK theme; the light theme overrides the same
+  variables below. Utilities read the variable at runtime (bg-surface → var(--color-surface)), so switching
+  data-theme re-colors the page without a second set of classes.
+  "static" emits every token as a CSS variable even when no utility uses it yet (e.g. for SVG motifs).
+  WCAG contrast of every text/background pair is checked by ColorContrastTests (unit tests).
+*/
+@theme static {
+  /* Drop Tailwind's default palette: markup may use our tokens only (rules.md — no raw colors). */
+  --color-*: initial;
+
+  --color-bg: #0b1410;
+  --color-surface: #12211a;
+  --color-surface-2: #1a2e24;
+  --color-text: #e6efe7;
+  --color-muted: #9db3a4;
+  --color-primary: #5fb37c;
+  --color-primary-soft: #1f3d2c;
+  --color-bloom: #e8a0b4;
+  --color-sun: #e9b44c;
+  --color-border: #24392e;
+}
+
+@layer base {
+  :root {
+    /* Native widgets (scrollbars, form controls) follow the theme too. */
+    color-scheme: dark;
+  }
+
+  :root[data-theme="light"] {
+    color-scheme: light;
+
+    --color-bg: #f5f1e6;
+    --color-surface: #fffdf7;
+    --color-surface-2: #ece6d6;
+    --color-text: #1c2a22;
+    --color-muted: #56675c;
+    --color-primary: #2c7246;
+    --color-primary-soft: #d6ebdc;
+    --color-bloom: #a44567;
+    --color-sun: #a8741a;
+    --color-border: #d5ccb6;
+  }
+
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-text);
+  }
+
+  /* Tailwind's preflight resets border colors to currentColor; dividers should use the token. */
+  *,
+  ::before,
+  ::after {
+    border-color: var(--color-border);
+  }
+}

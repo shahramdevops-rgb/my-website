@@ -46,6 +46,10 @@ jobs:
           key: nuget-${{ runner.os }}-${{ hashFiles('Directory.Packages.props', '**/*.csproj') }}
           restore-keys: nuget-${{ runner.os }}-
 
+      # The Web project's build compiles Tailwind CSS and fails without the CLI.
+      - name: Get Tailwind CLI
+        run: sh tools/get-tailwind.sh
+
       - name: Restore
         run: dotnet restore
 

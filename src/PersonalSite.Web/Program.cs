@@ -48,7 +48,9 @@ try
     app.UseRouting();
 
     app.MapHealthEndpoints();
-    app.MapRazorPages();
+    // Serves wwwroot (e.g. the compiled Tailwind CSS) with compression and long-lived caching.
+    app.MapStaticAssets();
+    app.MapRazorPages().WithStaticAssets();
 
     await app.RunAsync();
     return 0;

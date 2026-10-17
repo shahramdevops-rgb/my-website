@@ -158,7 +158,7 @@ PersonalSite.Web/
 ├─ Resources/                    SharedResource.fa.resx (later SharedResource.en.resx), view resx files
 ├─ Infrastructure/               Routes (path constants), HealthProbe (container healthcheck), SecurityHeadersMiddleware, SeoHelpers, TagHelpers (e.g. <persian-date>)
 ├─ Endpoints/                    minimal APIs: /sitemap.xml, /feed.xml, /robots.txt, /health, /admin/api/markdown-preview, /resume/download
-├─ Styles/app.css                Tailwind v4 input (tokens via @theme)
+├─ Styles/app.css                Tailwind v4 input (tokens via @theme; compiled by the TailwindBuild MSBuild target)
 └─ wwwroot/                      css/app.css (generated, git-ignored), js/*.js, lib/alpine, lib/hljs, fonts/, img/
 ```
 
@@ -319,9 +319,17 @@ URLs use lowercase (`RouteOptions.LowercaseUrls = true`) and no trailing slash.
 
 ## 8. Front-end architecture
 
-- **Tailwind v4** input file `Styles/app.css` declares design tokens with `@theme` and a custom dark variant.
-  The standalone CLI compiles it to `wwwroot/css/app.css`. An MSBuild target runs the CLI on build; in dev a
-  watcher runs alongside `dotnet watch`.
+- **Tailwind v4** input file `Styles/app.css` declares design tokens with `@theme static` and custom `dark`/`light`
+  variants. The standalone CLI compiles it to `wwwroot/css/app.css`. An MSBuild target (`TailwindBuild` in the Web
+  csproj) runs the CLI on every build — minified in Release, skipped when no input changed; in dev
+  `tools/tailwind-watch.ps1` runs alongside `dotnet watch`.
+- **CLI pinning:** `tools/get-tailwind.ps1|.sh` download the version in `tools/tailwind-version` into `tools/bin/`
+  (git-ignored) and verify it against `tools/tailwind-checksums.txt` (the release's `sha256sums.txt`). CI and the
+  Docker build stage run the `.sh` script before building. Upgrade = change both files.
+- **Scanned sources:** `source(none)` + explicit `@source` lines (today `../Pages`). New markup folders
+  (`Areas/`, `wwwroot/js/`) must be added there, or their classes are silently missing.
+- **Palette lock-down:** `--color-*: initial` removes Tailwind's default colors, so only token utilities exist
+  (`bg-surface`, `text-primary`, `border-border`…).
 - **Theme:** `data-theme="dark|light"` on `<html>`. A tiny inline (nonce'd) script in `<head>` sets it
   *before first paint* from `localStorage`, defaulting to **dark**. Alpine `$store.theme` toggles it afterwards.
 - **RTL:** layout uses logical utilities only (`ms-*`, `me-*`, `ps-*`, `pe-*`, `start-*`, `end-*`, `text-start`),
@@ -340,13 +348,16 @@ URLs use lowercase (`RouteOptions.LowercaseUrls = true`) and no trailing slash.
 | `--color-surface-2` | `#1A2E24` | `#ECE6D6` | hover, inputs |
 | `--color-text` | `#E6EFE7` | `#1C2A22` | body text |
 | `--color-muted` | `#9DB3A4` | `#56675C` | secondary text |
-| `--color-primary` | `#5FB37C` moss | `#2F7A4B` fern | links, buttons |
+| `--color-primary` | `#5FB37C` moss | `#2C7246` fern | links, buttons |
 | `--color-primary-soft` | `#1F3D2C` | `#D6EBDC` | tag backgrounds |
-| `--color-bloom` | `#E8A0B4` blossom | `#B8577A` | floral accent, highlights |
+| `--color-bloom` | `#E8A0B4` blossom | `#A44567` | floral accent, highlights |
 | `--color-sun` | `#E9B44C` marigold | `#A8741A` | small accents, focus rings |
 | `--color-border` | `#24392E` | `#D5CCB6` | dividers |
 
-All text/background pairs must meet WCAG AA (≥ 4.5:1). Verify when tokens change (TASK P1-T1).
+All text/background pairs must meet WCAG AA (≥ 4.5:1); `sun` (focus rings, non-text) needs ≥ 3:1.
+`ColorContrastTests` (unit tests) reads `Styles/app.css` and enforces this, so a failing token breaks the build.
+P1-T1 darkened light `primary` (`#2F7A4B` → `#2C7246`) and light `bloom` (`#B8577A` → `#A44567`), same hue, because
+they fell below 4.5:1 on `surface-2`/`primary-soft`.
 
 ## 9. Environments & deployment
 

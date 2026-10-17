@@ -16,7 +16,9 @@ It is also a **learning project**: Adam wants to understand *why* each technical
 ## 2. Current status
 
 - **Phase:** P0 — Foundation **complete** (`P0-T1`…`P0-T7`). CI (`.github/workflows/ci.yml`) runs restore, build, format check and tests on every push and PR. Code is on GitHub: `shahramdevops-rgb/my-website` (`origin`).
-- **Next task:** `P1-T1` (Tailwind v4 pipeline + design tokens).
+- **Phase P1** in progress: `P1-T1` (Tailwind pipeline + tokens) done.
+- **Next task:** `P1-T2` (Fonts & base typography).
+- **Tailwind CLI** is required to build the Web project: run `./tools/get-tailwind.ps1` once (CI/Docker run the `.sh`). New markup folders must be added as `@source` in `Styles/app.css`.
 - **Dev DB** is published on host port **5433** (Adam has another project's PostgreSQL on 5432). For `dotnet watch` on the host, the connection string lives in **user-secrets** (`ConnectionStrings:Default`); in Docker, `compose.yaml` builds it from `.env`.
 - **Tooling note:** when Claude runs locally (VS Code extension) it can use `dotnet` and reach nuget.org; in cloud sandboxes it may not — then Adam runs the `dotnet` commands.
 - **Tests** run on Microsoft.Testing.Platform (`global.json` → `test.runner`); `dotnet test` from the repo root (Docker must be running: integration tests start PostgreSQL via Testcontainers).

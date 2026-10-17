@@ -4,6 +4,11 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0-noble AS build
 WORKDIR /src
 
+# Tailwind CLI (pinned + checksum-verified). Its own layer: re-downloaded only when the pinned version changes.
+# `dotnet publish` (Release) below then runs the CLI with --minify through the MSBuild target in the Web project.
+COPY tools/get-tailwind.sh tools/tailwind-version tools/tailwind-checksums.txt tools/
+RUN sh tools/get-tailwind.sh
+
 # Restore first, from project/props files only: this layer stays cached until a dependency changes,
 # so editing C# code doesn't re-download every NuGet package.
 COPY global.json Directory.Build.props Directory.Packages.props .editorconfig ./

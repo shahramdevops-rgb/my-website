@@ -138,6 +138,28 @@ Tailwind ships a single executable. We run it from MSBuild/Docker, so a .NET dev
 ### 4.3 Design tokens & CSS variables
 Colors are named by *role* (`--color-surface`, `--color-primary`), not by value. Dark/light themes just redefine the variables under `[data-theme="light"]`. Components never change.
 
+In Tailwind v4, every variable in `@theme` becomes a utility that *reads the variable at runtime*:
+
+```css
+@theme { --color-surface: #12211a; }                      /* dark (default) */
+:root[data-theme="light"] { --color-surface: #fffdf7; }    /* light override */
+```
+
+`class="bg-surface"` compiles to `background-color: var(--color-surface)`, so flipping `data-theme` on `<html>`
+re-colors the whole page — no `dark:` classes on every element. `dark:`/`light:` variants still exist for the rare
+case where a theme needs a *different* rule, not just a different color.
+
+### 4.3.1 Contrast ratio (WCAG AA)
+Contrast = (lighter luminance + 0.05) / (darker luminance + 0.05), from 1:1 to 21:1. Normal text needs ≥ 4.5:1,
+UI parts like focus rings ≥ 3:1. Example: light-theme `#2F7A4B` on `#ECE6D6` = 4.21 (fails), `#2C7246` = 4.68
+(passes) — almost the same green to the eye. `ColorContrastTests` computes this for every token pair, so the rule
+is checked by the build, not by memory.
+
+### 4.3.2 Why the build target has a stamp file
+MSBuild skips a target when its outputs are newer than its inputs. Switching Debug → Release changes no source
+file, so Tailwind would not re-run and Release would keep unminified CSS. The CLI arguments are written to
+`obj/tailwind.args` only when they change; listing that file as an input makes the switch trigger a rebuild.
+
 ### 4.4 Dark mode without flash (FOUC)
 If the theme is applied by JavaScript *after* the page renders, you see a white flash. A tiny inline script in `<head>` reads `localStorage` and sets `data-theme` before the first paint.
 

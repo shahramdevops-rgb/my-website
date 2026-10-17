@@ -1,10 +1,13 @@
 <!DOCTYPE html>
 @* Temporary layout. lang/dir become culture-driven in P1-T3; full layout arrives in P1-T5. *@
-<html lang="fa" dir="rtl">
+@* data-theme: dark is the default; the theme toggle (P1-T6) switches it before first paint. *@
+<html lang="fa" dir="rtl" data-theme="dark">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>@ViewData["Title"]</title>
+    @* asp-append-version: the URL changes whenever the file's content changes, so browsers never keep a stale cached copy. *@
+    <link rel="stylesheet" href="~/css/app.css" asp-append-version="true" />
 </head>
 <body>
     <main>

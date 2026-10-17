@@ -19,4 +19,45 @@
     <ProjectReference Include="..\PersonalSite.Infrastructure\PersonalSite.Infrastructure.csproj" />
   </ItemGroup>
 
+  <!--
+    Tailwind CSS (ADR-008): compile Styles/app.css → wwwroot/css/app.css before every build, so `dotnet build`,
+    `dotnet publish` (Docker) and CI always produce up-to-date CSS. Release builds are minified.
+    The CLI is downloaded once by tools/get-tailwind.ps1 (Windows) or tools/get-tailwind.sh (Linux/macOS/Docker).
+  -->
+  <PropertyGroup>
+    <TailwindCli Condition="$([MSBuild]::IsOSPlatform('Windows'))">$(MSBuildThisFileDirectory)..\..\tools\bin\tailwindcss.exe</TailwindCli>
+    <TailwindCli Condition="!$([MSBuild]::IsOSPlatform('Windows'))">$(MSBuildThisFileDirectory)../../tools/bin/tailwindcss</TailwindCli>
+    <TailwindInput>Styles/app.css</TailwindInput>
+    <TailwindOutput>wwwroot/css/app.css</TailwindOutput>
+    <TailwindArgs Condition="'$(Configuration)' == 'Release'">--minify</TailwindArgs>
+    <!-- Evaluated before any target runs: tells whether the wwwroot/** glob already picked the file up. -->
+    <TailwindOutputExisted Condition="Exists('$(TailwindOutput)')">true</TailwindOutputExisted>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Files Tailwind reads: the input CSS and the markup it scans for class names (see @source in app.css). -->
+    <TailwindSource Include="Styles/**/*.css;Pages/**/*.cshtml" />
+  </ItemGroup>
+
+  <!-- Records the CLI arguments; the file only changes when they do (e.g. Debug → Release turns on minify),
+       which makes TailwindBuild below rerun even though no source file changed. Shared by all configurations. -->
+  <Target Name="TailwindWriteArgs" Condition="'$(DesignTimeBuild)' != 'true'">
+    <WriteLinesToFile File="$(BaseIntermediateOutputPath)tailwind.args" Lines="$(TailwindArgs)" Overwrite="true" WriteOnlyWhenDifferent="true" />
+  </Target>
+
+  <!-- Inputs/Outputs: MSBuild skips the target when no source changed since the last run (fast rebuilds).
+       Skipped in IDE design-time builds, which only need to understand the code, not produce assets. -->
+  <Target Name="TailwindBuild" BeforeTargets="BeforeBuild" DependsOnTargets="TailwindWriteArgs" Condition="'$(DesignTimeBuild)' != 'true'"
+          Inputs="@(TailwindSource);$(BaseIntermediateOutputPath)tailwind.args" Outputs="$(TailwindOutput)">
+    <Error Condition="!Exists('$(TailwindCli)')"
+           Text="Tailwind CLI not found at $(TailwindCli). Run ./tools/get-tailwind.ps1 (Windows) or ./tools/get-tailwind.sh (Linux/macOS) once." />
+    <Exec Command="&quot;$(TailwindCli)&quot; --input &quot;$(TailwindInput)&quot; --output &quot;$(TailwindOutput)&quot; $(TailwindArgs)"
+          WorkingDirectory="$(MSBuildProjectDirectory)" />
+    <!-- On a fresh clone the file did not exist when MSBuild collected wwwroot/**, so register it explicitly;
+         otherwise the first build would not serve or publish it. -->
+    <ItemGroup Condition="'$(TailwindOutputExisted)' != 'true'">
+      <Content Include="$(TailwindOutput)" />
+    </ItemGroup>
+  </Target>
+
 </Project>
