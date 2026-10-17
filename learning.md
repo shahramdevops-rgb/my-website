@@ -254,3 +254,10 @@ public sealed class HealthEndpointsTests(WebAppFactory factory)   // shared once
 }
 ```
 Rule of thumb: logic → unit test; "does it work with the real DB / pipeline / routing?" → integration test. The app runs in a `Testing` environment, so it behaves like production (no user-secrets, no dev exception page).
+
+### 7.11 Continuous Integration (CI)
+CI = a clean machine re-checks every push: restore → build → format check → tests. "Works on my machine" stops being enough; `main` stays green because a broken commit is visible within a minute. Our workflow (`.github/workflows/ci.yml`) runs the same commands you run locally, so a failure in CI can always be reproduced on Windows:
+```powershell
+dotnet build -c Release; dotnet format --verify-no-changes; dotnet test -c Release
+```
+Two small habits in the file: `permissions: contents: read` (least privilege for the token) and `concurrency` (a newer push cancels the older run).

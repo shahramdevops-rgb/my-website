@@ -15,8 +15,8 @@ It is also a **learning project**: Adam wants to understand *why* each technical
 
 ## 2. Current status
 
-- **Phase:** P0 — Foundation. `P0-T1`…`P0-T6` done. Code is on GitHub: `shahramdevops-rgb/my-website` (`origin`).
-- **Next task:** `P0-T7` (CI pipeline).
+- **Phase:** P0 — Foundation **complete** (`P0-T1`…`P0-T7`). CI (`.github/workflows/ci.yml`) runs restore, build, format check and tests on every push and PR. Code is on GitHub: `shahramdevops-rgb/my-website` (`origin`).
+- **Next task:** `P1-T1` (Tailwind v4 pipeline + design tokens).
 - **Dev DB** is published on host port **5433** (Adam has another project's PostgreSQL on 5432). For `dotnet watch` on the host, the connection string lives in **user-secrets** (`ConnectionStrings:Default`); in Docker, `compose.yaml` builds it from `.env`.
 - **Tooling note:** when Claude runs locally (VS Code extension) it can use `dotnet` and reach nuget.org; in cloud sandboxes it may not — then Adam runs the `dotnet` commands.
 - **Tests** run on Microsoft.Testing.Platform (`global.json` → `test.runner`); `dotnet test` from the repo root (Docker must be running: integration tests start PostgreSQL via Testcontainers).

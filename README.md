@@ -3,7 +3,10 @@
 Personal site of Adam — backend developer (C#/.NET): resume, portfolio, technical blog, services, contact.
 Content is Persian (RTL); the structure is ready for English.
 
-> **Status:** Planning complete, no code yet. Start with task **P0-T1** in [`TASKS.md`](TASKS.md).
+[![CI](https://github.com/shahramdevops-rgb/my-website/actions/workflows/ci.yml/badge.svg)](https://github.com/shahramdevops-rgb/my-website/actions/workflows/ci.yml)
+
+> **Status:** Phase 0 (foundation) complete: solution, Docker dev stack, EF Core + PostgreSQL, tests, CI.
+> Next: Phase 1 (design system & layout); see [`TASKS.md`](TASKS.md).
 
 ## Documentation
 

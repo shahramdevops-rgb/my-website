@@ -39,7 +39,7 @@
   Done when: `dotnet test` spins up Postgres and passes (Docker required).
   Learn: unit vs integration tests, why not EF InMemory.
 
-- [ ] **P0-T7 CI pipeline**
+- [x] **P0-T7 CI pipeline**
   Scope: `.github/workflows/ci.yml` — restore, build, `dotnet format --verify-no-changes`, test (on push & PR).
   Done when: CI green on GitHub.
 
