@@ -393,6 +393,8 @@ All text/background pairs must meet WCAG AA (≥ 4.5:1). Verify when tokens chan
 | Web | page returns 200, auth redirects, antiforgery, honeypot behaviour, culture routing | WebApplicationFactory + Testcontainers |
 | Manual | Lighthouse (perf/SEO/a11y ≥ 90), RTL visual check, dark/light check | Chrome DevTools |
 
+Integration tests share one `WebAppFactory` (xUnit assembly fixture) that owns one PostgreSQL container and runs the app in a `Testing` environment (production-like: no user-secrets, no auto-migrate; the fixture applies migrations itself).
+
 ## 11. Decision log (ADRs)
 
 - **ADR-001 Razor Pages over MVC.** Content pages map 1:1 to URLs; Razor Pages keeps page + handler together, less ceremony than controllers. MVC is still available if an API is ever needed (minimal APIs cover the few JSON endpoints).

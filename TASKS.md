@@ -34,7 +34,7 @@
   Done when: tables created in the container DB; readiness check reports DB status.
   Learn: DbContext lifetime, migrations, why auto-migrate is dev-only.
 
-- [ ] **P0-T6 Test infrastructure**
+- [x] **P0-T6 Test infrastructure**
   Scope: Shouldly, NSubstitute; `PostgresFixture` using Testcontainers; `WebAppFactory : WebApplicationFactory<Program>` wired to the container DB; one smoke test (`GET /health` → 200). Remove the temporary `--ignore-exit-code 8` from `PersonalSite.IntegrationTests.csproj`.
   Done when: `dotnet test` spins up Postgres and passes (Docker required).
   Learn: unit vs integration tests, why not EF InMemory.

@@ -238,3 +238,19 @@ The old test runner (VSTest) loaded test DLLs into a separate host process. With
 "test": { "runner": "Microsoft.Testing.Platform" }
 ```
 Result: no `Microsoft.NET.Test.Sdk` or `xunit.runner.visualstudio` packages needed. One gotcha: MTP fails a run with exit code 8 when a project has *zero* tests, which catches mis-configured projects that silently discover nothing.
+
+### 7.10 Unit vs integration tests (and `WebApplicationFactory`)
+A *unit test* checks one class with its dependencies faked (NSubstitute) — milliseconds, no Docker. An *integration test* runs real pieces together: `WebApplicationFactory<Program>` boots the whole app in memory (no network port) and hands you an `HttpClient`; Testcontainers gives it a real PostgreSQL (see 3.6).
+```csharp
+public sealed class HealthEndpointsTests(WebAppFactory factory)   // shared once per assembly
+{
+    [Fact]
+    public async Task GetHealth_AppRunning_ReturnsOk()
+    {
+        using var client = factory.CreateClient();
+        using var response = await client.GetAsync(new Uri("/health", UriKind.Relative), TestContext.Current.CancellationToken);
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+    }
+}
+```
+Rule of thumb: logic → unit test; "does it work with the real DB / pipeline / routing?" → integration test. The app runs in a `Testing` environment, so it behaves like production (no user-secrets, no dev exception page).
