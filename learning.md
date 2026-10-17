@@ -153,6 +153,10 @@ save, so services never have to remember to.
 
 ## Part 4 — Front-end
 
+> Sections 4.1–4.9 were written for the P1 Razor front-end, retired on 2026-10-18 (ADR-021). Their concepts (tokens,
+> contrast, RTL, FOUC, CSP, `currentColor`) still apply in Next.js; the tool-specific parts (standalone CLI, Alpine,
+> Razor partials) don't. New front-end entries start at 4.10.
+
 ### 4.1 Tailwind CSS (utility-first)
 Instead of writing `.card { padding: 1rem; … }` you compose small classes in markup: `class="p-4 rounded-2xl bg-surface"`. Tailwind scans your `.cshtml` files and generates only the classes you used → tiny CSS. v4 defines design tokens directly in CSS with `@theme`.
 
@@ -249,6 +253,26 @@ The botanical art (`Shared/Motifs/`, P1-T8) is inline SVG in Razor partials, so 
 - **`currentColor`** = "whatever `color` I inherit". The SVG paints with the wrapper's `text-primary`, which reads a CSS variable, so switching the theme re-colors the art with no extra markup.
 - **No layout shift:** `width`/`height` equal to the viewBox tell the browser the shape's aspect ratio before it lays out the page, so nothing jumps; `w-full h-auto` then scales it.
 - **Motion:** a CSS `@keyframes` rotation, only inside `@media (prefers-reduced-motion: no-preference)`. A `transform` never moves other boxes (no layout shift), and the SVG `transform-origin` attribute sets the pivot where each leaf meets the stem. No `style="…"` and no `id`s: the CSP forbids inline styles, and ids would clash when a motif appears twice. `MotifTests` checks all of this.
+
+
+### 4.10 Two apps, one origin (Next.js + ASP.NET Core API)
+The browser treats `https://site/` and `https://site/api` as the **same origin** (same scheme + host + port). Caddy sends `/api/*` to the .NET container and everything else to the Next.js container, so for the browser it is one site:
+```
+GET /fa/blog/x     → Caddy → frontend:3000  (Next.js renders HTML; on the server it calls http://api:8080/api/posts/fa/x)
+POST /api/auth/login → Caddy → api:8080     (sets the login cookie)
+```
+Why it matters: the login cookie is sent to `/api` automatically, there is no CORS configuration, and no token ever sits in JavaScript where an XSS bug could steal it. Two origins (`app.site` + `api.site`) would need CORS, cross-site cookie settings and more ways to get security wrong.
+
+### 4.11 Server Components vs Client Components
+In the Next.js App Router every component runs **on the server** unless its file starts with `"use client"`. Server Components can `await` data and send only HTML to the browser — no JavaScript for them. Client Components ship JS and can use state, effects and the mouse. Rule of thumb: keep pages as Server Components and make only the small interactive leaves client components.
+```tsx
+// app/[locale]/projects/page.tsx — Server Component: fetches on the server, ships no JS
+export default async function ProjectsPage() {
+  const { data } = await api.GET("/api/projects", { params: { query: { lang: "fa" } } });
+  return <BentoGrid>{(data?.items ?? []).map((p) => <ProjectCard key={p.id} project={p} />)}</BentoGrid>;
+}
+// components/bento/Spotlight.tsx starts with "use client" — it needs pointer events.
+```
 
 ---
 

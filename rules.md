@@ -8,10 +8,10 @@
 1. **Small, focused changes.** One task from `TASKS.md` per branch/PR. No drive-by refactors.
 2. **Build must be green** with `TreatWarningsAsErrors=true`. Never suppress a warning without a comment explaining why.
 3. **No secrets in git.** Connection strings, passwords, SMTP credentials → env vars / `.env` (git-ignored). `.env.example` documents every variable with a dummy value.
-4. **No external runtime dependencies** (CDNs, Google Fonts, hosted APIs, Iranian-only services). Vendor assets into `wwwroot/lib` with the version in the folder name.
+4. **No external runtime dependencies** (CDNs, Google Fonts, hosted APIs, Iranian-only services). npm/NuGet packages are fine — they are bundled into our images at build time; fonts and other assets live in the repo.
 5. **Docs follow code.** A change to structure, data model or a decision updates `architecture.md`; a new concept worth learning gets a short entry in `learning.md`.
-6. Code, identifiers, comments, commit messages and docs: **English**. User-facing strings: **Persian via resource files** — never hard-coded in `.cshtml`/C#.
-7. **No hard-coded hostnames.** The site domains (`mahdiazghandi.ir` canonical, `shahramazghandi.ir` redirect) and the canonical base URL come from config (`SiteOptions.BaseUrl`, `deploy/Caddyfile`, `.env`) — never from C#/Razor. See `architecture.md §9.1`.
+6. Code, identifiers, comments, commit messages and docs: **English**. User-facing strings: **`frontend/messages/{fa,en}.json`** (or localized MDX for prose) — never hard-coded in components or C#.
+7. **No hard-coded hostnames.** The site domains (`mahdiazghandi.ir` canonical, `shahramazghandi.ir` redirect) and the canonical base URL come from config (`Site__BaseUrl`, `SITE_URL`, `deploy/Caddyfile`, `.env`) — never from C# or TypeScript. See `architecture.md §9.1`.
 
 ## 2. C# style
 
@@ -33,7 +33,7 @@
 ## 3. Async & cancellation
 
 - Async all the way: no `.Result`, `.Wait()`, `async void` (except event handlers — we have none).
-- Every I/O method takes a `CancellationToken ct` as the **last** parameter and passes it down. Razor Page handlers get it via `HttpContext.RequestAborted` or a handler parameter.
+- Every I/O method takes a `CancellationToken ct` as the **last** parameter and passes it down. Endpoint handlers take it as a parameter (bound to `RequestAborted`).
 - No `ConfigureAwait(false)` in app code (ASP.NET Core has no sync context); fine to omit.
 
 ## 4. Architecture rules (enforced by project references)
@@ -41,8 +41,9 @@
 - **Domain**: entities, enums, value objects, domain rules. No EF attributes, no ASP.NET, no DTOs.
 - **Application**: use cases as feature services (`PostAdminService`), DTOs, validators, interfaces for external things. No `HttpContext`, no Razor, no `Npgsql`.
 - **Infrastructure**: EF configurations, migrations, implementations of Application interfaces. No business rules.
-- **Web**: page models are **thin** — bind input, call one service method, map `Result` to page response. No LINQ over `DbSet`s in the Web project.
-- Dependency direction: `Web → Application → Domain`, `Infrastructure → Application`. Never reverse.
+- **Api**: endpoints are **thin** — bind input, call one service method, map `Result` to an HTTP result (`TypedResults`, ProblemDetails for errors). No LINQ over `DbSet`s in the Api project.
+- Dependency direction: `Api → Application → Domain`, `Infrastructure → Application`. Never reverse.
+- **frontend** talks to the back-end only over HTTP through the generated client (`src/lib/api/`); it never reads the database or hand-writes API types (ADR-026).
 
 ## 5. Domain modelling
 
@@ -56,9 +57,9 @@
 
 - Expected failures (not found, slug taken, validation) return `Result` / `Result<T>` with a typed `Error` (code + resource key). **Exceptions are for bugs and infrastructure failures only.**
 - Validate commands with FluentValidation **inside** the service before touching the DB. Validation messages are resource keys, not literal text.
-- Read queries: `AsNoTracking()`, project with `Select` to DTOs — never return entities to the Web layer.
+- Read queries: `AsNoTracking()`, project with `Select` to DTOs — never return entities from an endpoint.
 - Every list endpoint is **paged** (`PageRequest`, max page size enforced).
-- Services that mutate public content evict the relevant output-cache tags.
+- Services that mutate public content call `IFrontendRevalidator` with the affected cache tags (`CacheTags` constants).
 
 ## 7. EF Core & database
 
@@ -70,56 +71,67 @@
 - No lazy loading. Use explicit `Include` or projection.
 - No raw SQL string concatenation. `FromSql($"...")` (interpolated → parameterized) only when LINQ can't express it.
 
-## 8. Razor Pages & UI
+## 8. API endpoints
 
-- Every page has a `PageModel`; logic stays out of `.cshtml`.
-- Use tag helpers (`asp-page`, `asp-for`, `asp-append-version`) — never hand-built URLs.
-- All text through `IViewLocalizer` / `IStringLocalizer<SharedResource>`; keys in English dot-notation: `Blog.Post.CommentsTitle`.
-- Forms: antiforgery is on by default — do not disable. POST-Redirect-GET after successful submissions.
-- **RTL-safe CSS only**: use logical utilities (`ms-`, `me-`, `ps-`, `pe-`, `start-`, `end-`, `text-start`, `border-s`). `ml-`/`mr-`/`left-`/`right-`/`text-left` are forbidden except for truly physical cases (commented).
-- Colors only via design tokens (`bg-surface`, `text-primary`) — no raw hex or default Tailwind palette in markup.
-- Every interactive element is keyboard-accessible with a visible focus ring; images have `alt`; decorative SVG motifs have `aria-hidden="true"`.
-- Animations only inside `motion-safe:` variants / `prefers-reduced-motion: no-preference`.
-- Alpine: one component per `wwwroot/js/components/*.js` (default-exported factory), registered in `wwwroot/js/app.js` with `Alpine.data()`; markup uses names only (CSP build) and `x-on:` instead of `@`. No inline `<script>` except constants in `InlineScripts` (allowed by CSP hash, ADR-020).
-- User-generated text (comments, names) is **always** HTML-encoded (Razor default). Never `@Html.Raw` except for `BodyHtml` produced by the sanitizing Markdown renderer.
+- One static class per feature in `Endpoints/` with a `Map…Endpoints(this IEndpointRouteBuilder)` method; everything under `MapGroup("/api")`.
+- Routes lowercase, plural nouns, no trailing slash; language is explicit (`/api/posts/{lang}/{slug}` or `?lang=`), never read from headers.
+- Every endpoint declares its responses (`TypedResults`, `.Produces…`) so the OpenAPI document is complete; regenerate `openapi/v1.json` and the TS types in the same PR as any contract change.
+- Admin endpoints live in the `/api/admin` group (`RequireAuthorization("Admin")`); public POSTs have a rate-limit policy.
+- Errors are ProblemDetails with a stable `code`; the front-end maps codes to messages (no user-facing text from the API, except the plain-text `curl` card and `llms.txt`).
 
-## 9. Security checklist (every PR touching input/output)
+## 9. Front-end (TypeScript / React / Next.js)
+
+- TypeScript `strict` + `noUncheckedIndexedAccess`; no `any` (use `unknown` and narrow); no `!` non-null assertion without a comment.
+- **Server Components by default.** `"use client"` only on the smallest leaf that needs the browser (state, effects, pointer, WebGL).
+- Data only through `src/lib/api/` (generated types + typed client); cached server fetches carry tags from the shared `cacheTags` constants.
+- Files: components `PascalCase.tsx` (one exported component per file), hooks `useThing.ts`, everything else `kebab-case.ts`; routes follow Next.js conventions (`page.tsx`, `layout.tsx`).
+- Text only through next-intl (`useTranslations` / `getTranslations`); keys in English dot-notation (`blog.post.commentsTitle`); every key in both `fa.json` and `en.json` (test). Never concatenate translated fragments — use ICU placeholders.
+- Dates and numbers only through `src/lib/format/` (Intl-based); never replace digits by hand.
+- **RTL-safe CSS only**: logical utilities (`ms-`, `me-`, `ps-`, `pe-`, `start-`, `end-`, `text-start`, `border-s`); `ml-`/`mr-`/`left-`/`right-`/`text-left` only for truly physical cases (commented).
+- Colors only via design tokens (`bg-surface`, `text-accent`) — no raw hex or default Tailwind palette in markup.
+- Every interactive element is keyboard-accessible with a visible focus ring; images have `alt`; decorative SVG has `aria-hidden="true"`. Every signature feature (keyboard, demos, X-Ray) has an accessible equivalent.
+- Animations respect `prefers-reduced-motion` (`motion-safe:` variants, Motion's `useReducedMotion`).
+- Heavy client code (Three.js, demo apps) is loaded with `next/dynamic` when needed, behind a same-size static placeholder; first paint never waits for it.
+- No `dangerouslySetInnerHTML` except for `bodyHtml` produced by the API's sanitizing Markdown renderer. No inline `<script>` except Next's own and our nonce-carrying pre-paint theme script (ADR-025).
+- Server-only modules (`env.ts`, API client with secrets) import `server-only`; only `NEXT_PUBLIC_*` values reach the browser, and they are never secrets.
+
+## 10. Security checklist (every PR touching input/output)
 
 - [ ] Input validated (length, format) server-side; client-side validation is only UX.
-- [ ] Output encoded; no new `Html.Raw`.
-- [ ] Admin endpoints under `Areas/Admin` (authorized by convention) or explicitly `RequireAuthorization("Admin")`.
+- [ ] Output encoded; no new `dangerouslySetInnerHTML`.
+- [ ] Admin endpoints inside the `/api/admin` group (authorized by convention); the admin UI is never the gate.
 - [ ] File uploads: content-type allow-list + magic bytes + size limit + random storage key.
 - [ ] Public POST endpoints have a rate-limit policy.
 - [ ] No PII (emails, IPs) in logs.
 
-## 10. Localization
+## 11. Localization
 
-- Supported cultures are configured in one place (`CultureOptions`, section `Localization` in `appsettings.json`), currently `["fa"]`.
-- Never write the culture into `@page` templates — `CultureRouteConvention` adds `{culture}`. Pages that must stay unprefixed are listed in that convention.
-- In views, shared strings come from the injected `T["Key"]` (`IStringLocalizer<SharedResource>`, see `_ViewImports`).
-- Resource file per scope: `SharedResource.fa.resx` for shared UI; `Pages/X.fa.resx` only for page-specific long strings.
-- Dates via the `<persian-date>` tag helper / `DateDisplay` helper (culture-aware). Numbers via `NumberDisplay`; Persian digits come from the culture's `NativeDigits` (`NativeDigits.Apply`), never from string replacement in views. Date patterns and time phrases live in resx (`Format.*`, `Time.*`).
-- Never concatenate translated fragments; use format strings with placeholders: `"{0} دقیقه مطالعه"`.
+- Locales are configured in one place (`frontend/src/lib/i18n/config.ts`): `fa` and `en`. Default `fa` (→ `en` with the international move, ADR-023).
+- Routes live under `app/[locale]/`; never hard-code `/fa` in links — use next-intl's `Link`/`redirect` helpers.
+- UI strings in `messages/{locale}.json`; long prose in `content/{page}.{locale}.mdx`.
+- The API never localizes text; content rows carry a `language` column and endpoints take the language explicitly.
 
-## 11. Testing
+## 12. Testing
 
 - Every Application service method with logic gets tests (happy path + main failure).
 - Test name pattern: `Method_State_ExpectedResult` → `Approve_PendingComment_SetsStatusApproved`.
 - Arrange/Act/Assert with blank lines between; one behaviour per test.
 - Integration tests use Testcontainers PostgreSQL — **no EF InMemory provider**.
+- Front-end: Vitest + Testing Library for logic and components (`*.test.ts(x)` next to the file); Playwright e2e in `frontend/e2e/` covers both locales, both themes, 360/1440 px, axe checks and zero CSP violations.
 - Bug fix = failing test first, then fix.
 
-## 12. Git & workflow
+## 13. Git & workflow
 
 - Branch: `feat/P6-T3-markdown-preview`, `fix/…`, `chore/…`, `docs/…` (include task ID).
 - Commits: Conventional Commits — `feat(blog): add markdown live preview`. Imperative, ≤ 72 chars subject.
 - `main` is always deployable. Squash-merge PRs.
-- Before marking a task done: build, tests, `dotnet format --verify-no-changes`, update `TASKS.md` checkbox.
+- Before marking a task done: `dotnet build`, `dotnet test`, `dotnet format --verify-no-changes`; for front-end changes also `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build` (in `frontend/`); update the `TASKS.md` checkbox.
 
-## 13. Docker
+## 14. Docker
 
-- Multi-stage Dockerfile: `sdk` build stage → `aspnet:10.0-noble-chiseled-extra` runtime (has ICU; runs as non-root).
-- Pin image tags to a major/minor (`postgres:17-alpine`, `caddy:2`), never `latest` in prod.
-- Container listens on `8080`; only Caddy publishes host ports in prod.
+- API: multi-stage Dockerfile, `sdk` build stage → `aspnet:10.0-noble-chiseled-extra` runtime (has ICU; non-root, port 8080).
+- Front-end: multi-stage `frontend/Dockerfile` (Node 24 build → standalone output on a slim Node runtime, non-root, port 3000).
+- Pin image tags to a major/minor (`postgres:17-alpine`, `caddy:2`, `node:24-…`), never `latest` in prod.
+- Only Caddy publishes host ports in prod (dev also publishes the DB on 5433).
 - Persistent data only in named volumes: `pgdata`, `uploads`, `dpkeys`, `caddy_data`.
-- Healthchecks on `web` and `db`; `depends_on: condition: service_healthy`.
+- Healthchecks on `api`, `frontend` and `db`; `depends_on: condition: service_healthy`.

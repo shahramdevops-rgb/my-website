@@ -2,183 +2,177 @@
 
 > Source of truth for *how the system is built*. If code and this document disagree, fix one of them in the same PR.
 > Decisions are recorded in the **Decision Log** at the bottom (ADR-style, one paragraph each).
+>
+> **2026-10-18 — full-stack split (ADR-021…027).** The site is now two applications: a **Next.js (React +
+> TypeScript) front-end** and an **ASP.NET Core API**. Phase 1 built a Razor Pages front-end; it is retired in
+> `P2-T1` (summary in §8.4). Sections below describe the target; anything still in the code from P1 is marked
+> *retired*.
 
 ---
 
 ## 1. System overview
 
-A server-rendered personal website (resume, portfolio, blog, services) with a private admin panel.
+A personal website (resume, portfolio with live demos, blog, services) with a private admin panel. The browser only
+ever talks to **one origin**; Caddy splits the traffic between the two apps.
 
 ```
-                 Internet
-                    │  HTTPS (443)
-              ┌─────▼─────┐
-              │   Caddy   │  reverse proxy, automatic TLS, gzip/zstd, static cache headers
-              └──┬─────┬──┘
-     /*          │     │  analytics.<domain>/*  (or /stats proxied)
-        ┌────────▼─┐ ┌─▼────────┐
-        │   web    │ │  umami   │  self-hosted analytics
-        │ ASP.NET  │ │ (Node)   │
-        │ Core 10  │ └────┬─────┘
-        └──┬────┬──┘      │
-           │    │         │
-           │  ┌─▼─────────▼──┐
-           │  │  PostgreSQL  │  two databases: `site` and `umami`, separate users
-           │  └──────────────┘
-           │
-   ┌───────▼────────┐    ┌─────────────────┐
-   │ volume: uploads│    │ volume: dp-keys │  Data Protection keys (auth cookies survive restarts)
-   └────────────────┘    └─────────────────┘
+                         Internet
+                            │  HTTPS (443)
+                      ┌─────▼─────┐
+                      │   Caddy   │  TLS, compression, routing by path (and User-Agent for `curl /`)
+                      └──┬──────┬─┘
+     everything else     │      │  /api/*  /mcp  /llms.txt  /media/*  /health*   (+ `curl` on `/`)
+          ┌──────────────▼─┐  ┌─▼──────────────┐
+          │   frontend     │  │      api       │
+          │ Next.js (Node) │──►  ASP.NET Core  │  internal HTTP (server-side fetch, docker network)
+          │ React + TS     │  │  10 (.NET)     │
+          └──────┬─────────┘  └──┬─────────┬───┘
+                 │ revalidate    │         │
+                 ◄───────────────┘   ┌─────▼───────┐       ┌──────────┐
+                  (internal only)    │ PostgreSQL  │◄──────┤  umami   │  self-hosted analytics (P11)
+                                     └─────────────┘       └──────────┘
+          volumes: pgdata · uploads · dpkeys · caddy_data
 ```
 
-Everything runs from one `docker compose` stack. There are **no** runtime calls to third-party services
-(no CDN, no Google Fonts, no external comment service, no hosted email API required). This is what makes
-the site both reliable on an Iranian server *and* trivial to move to an international one later.
+- **frontend** renders every HTML page (public site + admin UI) on the server and hydrates the interactive parts.
+  It has no database access: all data comes from the API through a typed client (ADR-026).
+- **api** owns the data, business rules, authentication (ASP.NET Identity cookie), file uploads, rate limiting and
+  the machine-readable endpoints (`/api/resume.json`, `curl` card, `llms.txt`, MCP).
+- Nothing on a public request path calls a third-party service (no CDN, no Google Fonts, no hosted comments/email/
+  analytics/AI). npm and NuGet packages are bundled at build time — that is not a runtime dependency.
 
-The only outbound HTTP calls are: health checks of Mahdi's **own** deployed projects (P5-T7), and — admin-only,
+The only outbound HTTP calls are: health checks of Mahdi's **own** deployed projects (P6-T8), and — admin-only,
 behind a flag — the AI assistant's provider (ADR-015). Both have timeouts and are never on a public request path.
-The AI layer for visitors (search, related posts, MCP) runs **in-process** with a local model (ADR-014).
 
-## 2. Tech stack (pinned majors)
+## 2. Tech stack (pinned majors — exact versions are pinned in the task that adds them)
 
 | Concern | Choice | Notes |
 |---|---|---|
-| Runtime | .NET 10 (LTS) / ASP.NET Core 10 | `global.json` pins SDK feature band |
-| UI | Razor Pages (+ Areas for admin) | Server-rendered HTML, great for SEO |
-| CSS | Tailwind CSS v4, **standalone CLI** | No Node.js needed in the .NET build |
-| JS | Alpine.js v3 **CSP build**, vendored in `wwwroot/lib` | No CDN; strict CSP without `unsafe-eval` |
-| Fonts | Vazirmatn (UI/body), JetBrains Mono (code) — self-hosted woff2 | Both OFL-licensed |
+| Front-end framework | **Next.js 16 (App Router), React 19, TypeScript (strict)** | SSR in a Node 24 LTS container; ADR-021 |
+| Package manager | pnpm 10 | lockfile committed; `frontend/` only |
+| Styling | Tailwind CSS v4 via `@tailwindcss/postcss` | design tokens as CSS variables (§8.1) |
+| Animation | Motion (`motion/react`) for layout/UI motion; CSS scroll-driven animations; View Transitions | always respects `prefers-reduced-motion` |
+| 3D | React Three Fiber + drei (keyboard hero only) | lazy-loaded, static poster first (§8.3) |
+| i18n | next-intl, `/[locale]` segments `fa` / `en` | messages in `frontend/messages/*.json` |
+| API contract | OpenAPI document generated at build (`Microsoft.AspNetCore.OpenApi`) → `openapi-typescript` + `openapi-fetch` | ADR-026 |
+| Front-end tests | Vitest + Testing Library; Playwright (+ axe) for e2e | |
+| Lint/format (TS) | ESLint (Next config) + Prettier | |
+| Back-end runtime | .NET 10 (LTS) / ASP.NET Core 10, Minimal APIs | `global.json` pins SDK feature band |
 | DB | PostgreSQL 17 | via Npgsql EF Core provider |
-| ORM | EF Core 10 + `EFCore.NamingConventions` (snake_case) | Code-first migrations |
-| Auth | ASP.NET Core Identity (cookie), single admin | Public registration disabled |
-| Markdown | Markdig → HtmlSanitizer | Rendered HTML cached in DB column |
-| Code highlighting | highlight.js (vendored, loaded only on post pages) | |
-| Validation | FluentValidation (Application layer) | |
-| Feature flags | Microsoft.FeatureManagement | Config-driven |
-| Logging | Serilog → console (JSON in prod) | Docker collects stdout |
-| Tests | xUnit v3, Shouldly, NSubstitute, Testcontainers (PostgreSQL), WebApplicationFactory | Run on Microsoft.Testing.Platform (opt-in in `global.json`) |
-| Reverse proxy | Caddy 2 | Automatic HTTPS (Let's Encrypt) for the site domains |
-| Analytics | Umami (self-hosted) | Cookieless |
-| Metrics | `System.Diagnostics.Metrics` + in-memory aggregation (P10) | No Prometheus/Grafana stack needed for one app |
-| AI (planned, P11) | Microsoft.Extensions.AI abstractions; ONNX Runtime local embedding model; pgvector; MCP C# SDK | Each added only after Mahdi approves it in its task |
-| CI | GitHub Actions | Builds images **outside Iran**, pushes to GHCR |
+| ORM | EF Core 10 + `EFCore.NamingConventions` (snake_case) | code-first migrations |
+| Auth | ASP.NET Core Identity (cookie), single admin | same-origin cookie; no JWT in the browser |
+| Markdown | Markdig → HtmlSanitizer (in the API) | rendered HTML cached in a DB column |
+| Validation | FluentValidation (Application layer) | the API is the real gate; client validation is UX only |
+| Feature flags | Microsoft.FeatureManagement (API) | public flags exposed to the front-end by `GET /api/site` |
+| Logging | Serilog → console (JSON in prod) (API); Next.js stdout | Docker collects stdout |
+| .NET tests | xUnit v3, Shouldly, NSubstitute, Testcontainers (PostgreSQL), WebApplicationFactory | Microsoft.Testing.Platform |
+| Reverse proxy | Caddy 2 | automatic HTTPS; one origin for both apps |
+| Analytics | Umami (self-hosted) | cookieless |
+| Metrics | `System.Diagnostics.Metrics` + in-memory aggregation (P11) | no Prometheus/Grafana stack for one site |
+| AI (planned, P12) | Microsoft.Extensions.AI; ONNX Runtime local embeddings; pgvector; MCP C# SDK | each approved by Mahdi in its task |
+| CI | GitHub Actions | builds both images **abroad**, pushes to GHCR |
 
-## 3. Solution layout (light Clean Architecture)
+## 3. Repository layout
 
 ```
 my-website/
 ├─ CLAUDE.md  README.md  architecture.md  rules.md  roadmap.md  TASKS.md  learning.md
-├─ global.json                     # pins .NET SDK
-├─ Directory.Build.props           # Nullable, ImplicitUsings, TreatWarningsAsErrors, LangVersion
-├─ Directory.Packages.props        # Central Package Management: every NuGet version lives here
+├─ global.json  Directory.Build.props  Directory.Packages.props  PersonalSite.slnx
 ├─ .editorconfig  .gitignore  .dockerignore  .env.example
-├─ PersonalSite.slnx                # new XML solution format (.NET 9+/VS 17.13+)
-├─ Dockerfile                      # multi-stage: sdk → aspnet:10.0-noble-chiseled-extra (non-root, :8080)
-├─ compose.yaml                    # shared service definitions (web, db + pgdata volume)
-├─ compose.override.yaml           # dev (auto-loaded): ports 127.0.0.1:8080 (web), 127.0.0.1:5433 (db)
-├─ compose.prod.yaml               # prod (`docker compose -f compose.yaml -f compose.prod.yaml up -d`)
-├─ deploy/
-│  ├─ Caddyfile
-│  ├─ postgres/init/01-create-umami-db.sh
-│  └─ scripts/ (backup.sh, restore.sh, deploy.sh)
-├─ .github/workflows/ (ci.yml, release.yml)
-├─ src/
+├─ compose.yaml                    # services: frontend, api, db (+ caddy); volume definitions
+├─ compose.override.yaml           # dev: caddy on 127.0.0.1:8080, db on 127.0.0.1:5433
+├─ compose.prod.yaml               # prod: images from GHCR, only caddy publishes ports
+├─ deploy/  (Caddyfile, postgres/init/, scripts/)
+├─ .github/workflows/ (ci.yml — .NET job + frontend job; release.yml)
+├─ openapi/v1.json                 # generated by the API build, committed; source of the TS types (ADR-026)
+├─ src/                            # .NET back-end (light Clean Architecture)
 │  ├─ PersonalSite.Domain/
 │  ├─ PersonalSite.Application/
 │  ├─ PersonalSite.Infrastructure/
-│  └─ PersonalSite.Web/
-└─ tests/
-   ├─ PersonalSite.UnitTests/
-   └─ PersonalSite.IntegrationTests/
+│  └─ PersonalSite.Api/            # was PersonalSite.Web (renamed in P2-T1)
+├─ tests/
+│  ├─ PersonalSite.UnitTests/
+│  └─ PersonalSite.IntegrationTests/
+└─ frontend/                       # Next.js app (pnpm)
+   ├─ package.json  pnpm-lock.yaml  next.config.ts  tsconfig.json  Dockerfile
+   ├─ messages/ fa.json en.json    # UI strings (next-intl)
+   ├─ content/                     # localized prose (MDX): about.fa.mdx, about.en.mdx, services.*.mdx …
+   ├─ public/                      # fonts are NOT here (next/font/local reads src/fonts)
+   ├─ e2e/                         # Playwright tests
+   └─ src/
+      ├─ app/[locale]/             # public routes (layout, page, about/, projects/, blog/ …)
+      ├─ app/admin/                # admin UI (Persian only)
+      ├─ app/internal/revalidate/  # cache revalidation hook, reachable only on the docker network
+      ├─ components/ ui/ layout/ bento/ demos/ xray/ keyboard/
+      ├─ lib/ api/ (generated schema + client) i18n/ format/ (dates, numbers) site/
+      ├─ fonts/                    # self-hosted woff2 + licences
+      ├─ styles/globals.css        # Tailwind entry + tokens
+      └─ proxy.ts                  # Next.js 16 request hook (formerly middleware): locale redirect, CSP nonce
 ```
 
 ### 3.1 Dependency rule
 
 ```
-Web ──► Application ──► Domain
- │           ▲
- └──► Infrastructure ──┘   (Infrastructure implements Application interfaces)
+frontend ──HTTP (typed client)──► Api ──► Application ──► Domain
+                                   │           ▲
+                                   └──► Infrastructure ──┘   (Infrastructure implements Application interfaces)
 ```
 
 - **Domain** references nothing (no EF, no ASP.NET).
-- **Application** references Domain (+ FluentValidation, and `Microsoft.EntityFrameworkCore` *abstractions only* — see ADR-004).
+- **Application** references Domain (+ FluentValidation, and `Microsoft.EntityFrameworkCore` *abstractions only* — ADR-004).
 - **Infrastructure** references Application + Domain. Implements persistence, files, email, markdown.
-- **Web** references Application + Infrastructure (only to call `AddInfrastructure()` in `Program.cs`). Page models talk to **Application services**, never to `AppDbContext` directly.
+- **Api** references Application + Infrastructure (only to call `AddInfrastructure()`). Endpoints are thin: bind,
+  call one Application service method, map `Result` to an HTTP result. Never `AppDbContext` in endpoints.
+- **frontend** knows the API only through `openapi/v1.json` → generated types. No hand-written URLs or DTO types.
 
-### 3.2 Project internals
+### 3.2 .NET project internals
 
 ```
 PersonalSite.Domain/
 ├─ Common/            Entity.cs (Id, CreatedAt, UpdatedAt), IAuditable, Slug.cs (value object), Language.cs
 ├─ Blog/              Post.cs, PostStatus.cs, Tag.cs, Comment.cs, CommentStatus.cs
 ├─ Projects/          Project.cs, ProjectStatus.cs
+├─ Demos/             CinemaSeat.cs, GymMember.cs, Locker.cs … (sandbox entities for live demos, ADR-027)
 ├─ Contact/           ContactMessage.cs
 ├─ Newsletter/        Subscriber.cs, SubscriberStatus.cs
 └─ Media/             MediaFile.cs, ResumeDocument.cs
 
 PersonalSite.Application/
-├─ Common/
-│  ├─ Abstractions/   IAppDbContext, IFileStorage, IEmailSender, IMarkdownRenderer, ISpamGuard   (time: built-in TimeProvider)
-│  ├─ Results/        Result.cs, Error.cs
-│  └─ Paging/         PagedList<T>, PageRequest
+├─ Common/            Abstractions/ (IAppDbContext, IFileStorage, IEmailSender, IMarkdownRenderer, ISpamGuard,
+│                     IFrontendRevalidator), Results/ (Result, Error), Paging/ (PagedList<T>, PageRequest)
 ├─ DependencyInjection.cs      (AddApplication)
-├─ Blog/              PostService (public reads), PostAdminService, CommentService, DTOs, Validators
-├─ Projects/          ProjectService, ProjectAdminService, DTOs, Validators
-├─ Contact/           ContactService
-├─ Newsletter/        NewsletterService (signup only; sending behind flag)
-├─ Resume/            ResumeService, ResumeProfile (structured résumé, ADR-013)
-├─ Search/            SearchService, RelatedPostsService (P11; IEmbeddingGenerator abstraction)
-├─ Assistant/         AdminAssistantService (P11; IChatClient abstraction, admin only)
-└─ Features/          FeatureFlags.cs  (string constants for flag names)
+├─ Site/              SiteInfoService (name, social links, public feature flags → GET /api/site)
+├─ Blog/  Projects/  Contact/  Newsletter/  Resume/ (ResumeProfile, ADR-013)  Demos/  Search/ (P12)  Assistant/ (P12)
+└─ Features/          FeatureFlags.cs (string constants)
 
 PersonalSite.Infrastructure/
-├─ Persistence/
-│  ├─ AppDbContext.cs            (IdentityDbContext<AppUser> + IAppDbContext; plain DbContext until P4)
-│  ├─ DatabaseOptions.cs         (ConnectionStrings:Default, validated on start)
-│  ├─ DatabaseMigrator.cs        (MigrateDatabaseAsync – called at startup in Development only)
-│  ├─ Configurations/            one IEntityTypeConfiguration<T> per entity
-│  ├─ Migrations/
-│  ├─ Interceptors/AuditInterceptor.cs  (sets CreatedAt/UpdatedAt)
-│  └─ Seed/                      AdminSeeder, DevDataSeeder
+├─ Persistence/       AppDbContext, DatabaseOptions, DatabaseMigrator, Configurations/, Migrations/,
+│                     Interceptors/AuditInterceptor.cs, Seed/ (AdminSeeder, DevDataSeeder, DemoSeeder)
 ├─ Identity/AppUser.cs
-├─ Files/LocalFileStorage.cs     (writes to /app/data/uploads volume)
-├─ Email/SmtpEmailSender.cs, LoggingEmailSender.cs
-├─ Markdown/MarkdigRenderer.cs   (Markdig pipeline + HtmlSanitizer)
-├─ Monitoring/                   ProjectHealthMonitor (P5), RequestMetrics + DbQueryCounter interceptor (P10)
-├─ Ai/                           OnnxEmbeddingGenerator, OpenAI-compatible chat client setup (P11)
+├─ Files/LocalFileStorage.cs     (/app/data/uploads volume)
+├─ Email/                        SmtpEmailSender, LoggingEmailSender
+├─ Markdown/MarkdigRenderer.cs   (Markdig + HtmlSanitizer)
+├─ Frontend/HttpFrontendRevalidator.cs  (POST to the front-end's internal revalidate hook)
+├─ Monitoring/                   ProjectHealthMonitor (P6), RequestMetrics + DbQueryCounter (P11)
+├─ Ai/                           (P12)
 └─ DependencyInjection.cs        (AddInfrastructure)
 
-PersonalSite.Web/
-├─ Program.cs                    composition root: AddApplication → AddInfrastructure → AddWeb, middleware order
-├─ DependencyInjection.cs        (AddWeb: Serilog, options, routing, ProblemDetails, health checks, Razor Pages)
-├─ Configuration/                Options classes bound from config (SiteOptions, CultureOptions …), all with ValidateOnStart
-├─ SharedResource.cs             marker type for shared UI strings (root namespace → Resources/SharedResource.fa.resx)
-├─ Pages/                        public Razor Pages
-│  ├─ Index.cshtml               Home
-│  ├─ About.cshtml
-│  ├─ Services.cshtml
-│  ├─ Resume.cshtml
-│  ├─ Contact.cshtml
-│  ├─ Projects/Index, Projects/Details
-│  ├─ Blog/Index, Blog/Post, Blog/Tag
-│  ├─ Newsletter/Subscribe (+ Confirm, Unsubscribe placeholders)
-│  ├─ Error.cshtml, NotFound.cshtml
-│  └─ Shared/ _Layout, _Header, _NavLinks, _Footer, _ThemeToggle, _SeoHead, Icons/ (_Mail, _GitHub, _Telegram, _Menu), Components/ (_Button, _Card, _Tag…), Motifs/ (_LeafDivider, _VineCorner, _Sprig, _BloomCluster, _HeroBotanical)
-├─ Areas/Admin/Pages/            Dashboard, Posts/*, Projects/*, Comments/*, Messages/*, Resume/*, Subscribers/*, Account/Login
-├─ Localization/                 CultureRouteConstraint, CultureRouteConvention (adds {culture} prefix), LanguageResolver
-├─ Resources/                    SharedResource.fa.resx (later SharedResource.en.resx), view resx files
-├─ Formatting/                   DateDisplay (UTC → Site:TimeZone → culture calendar, relative text), NumberDisplay (numbers, reading time), NativeDigits
-├─ Infrastructure/               Routes (path constants), PageNames + MainNavigation (menu), HealthProbe (container healthcheck), SecurityHeadersMiddleware, SeoHelpers, TagHelpers (<persian-date>)
-├─ Endpoints/                    minimal APIs: / (language redirect, or curl card), /sitemap.xml, /feed.xml, /robots.txt, /llms.txt, /health, /api/resume.json, /api/status, /mcp, /admin/api/markdown-preview, /resume/download
-├─ Styles/app.css                Tailwind v4 input (tokens via @theme; compiled by the TailwindBuild MSBuild target)
-└─ wwwroot/                      css/app.css (generated, git-ignored), js/app.js + js/components/*.js, lib/alpine-<version>/, lib/hljs, fonts/<name>-<version>/, img/
+PersonalSite.Api/
+├─ Program.cs                    composition root, middleware order
+├─ DependencyInjection.cs        (AddApi: Serilog, options, ProblemDetails, OpenAPI, auth, rate limiting, health)
+├─ Configuration/                Options classes (SiteOptions, FrontendOptions …), all ValidateOnStart
+├─ Endpoints/                    one static class per feature: SiteEndpoints, ProjectEndpoints, BlogEndpoints,
+│                                AdminPostEndpoints, AuthEndpoints, DemoEndpoints, ResumeEndpoints, CurlCardEndpoint,
+│                                LlmsTxtEndpoint, HealthEndpoints, McpEndpoints (P12) — mapped under MapGroup("/api")
+├─ Infrastructure/               SecurityHeadersMiddleware (API responses), HealthProbe, ApiRoutes (path constants)
+└─ Content/                      resume.fa.json, resume.en.json (ADR-013)
 ```
 
 ## 4. Data model
 
 All tables use `snake_case` (via naming convention). All timestamps are `timestamptz`, stored in **UTC**,
-converted to Persian calendar / Tehran time **only in the view layer**. Primary keys are `Guid` (UUID v7 via
-`Guid.CreateVersion7()` — time-ordered, index-friendly, safe to expose in admin URLs).
+converted to Persian calendar / Tehran time **only in the presentation layer** (front-end formatters). Primary keys
+are `Guid` (UUID v7 via `Guid.CreateVersion7()` — time-ordered, index-friendly, safe to expose in admin URLs).
 
 ```
 ┌──────────────────┐        ┌──────────────┐        ┌────────────┐
@@ -210,8 +204,8 @@ converted to Persian calendar / Tehran time **only in the view layer**. Primary 
 │ id PK            │
 │ post_id FK       │  ON DELETE CASCADE
 │ author_name      │  max 80
-│ author_email     │  max 254, NEVER rendered publicly
-│ body             │  plain text, max 3000; rendered HTML-encoded with line breaks
+│ author_email     │  max 254, NEVER returned by public endpoints
+│ body             │  plain text, max 3000; rendered as text (React escapes) with line breaks
 │ status           │  Pending | Approved | Rejected | Spam
 │ ip_hash          │  SHA-256(ip + secret salt) – for rate limiting/abuse, not raw IP (privacy)
 │ user_agent       │  truncated 256
@@ -225,13 +219,19 @@ slug  UNIQUE(language, slug)
 title, summary, body_markdown, body_html  (body = case study: Problem · Architecture · Decisions · Results · What went wrong)
 status: Live | InProgress | Archived
 live_url, source_url (nullable)            contact_messages
-health_url (nullable, https; P5-T7)        ────────────────
-tech_stack (text[])                        id, name, email, message
-cover_image_id FK → media_files            type: Hiring | Project | Other
-is_featured, sort_order                    status: New | Read | Archived
-started_on, finished_on (date, nullable)   ip_hash, created_at
+health_url (nullable, https; P6-T8)        ────────────────
+demo_key (nullable: cinema | gym …)        id, name, email, message
+tech_stack (text[])                        type: Hiring | Project | Other
+cover_image_id FK → media_files            status: New | Read | Archived
+is_featured, sort_order                    ip_hash, created_at
+started_on, finished_on (date, nullable)
 
-content_embeddings (P11)
+demo schema (ADR-027) — sandbox data for live demos, never mixed with real content
+───────────
+demo.cinema_seats (show_id, row, number, status, held_by, version)   demo.gym_members, demo.gym_lockers, demo.gym_checkins
+reset by a background job (nightly + when a visitor presses "reset"); rate limited (`public-api`)
+
+content_embeddings (P12)
 ────────────────────────
 id, owner_type (Post | Project), owner_id, language, chunk_index, chunk_text
 embedding vector(n)  HNSW index (pgvector)
@@ -254,11 +254,11 @@ created_at, confirmed_at, unsubscribed_at
 ```
 
 ### 4.1 Multilingual content model
-- Every *content* entity (Post, Project, Tag, ResumeDocument) has a `language` column (`fa`, and `en` from P1-T11).
-- The structured résumé is not in the DB: one JSON file per culture in git (ADR-013).
-- Translations of the same item share a `translation_group` (UUID). A Persian post and its future English
-  version are two rows with the same `translation_group` → used to emit `<link rel="alternate" hreflang>`.
-- Slugs are unique **per language**. This means adding English = inserting rows, not migrating schema.
+- Every *content* entity (Post, Project, Tag, ResumeDocument) has a `language` column (`fa`, `en`).
+- The structured résumé is not in the DB: one JSON file per culture in the API project (ADR-013).
+- Translations of the same item share a `translation_group` (UUID) → used for `hreflang` alternates and the
+  language switcher.
+- Slugs are unique **per language**. Adding a language = inserting rows, not migrating schema.
 
 ### 4.2 Slugs
 Slugs are latin `[a-z0-9-]` only, entered/edited by the admin (with a suggestion field). Reason: Persian
@@ -267,237 +267,243 @@ slugs become long percent-encoded URLs when shared (e.g. in Telegram). See learn
 ## 5. Request flow
 
 ### 5.1 Public page (e.g. `/fa/blog/my-first-post`)
-1. Caddy terminates TLS → forwards to `web:8080` with `X-Forwarded-*`.
-2. `ForwardedHeaders` middleware restores scheme/client IP.
-3. `RequestLocalization` with `RouteDataRequestCultureProvider` reads `{culture}` from the route → sets `CultureInfo` (`fa-IR`).
-4. Razor Page `Blog/Post` → `PostService.GetPublishedBySlugAsync("fa", "my-first-post")`.
-5. Service queries via `IAppDbContext` with `AsNoTracking()` + projection to `PostDetailsDto` (includes cached `body_html` and approved comments).
-6. Page renders with `_Layout` (sets `<html lang="fa" dir="rtl">`), `_SeoHead` emits title/meta/OG/JSON-LD/canonical.
-7. Output caching (tag `post:{id}`) serves repeats; admin edits evict the tag.
+1. Caddy terminates TLS → path is not an API path → forwards to `frontend:3000`.
+2. `proxy.ts` validates the locale, creates the per-request CSP nonce (ADR-025) and sets security headers.
+3. The page (React Server Component) calls the API through the typed client at `API_INTERNAL_URL`
+   (`http://api:8080` in Docker): `GET /api/posts/fa/my-first-post`. The fetch is cached in Next's data cache with
+   tags (`blog`, `post:{id}`).
+4. The API service queries via `IAppDbContext` with `AsNoTracking()` + projection to `PostDetailsDto` (cached
+   sanitized `body_html`, approved comments) and returns `Server-Timing` (DB time, query count).
+5. Next renders HTML (`<html lang="fa" dir="rtl">`, metadata API for title/OG/JSON-LD/canonical) and streams it;
+   client components (spotlight, demos, X-Ray) hydrate afterwards.
 
 ### 5.2 Admin writes a post
-1. `/admin/posts/new` (requires `[Authorize(Policy = "Admin")]` on the whole Area via convention).
-2. Textarea (Markdown) + preview pane. Alpine debounces input → `POST /admin/api/markdown-preview` (antiforgery-protected) → server renders using the **same** `IMarkdownRenderer` → preview is identical to production.
-3. Submit → `PostAdminService.CreateAsync(command)` → FluentValidation → slug uniqueness check → render markdown → save → evict output cache.
+1. `/admin/posts/new` (Next admin UI). `proxy.ts` redirects to `/admin/login` when there is no auth cookie — UX
+   only; **the API is the gate**: every `/api/admin/*` endpoint requires the `Admin` policy.
+2. Markdown editor + preview pane: the client debounces input → `POST /api/admin/markdown/preview` → the API renders
+   with the **same** `IMarkdownRenderer` → preview is identical to production.
+3. Save → `POST /api/admin/posts` → `PostAdminService.CreateAsync` → FluentValidation → slug check → render → save →
+   `IFrontendRevalidator.RevalidateAsync(["blog", "post:{id}"])` → Next drops those cached fetches.
 
 ### 5.3 Comment submission
-1. Form on post page includes: name, email, body, **honeypot** field (visually hidden, `tabindex=-1`, `autocomplete=off`), and a **signed timestamp** (Data Protection-protected, issued at render).
-2. `ISpamGuard` rejects when: honeypot filled, form submitted < 3 s after render or token older than 24 h, or rate limiter (`comments` policy: 3 per 10 min per IP) trips.
-3. Rejected-as-bot submissions get the *same* success message as humans (don't teach bots) but are not stored (or stored as `Spam` when honeypot-caught, for tuning).
+1. The post page (server) asks the API for a signed form token (Data Protection, issued at render) and renders the
+   form with a **honeypot** field (visually hidden, `tabindex=-1`, `autocomplete=off`).
+2. `POST /api/posts/{id}/comments` → `ISpamGuard` rejects when: honeypot filled, submitted < 3 s after render or
+   token older than 24 h, or the `public-forms` rate limiter trips.
+3. Bot-like submissions get the *same* success response as humans (don't teach bots) but are not stored (or stored
+   as `Spam` when honeypot-caught, for tuning).
 4. Valid → saved as `Pending` → optional admin notification (flag `Notifications.Email`).
-5. Admin approves in `/admin/comments` → status `Approved` → output-cache tag for that post evicted.
+5. Admin approves → status `Approved` → revalidate tag `post:{id}`.
 
-### 5.4 Language resolution for `/` (i18n-ready from day one)
-`/` has no culture segment and only **redirects** (302) using `ILanguageResolver`, in order:
-1. `lang` cookie (explicit user choice from the language switcher)
-2. *(future)* GeoIP country → `IR` ⇒ `fa`, else ⇒ `en` (MaxMind GeoLite2 local DB file, no network call)
-3. `Accept-Language` header, filtered by supported cultures
-4. Default: `fa`
+### 5.4 Language resolution for `/`
+`/` has no locale segment and only **redirects** (302) — in `proxy.ts`, in order:
+1. `lang` cookie (explicit choice from the language switcher)
+2. *(P15)* GeoIP country → `IR` ⇒ `fa`, else ⇒ `en`
+3. `Accept-Language` header, filtered by supported locales
+4. Default: `fa` (becomes `en` with the international move, ADR-023)
 
-Today only step 1, 3, 4 exist and only `fa` is supported, so everything lands on `/fa`. From P1-T11 `en` is
-supported too (English browsers land on `/en`). Adding step 2 (P14-T1) is one class.
+Exception: Caddy sends `/` from a terminal client (`curl`/`Wget`/`HTTPie` User-Agent, no `text/html` in `Accept`)
+to the API, which returns the plain-text résumé card (P10-T5; `Vary: User-Agent, Accept`).
 
-Exception: a request to `/` from a terminal client (`curl`/`Wget`/`HTTPie` user agent, no `text/html` in `Accept`)
-gets the plain-text résumé card instead of the redirect (P9-T5; response carries `Vary: User-Agent, Accept`).
+### 5.5 Authentication (same origin)
+`POST /api/auth/login` (rate limit `login`, Identity lockout) sets the Identity cookie (`HttpOnly`, `Secure`,
+`SameSite=Strict`). Because the browser sees one origin, the cookie is sent to `/api/*` automatically — no CORS, no
+token in JavaScript. Server components forward the incoming cookie when they call `/api/admin/*`. Unsafe methods
+on the API also require a same-origin `Origin` header (CSRF defence in depth); details fixed in P5-T3.
 
 ## 6. Routing
 
-All public routes are culture-prefixed: `@page "/{culture:culture}/blog/{slug}"` is avoided in favour of a
-**page route convention** that prefixes every public page with `{culture:culture}` automatically, so page
-files stay clean (`@page "{slug}"`).
-
-- `CultureRouteConvention` skips area pages (admin) and an explicit list of technical pages (today `/Error`,
-  which the exception handler re-executes without a culture).
-- `CultureRouteConstraint` (`{culture:culture}`) accepts only `CultureOptions.SupportedCultures` (config section
-  `Localization`), so `/en/...` is a 404 until English is enabled (P1-T11).
-- `RequestLocalization` uses **only** the route-data provider: the URL decides the page language; cookie and
-  `Accept-Language` matter only for the `/` redirect. Responses carry `Content-Language`.
-- `WebEncoderOptions` allows all Unicode ranges, so Persian text is emitted as letters, not `&#x...;` entities
-  (HTML-significant characters are still encoded).
+**Front-end (Next.js App Router)** — every public route lives under `app/[locale]/`; `[locale]` accepts only the
+configured locales (`fa`, `en`), anything else is a 404. Admin routes live under `app/admin/` (no locale; Persian UI).
 
 | URL | Page |
 |---|---|
-| `/` | redirect → `/fa` |
-| `/fa` | Home |
-| `/fa/about` | About |
-| `/fa/services` | Services |
-| `/fa/projects`, `/fa/projects/{slug}` | Projects |
-| `/fa/blog`, `/fa/blog/{slug}`, `/fa/blog/tag/{slug}` | Blog |
-| `/fa/resume` | Resume page |
-| `/fa/resume/download` | Current PDF for language (tracked download) |
-| `/fa/contact` | Contact form (`?type=hiring|project` preselects the request type) |
-| `/fa/decisions` | Engineering decisions (ADR cards) |
-| `/fa/under-the-hood` | Live metrics + architecture (P10) |
-| `/fa/search` | Semantic search (P11, flag `Ai.SemanticSearch`) |
-| `/fa/newsletter` | Subscribe (flag `Newsletter.Signup`) |
-| `/feed.xml`, `/fa/feed.xml` | RSS/Atom |
-| `/api/resume.json`, `/llms.txt` | Machine-readable résumé (P9) |
-| `/api/status` | Public status JSON (P10) |
-| `/mcp` | MCP server, read-only (P11, flag `Ai.Mcp`) |
-| `/sitemap.xml`, `/robots.txt`, `/health` | infra |
-| `/admin/...` | Admin area (no culture prefix; admin UI is Persian-only via resx) |
+| `/` | redirect → `/fa` or `/en` (§5.4); `curl` → API card |
+| `/{locale}` | Home (Bento grid) |
+| `/{locale}/about` · `/services` · `/resume` · `/contact` (`?type=hiring\|project`) | static pages |
+| `/{locale}/decisions` | Engineering decisions (ADR cards) |
+| `/{locale}/projects`, `/{locale}/projects/{slug}` | Projects + case study + live demo |
+| `/{locale}/blog`, `/{locale}/blog/{slug}`, `/{locale}/blog/tag/{slug}` | Blog |
+| `/{locale}/under-the-hood` | Architecture scrollytelling + live metrics (P11) |
+| `/{locale}/search` | Semantic search (P12, flag `Ai.SemanticSearch`) |
+| `/{locale}/_styleguide` | Dev-only UI kit page (404 in production) |
+| `/sitemap.xml`, `/robots.txt`, `/{locale}/feed.xml` | Next route handlers (data from the API) |
+| `/admin/...` | Admin UI |
 
-URLs use lowercase (`RouteOptions.LowercaseUrls = true`) and no trailing slash.
+**API (ASP.NET Core)** — everything under `/api`, lowercase, no trailing slash; language is part of the path or a
+`lang` query parameter, never inferred from headers.
+
+| URL | Purpose |
+|---|---|
+| `/api/site` | name, social links, public feature flags |
+| `/api/projects?lang=`, `/api/projects/{lang}/{slug}` | projects |
+| `/api/posts?lang=&page=`, `/api/posts/{lang}/{slug}`, `/api/tags/{lang}/{slug}` | blog |
+| `/api/demos/cinema/*`, `/api/demos/gym/*` | live demo sandboxes (ADR-027) |
+| `/api/resume.json?lang=`, `/llms.txt`, `curl /` | machine-readable résumé (P10) |
+| `/api/status` | public status JSON (P11) |
+| `/api/auth/*`, `/api/admin/*` | login/logout/me; admin (policy `Admin`) |
+| `/mcp` | MCP server, read-only (P12, flag `Ai.Mcp`) |
+| `/media/{key}` | uploaded files (long cache headers) |
+| `/health`, `/health/ready` | infra (not routed publicly by Caddy in prod except `/health`) |
+
+`/internal/*` on the front-end (revalidation hook) is blocked by Caddy; only the API calls it over the docker network
+with a shared secret (`Revalidate__Secret`).
 
 ## 7. Cross-cutting concerns
 
 | Concern | Approach |
 |---|---|
-| Configuration | `appsettings.json` → `appsettings.{Env}.json` → env vars (`Section__Key`). Strongly-typed via Options pattern + `ValidateOnStart()`. Secrets only in env/.env (never committed). |
-| Feature flags | `FeatureManagement` section: `Newsletter.Signup` (true), `Newsletter.Sending` (false), `Notifications.Email` (false), `Comments.Enabled` (true), `Analytics.Umami` (true in prod), `Ai.SemanticSearch` (true once built), `Ai.Mcp` (true once built), `Ai.AdminAssistant` (false until Mahdi enables), `Ai.Chat` (false, backlog). |
-| Outbound HTTP | Only to Mahdi's own projects (health checks) and the admin AI provider; typed `HttpClient`s with timeouts; never awaited while rendering a public page. |
+| Configuration | API: `appsettings.json` → env vars (`Section__Key`), Options + `ValidateOnStart()`. Front-end: env vars validated at startup in `src/lib/env.ts` (server-only values never prefixed `NEXT_PUBLIC_`). Secrets only in env/.env. |
+| Feature flags | API `FeatureManagement` section: `Newsletter.Signup` (true), `Newsletter.Sending` (false), `Notifications.Email` (false), `Comments.Enabled` (true), `Analytics.Umami` (true in prod), `Ai.SemanticSearch`, `Ai.Mcp` (true once built), `Ai.AdminAssistant` (false), `Ai.Chat` (false, backlog). The front-end reads the public ones from `GET /api/site`. |
+| API contract | `openapi/v1.json` is generated by the API build and committed; `pnpm gen:api` regenerates the TS types; CI fails when either is stale (ADR-026). |
+| Outbound HTTP | Only to Mahdi's own projects (health checks) and the admin AI provider; typed `HttpClient`s with timeouts. |
 | Public telemetry | Only numbers this site measures (ADR-018). Never public: CPU/RAM, container names, package versions, internal hostnames. |
-| Errors | `UseExceptionHandler("/Error")` + `UseStatusCodePagesWithReExecute("/NotFound")`; Application returns `Result<T>` for expected failures, exceptions only for bugs. |
-| Logging | Serilog, request logging middleware, correlation via `TraceIdentifier`. No PII (emails) in logs. |
-| Security | HTTPS/HSTS (prod), CSP (inline scripts by hash, ADR-020), `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, antiforgery (default in Razor Pages), rate limiting, Identity lockout, admin 2FA (TOTP) in hardening phase. |
-| Data Protection | Keys persisted to `/app/data/dp-keys` volume (`PersistKeysToFileSystem`) — otherwise every container restart logs the admin out and invalidates comment tokens. |
-| Caching | Output caching for public pages with tag-based eviction; `Cache-Control: immutable` for fingerprinted static assets (`asp-append-version`). |
-| Files | `IFileStorage` → `LocalFileStorage` (volume). Upload rules: allow-list of content types + magic-byte check, max size, random storage key, never serve from user-supplied names. Swappable for S3-compatible storage later. |
-| Email | `IEmailSender` → `LoggingEmailSender` by default; `SmtpEmailSender` when `Notifications.Email` or `Newsletter.Sending` is on. |
-| Time | `TimeProvider` (built-in .NET abstraction) injected everywhere; never `DateTime.Now`. |
-| Health | `/health` (liveness, runs no checks) for the Docker healthcheck; `/health/ready` (readiness: runs all checks, today the DB) returns JSON `{"status","checks":{"database":…}}`, 503 when unhealthy. |
-| Globalization | Container image **must include ICU** (`aspnet:10.0-noble-chiseled-extra` or non-chiseled); `fa-IR` culture gives Persian calendar. |
+| Errors | API: ProblemDetails for every error, `Result<T>` for expected failures. Front-end: `not-found.tsx` / `error.tsx` per locale; API 404 → page 404. |
+| Logging | API: Serilog, request logging, correlation via `TraceIdentifier`. No PII (emails, IPs) in logs. |
+| Security | HTTPS/HSTS (prod); HTML responses: CSP with per-request nonce from `proxy.ts` (ADR-025), `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, `frame-ancestors 'none'`; API: same headers + `Cache-Control: no-store` on auth/admin; rate limiting (`public-forms`, `login`, `public-api`); Identity lockout; admin 2FA in P13. |
+| Data Protection | API keys persisted to `/app/data/dp-keys` (volume `dpkeys`) — otherwise every restart logs the admin out and invalidates form tokens. |
+| Caching | Next data cache with tags for API fetches; the API calls the revalidate hook after writes. HTML is rendered per request (nonce), data is cached. Static assets (`/_next/static`, fonts) are fingerprinted and `immutable`. |
+| Files | `IFileStorage` → `LocalFileStorage` (volume). Allow-list of content types + magic bytes, max size, random storage key. |
+| Email | `IEmailSender` → `LoggingEmailSender` by default; `SmtpEmailSender` when a mail flag is on. |
+| Time | API: `TimeProvider`, UTC everywhere. Front-end: `Intl.DateTimeFormat` with `calendar: 'persian'` and `timeZone: 'Asia/Tehran'` for `fa` (Persian digits come from the locale), Gregorian + Latin digits for `en`. |
+| Health | `/health` (liveness) and `/health/ready` (DB) on the API; the front-end container has its own healthcheck route. |
 
 ## 8. Front-end architecture
 
-- **Tailwind v4** input file `Styles/app.css` declares design tokens with `@theme static` and custom `dark`/`light`
-  variants. The standalone CLI compiles it to `wwwroot/css/app.css`. An MSBuild target (`TailwindBuild` in the Web
-  csproj) runs the CLI on every build — minified in Release, skipped when no input changed; in dev
-  `tools/tailwind-watch.ps1` runs alongside `dotnet watch`.
-- **CLI pinning:** `tools/get-tailwind.ps1|.sh` download the version in `tools/tailwind-version` into `tools/bin/`
-  (git-ignored) and verify it against `tools/tailwind-checksums.txt` (the release's `sha256sums.txt`). CI and the
-  Docker build stage run the `.sh` script before building. Upgrade = change both files.
-- **Scanned sources:** `source(none)` + explicit `@source` lines (today `../Pages`). New markup folders
-  (`Areas/`, `wwwroot/js/`) must be added there, or their classes are silently missing.
-- **Palette lock-down:** `--color-*: initial` removes Tailwind's default colors, so only token utilities exist
-  (`bg-surface`, `text-primary`, `border-border`…). Same for `--font-*` and `--text-*` (our own type scale).
-- **Fonts:** vendored in `wwwroot/fonts/<name>-<version>/` with their `OFL.txt` — Vazirmatn 33.003 (one variable
-  woff2, weights 100–900, has Latin glyphs) and JetBrains Mono 2.304 (static Regular + Bold woff2; no official
-  variable woff2). `@font-face` uses `font-display: swap`; `_Layout` preloads Vazirmatn with a plain `/fonts/…`
-  href — `~/` would be rewritten to the fingerprinted name and the font would download twice
-  (`SelfHostedFontsTests` guards this). Persian line-heights: 1.85 for body text, tighter for large headings.
-- **Layout (P1-T5):** skip link → `header` (name + `nav`) → `main#main` → `footer`. The menu is
-  `MainNavigation.Items` rendered by `_NavLinks`; an item whose page doesn't exist yet (`Url.Page` returns null)
-  shows as plain text and becomes a link once the page is added. Mobile menu = native `<details>` (works without
-  JS and under CSP). Footer links come from `Site:Social` (optional, validated) and are hidden when unset.
-  `:focus-visible` draws a `sun` outline on every focusable element.
-- **Code is always LTR:** `code, kbd, samp, pre` get `direction: ltr; unicode-bidi: isolate` in the base layer, so it
-  also holds inside rendered Markdown.
-- **Theme (P1-T6):** `data-theme="dark|light"` on `<html>`, server-rendered as `dark` (the no-JS state). A tiny
-  inline script in `<head>` (before the stylesheet; source in `Infrastructure/InlineScripts.cs`, allowed by its CSP
-  hash) applies a saved `localStorage["theme"]` *before first paint*. Alpine `$store.theme`
-  (`wwwroot/js/stores/theme.js`) switches and saves it; `_ThemeToggle` (`themeToggle` component, `aria-pressed` =
-  light on) is rendered `invisible` and revealed by Alpine, so no-JS visitors never see a dead button. The icon
-  (moon-leaf / sun) follows `data-theme` via the `dark:`/`light:` variants. Colors fade for 300 ms only while
-  switching (`.theme-transition` on `<html>`, motion-safe).
-- **RTL:** layout uses logical utilities only (`ms-*`, `me-*`, `ps-*`, `pe-*`, `start-*`, `end-*`, `text-start`),
-  so English LTR later needs zero CSS changes.
-- **Alpine CSP build (P1-T7):** `@alpinejs/csp` 3.17.4, its ESM build vendored as
-  `wwwroot/lib/alpine-3.17.4/alpine-csp.esm.min.js` (+ `LICENSE.md`; npm `dist/module.esm.min.js`, sha256
-  `8f73b4b3…f38a99`). `_Layout` loads `wwwroot/js/app.js` as `<script type="module">` (deferred, fingerprinted via
-  `asp-append-version`); it imports Alpine and every component from `wwwroot/js/components/*.js` (each a
-  default-exported factory), registers them with `Alpine.data('name', …)`, then calls `Alpine.start()` once.
-  Imported files are not fingerprinted; static assets serves them with an ETag, so browsers revalidate them.
-  Markup references names only (`x-data="mobileMenu"`) and uses `x-on:` (Razor reads `@` as C#).
-  `ScriptsTests` checks that every import resolves and every `x-data` name is registered.
-- **CSP (P1-T7 baseline):** `SecurityHeadersMiddleware` sends `default-src 'self'; object-src 'none';
-  base-uri 'self'; form-action 'self'; frame-ancestors 'none'` on every response (Development adds `connect-src`
-  for the `dotnet watch` WebSocket). No `unsafe-inline`/`unsafe-eval`. Our own inline scripts (`InlineScripts`)
-  are added to `script-src` by SHA-256 hash (ADR-020); `ScriptsTests` fails if an inline script's hash is missing.
-  Strict audit in P12-T1.
-- **Motifs (P1-T8):** botanical SVGs are Razor partials (`Shared/Motifs/`) with one root `<svg>` that fills its wrapper
-  (`block h-auto w-full`); the wrapper sets size and color (`<div class="w-20 text-primary">`). Paint is `currentColor`
-  only (accents via `text-bloom`/`text-sun` on inner groups), so they re-color with the theme. `width`/`height` equal to
-  the viewBox give the aspect ratio up front (no layout shift); no `style` attributes (CSP) and no `id`s (a motif may
-  appear twice). Hero leaves sway via `.motif-sway`/`.motif-sway-slow` (CSS rotation, pivot = SVG `transform-origin`
-  attribute), defined only inside `@media (prefers-reduced-motion: no-preference)`. `MotifTests` (unit) enforces this.
+- **Rendering model:** React Server Components by default; `"use client"` only for leaves that need the browser
+  (spotlight, demos, keyboard, X-Ray toggle, theme toggle, forms). Pages render on the server per request (the CSP
+  nonce makes HTML dynamic, ADR-025); API data is cached in Next's data cache and revalidated by tag.
+- **Data access:** only through `src/lib/api/` (generated types + `openapi-fetch` client). Server components use the
+  internal API URL; client components call same-origin `/api/...`.
+- **i18n:** next-intl; `app/[locale]/layout.tsx` sets `<html lang dir>` (`fa` → `rtl`, `en` → `ltr`). UI strings in
+  `messages/{locale}.json` (English dot-notation keys, same key set in both files — test). Long prose (About,
+  Services, Decisions) in `content/*.{locale}.mdx`.
+- **Styling:** Tailwind v4, tokens in `styles/globals.css` (`@theme`), default palette removed so only tokens exist.
+  Logical utilities only (`ms-*`, `pe-*`, `start-*`), so RTL and LTR share every component.
+- **Fonts:** self-hosted via `next/font/local` (preloaded, no layout shift): Vazirmatn (UI/body, Persian + Latin),
+  JetBrains Mono (code); an optional display face is chosen in P2-T8 (OFL only).
+- **Theme:** `data-theme="dark|light"` on `<html>`, dark by default; a tiny pre-paint script (with the CSP nonce)
+  applies a saved choice before first paint.
+- **Motion:** Motion for layout/UI animation, CSS for scroll-driven effects, View Transitions for page and fa ↔ en
+  changes (no animation where unsupported). Every animation checks `prefers-reduced-motion`.
+- **Accessibility:** WCAG AA contrast (test), keyboard operable, visible focus, every interactive showpiece
+  (keyboard, demos, X-Ray) has a non-visual equivalent.
 
-### 8.1 Design tokens (initial)
+### 8.1 Design tokens
 
-| Token | Dark (default) | Light | Use |
-|---|---|---|---|
-| `--color-bg` | `#0B1410` forest night | `#F5F1E6` parchment | page background |
-| `--color-surface` | `#12211A` | `#FFFDF7` | cards |
-| `--color-surface-2` | `#1A2E24` | `#ECE6D6` | hover, inputs |
-| `--color-text` | `#E6EFE7` | `#1C2A22` | body text |
-| `--color-muted` | `#9DB3A4` | `#56675C` | secondary text |
-| `--color-primary` | `#5FB37C` moss | `#2C7246` fern | links, buttons |
-| `--color-primary-soft` | `#1F3D2C` | `#D6EBDC` | tag backgrounds |
-| `--color-bloom` | `#E8A0B4` blossom | `#A44567` | floral accent, highlights |
-| `--color-sun` | `#E9B44C` marigold | `#A8741A` | small accents, focus rings |
-| `--color-border` | `#24392E` | `#D5CCB6` | dividers |
+Token *names* stay stable; *values* are set in P2-T8 when Mahdi picks the accent color (ADR-024).
 
-All text/background pairs must meet WCAG AA (≥ 4.5:1); `sun` (focus rings, non-text) needs ≥ 3:1.
-`ColorContrastTests` (unit tests) reads `Styles/app.css` and enforces this, so a failing token breaks the build.
-P1-T1 darkened light `primary` (`#2F7A4B` → `#2C7246`) and light `bloom` (`#B8577A` → `#A44567`), same hue, because
-they fell below 4.5:1 on `surface-2`/`primary-soft`.
+| Token | Use |
+|---|---|
+| `--color-bg` | page background (near-black in dark) |
+| `--color-surface`, `--color-surface-2` | Bento cards, hover/inputs |
+| `--color-border` | hairline card borders (the grid's structure) |
+| `--color-text`, `--color-muted` | body and secondary text |
+| `--color-accent`, `--color-accent-soft` | the single accent (links, buttons, spotlight glow, focus ring) — Mahdi's choice |
+| `--color-success`, `--color-danger` | live status 🟢/🔴, demo outcomes |
+
+All text/background pairs must meet WCAG AA (≥ 4.5:1); the focus ring and other non-text UI ≥ 3:1. A Vitest test
+reads `globals.css` and enforces it (port of P1's `ColorContrastTests`).
+
+### 8.2 Signature features (ADR-024)
+
+| Feature | Where | How |
+|---|---|---|
+| **Bento grid + cursor spotlight** | Home | CSS grid of cards with hairline borders; one pointer listener writes `--x/--y` CSS variables (CSSOM, CSP-safe); radial-gradient glow on borders; off on touch and reduced motion |
+| **Mechanical keyboard hero** | Home | React Three Fiber keycaps carrying the tech stack; hover or a real key press pushes the key and opens a glass card with projects that used it; static poster first (§8.3) |
+| **Live demos** | Project pages + Home card | React mini-apps against real sandbox endpoints (ADR-027): cinema seat picking with a real "simultaneous purchase" race (one wins via a row lock), gym check-in + locker assignment with live capacity chart |
+| **X-Ray mode** | Global toggle | Peels the UI layer back to show what produced it: real code excerpts (extracted at build time from marked regions in the repo, linked to GitHub), the queries and timings of *this* request (`Server-Timing`) |
+| **Fluid fa ↔ en** | Language switcher | Navigation to the other locale's URL animated with View Transitions: shared elements slide to their mirrored places; URLs stay separate for SEO (ADR-006) |
+| **Scrollytelling request journey** | Under the hood | A scroll-driven line follows a real request: browser → Caddy → Next.js → ASP.NET Core → PostgreSQL → back, annotated with this site's real stack and measured timings — nothing generic (ADR-018) |
+
+### 8.3 Loading heavy parts
+
+First paint is server-rendered HTML + CSS only. Heavy client code (Three.js, demo apps) loads with
+`next/dynamic` after hydration or when its card scrolls into view; until then a static poster with the same size is
+shown (no layout shift), and the poster stays for reduced-motion users or if WebGL is unavailable.
+
+### 8.4 Retired: Razor Pages front-end (P1, 2026-10)
+
+P1 built a server-rendered Razor front-end: Tailwind standalone CLI pipeline, botanical tokens and SVG motifs,
+self-hosted fonts, culture-prefixed routing (`CultureRouteConvention`), resx, Persian formatting helpers
+(`DateDisplay`, `<persian-date>`), Alpine.js CSP build, CSP with hashed inline scripts (ADR-020) and a theme toggle.
+P2-T1 removes it from `PersonalSite.Api`; the ideas carry over (tokens + contrast test, self-hosted fonts, locale
+prefixes, dark default, reduced motion). The code stays in git history (commits up to `eddf10e`).
 
 ## 9. Environments & deployment
 
 | | Dev | Prod |
 |---|---|---|
-| Start | `docker compose up` (db + umami) + `dotnet watch` locally, **or** everything in compose | `docker compose -f compose.yaml -f compose.prod.yaml up -d` |
-| DB migrations | applied automatically at startup (Development only) | explicit step: `docker compose run --rm web --migrate` (migration bundle / flag), run by `deploy.sh` before switching |
-| TLS | none | Caddy + Let's Encrypt for both domains (§9.1); `tls internal` only for IP-based testing |
-| Seed | `DevDataSeeder` fake posts/projects | only `AdminSeeder` from env vars |
-| Images | built locally | built in GitHub Actions, pushed to GHCR, pulled by server |
+| Start | Host: `docker compose up -d db` + `dotnet watch` (API, :5080) + `pnpm dev` (frontend, :3000; rewrites `/api/*` to :5080) — **or** everything in compose behind Caddy on :8080 | `docker compose -f compose.yaml -f compose.prod.yaml up -d` |
+| DB migrations | applied at API startup (Development only) | explicit step `docker compose run --rm api --migrate`, run by `deploy.sh` |
+| TLS | none | Caddy + Let's Encrypt (§9.1) |
+| Seed | `DevDataSeeder` (fake posts/projects), `DemoSeeder` | `AdminSeeder` from env vars, `DemoSeeder` |
+| Images | built locally | two images (`api`, `frontend`) built in GitHub Actions, pushed to GHCR, pulled by the server |
 
-**Iran-specific operational notes (kept out of application code):**
-- Docker Hub / NuGet / GitHub downloads may be throttled or blocked from Iranian IPs → images are built in CI
-  abroad; the server only *pulls* (GHCR) or receives `docker save | docker load` over SSH as a fallback.
-  Registry mirrors, if any, are configured in the server's `/etc/docker/daemon.json`, never in the repo.
-- Nothing in the app depends on Iranian services (payment gateways, SMS panels, Iranian CDNs). Moving servers =
-  copy volumes + `pg_dump` restore + DNS change. See `deploy/README` (created in Phase 3).
+**Operational notes for the Iranian server (kept out of application code):** Docker Hub / NuGet / npm / GitHub may
+be throttled from Iranian IPs → images are built in CI abroad; the server only *pulls* (GHCR) or receives
+`docker save | docker load` over SSH as a fallback. Moving servers = copy volumes + `pg_dump` restore + DNS change.
 
 ### 9.1 Domains
 
+**Now (Iranian VPS):**
+
 | Domain | Role |
 |---|---|
-| `mahdiazghandi.ir` | **canonical** — serves the site (`SiteOptions.BaseUrl = https://mahdiazghandi.ir`) |
+| `mahdiazghandi.ir` | **canonical** — serves the site (`Site__BaseUrl`) |
 | `www.mahdiazghandi.ir` | 301 → `https://mahdiazghandi.ir{path}` |
 | `shahramazghandi.ir`, `www.shahramazghandi.ir` | 301 → `https://mahdiazghandi.ir{path}` |
 
-- **One canonical host.** Search engines treat two domains with the same content as duplicates, so exactly one
-  serves the site; the other domain and every `www.` variant answer with a **301** to the same path on the canonical
-  host (`https://<other>/fa/blog/x` → `https://<canonical>/fa/blog/x`).
-- **DNS:** `A` records (apex + `www`) for both domains → the VPS IP. Analytics later uses `analytics.<canonical>`.
-- **TLS:** Caddy obtains Let's Encrypt certificates for all four hostnames (HTTP-01 on port 80, which must stay
-  open). If validation from abroad is unreliable, switch to the DNS-01 challenge — a Caddyfile change only.
-- **Config, not code:** the canonical URL is `SiteOptions.BaseUrl` (env `Site__BaseUrl`), used for canonical links,
-  sitemap, feed and OG tags. Hostnames appear only in `deploy/Caddyfile` and `.env`. Switching the canonical
-  domain or moving servers is a config + DNS change.
+**Later (ADR-023):** when Mahdi starts targeting foreign clients, the stack moves to a server abroad with a `.com`
+domain (name chosen then) that becomes canonical and **English-first** (`/` defaults to `en`). What happens to the
+`.ir` domains (301 to the `.com`, or a Persian mirror) is decided in P15.
+
+- **One canonical host;** every other hostname answers with a 301 to the same path on it.
+- **Config, not code:** the canonical URL is `Site__BaseUrl` (API) / `SITE_URL` (frontend); hostnames appear only in
+  `deploy/Caddyfile` and `.env`. Switching domains or servers is a config + DNS change.
+- **TLS:** Caddy obtains Let's Encrypt certificates for all hostnames (HTTP-01 on port 80; DNS-01 if needed).
 - `.ir` domains are registered at IRNIC (nic.ir) — keep renewal dates in the deploy notes.
 
 ## 10. Testing strategy
 
 | Layer | What | Tool |
 |---|---|---|
-| Domain | invariants (slug format, status transitions) | xUnit + Shouldly |
-| Application | services with validation & rules; DB via Testcontainers (no EF InMemory — it lies about SQL behaviour) | xUnit, Testcontainers.PostgreSql |
-| Web | page returns 200, auth redirects, antiforgery, honeypot behaviour, culture routing | WebApplicationFactory + Testcontainers |
-| Manual | Lighthouse (perf/SEO/a11y ≥ 90), RTL visual check, dark/light check | Chrome DevTools |
+| Domain | invariants (slug format, status transitions, seat holds) | xUnit + Shouldly |
+| Application | services with validation & rules on real PostgreSQL (no EF InMemory) | xUnit, Testcontainers.PostgreSql |
+| API | status codes, auth/policies, rate limits, honeypot, OpenAPI document is current | WebApplicationFactory + Testcontainers |
+| Front-end units | formatters (Persian dates/digits), components, message-key parity, token contrast | Vitest + Testing Library |
+| End-to-end | both locales × both themes × 360/1440 px, no CSP violations, axe accessibility, key journeys (contact, admin login, demo) | Playwright + @axe-core/playwright, against the compose stack |
+| Manual | Lighthouse, visual check of signature features | Chrome DevTools |
 
-Integration tests share one `WebAppFactory` (xUnit assembly fixture) that owns one PostgreSQL container and runs the app in a `Testing` environment (production-like: no user-secrets, no auto-migrate; the fixture applies migrations itself).
+Integration tests share one `WebAppFactory` (xUnit assembly fixture) that owns one PostgreSQL container and runs the
+API in a `Testing` environment (production-like: no user-secrets, no auto-migrate).
 
 ## 11. Decision log (ADRs)
 
-- **ADR-001 Razor Pages over MVC.** Content pages map 1:1 to URLs; Razor Pages keeps page + handler together, less ceremony than controllers. MVC is still available if an API is ever needed (minimal APIs cover the few JSON endpoints).
-- **ADR-002 Light Clean Architecture (4 projects).** Enforces dependency direction at compile time — valuable for learning — without CQRS/MediatR overhead. Services per feature instead of one handler per use case.
+- **ADR-001 Razor Pages over MVC.** *Superseded by ADR-021 (2026-10-18).* Content pages mapped 1:1 to URLs; Razor Pages kept page + handler together. Replaced by a Next.js front-end + ASP.NET Core API.
+- **ADR-002 Light Clean Architecture (4 projects).** Enforces dependency direction at compile time — valuable for learning — without CQRS/MediatR overhead. Services per feature instead of one handler per use case. The fourth project is now `PersonalSite.Api`.
 - **ADR-003 No MediatR / AutoMapper / FluentAssertions.** All three went commercial for new versions in 2025 and add indirection. Plain services + hand-written `ToDto()` projections are explicit and fast.
-- **ADR-004 `IAppDbContext` instead of repositories.** EF Core's `DbContext` already *is* a unit of work + repository. Application depends on `IAppDbContext` (exposing `DbSet<T>`s and `SaveChangesAsync`). Trade-off accepted: Application references EF Core; in exchange we skip a layer of pass-through code. Revisit only if a second persistence technology appears.
-- **ADR-005 Markdown stored in DB, rendered HTML cached.** Admin-editable (requirement), fast reads, and render logic lives in one place. Re-render all posts via an admin action if the pipeline changes.
-- **ADR-006 Culture-prefixed URLs for every language (`/fa/...`).** Unambiguous, cache-friendly, SEO-friendly (hreflang), and adding `/en` needs no route changes.
-- **ADR-007 Self-host every asset.** No CDNs/Google Fonts: works under Iranian filtering, strict CSP, better privacy, no migration surprises.
-- **ADR-008 Tailwind standalone CLI.** Avoids a Node toolchain for the main app; the only Node process in the stack is Umami's own container.
-- **ADR-009 Single PostgreSQL instance, separate DB for Umami.** One thing to back up and monitor; isolation via separate database + user.
-- **ADR-010 Comments moderated, no third-party service.** Disqus-style services are heavy, track users, and may be blocked. Honeypot + timing token + rate limit stops most bots without CAPTCHAs (Google reCAPTCHA is unreliable in Iran).
-- **ADR-011 Newsletter behind feature flags.** Data model and signup ship now; sending is off until an email provider is chosen. Double opt-in is designed in so no data migration is needed later.
-- **ADR-012 About/Services/Resume prose via localized Razor views, not DB (for now).** These change rarely; view localization (`About.fa.cshtml` partials) keeps them in git with no admin UI to build. Blog/Projects (frequent edits) are DB + admin. Can be moved to DB later without URL changes. *Amended by ADR-013 for the résumé data.*
-- **ADR-013 Structured résumé as one source, many renderings.** The résumé (experience, education, skills, links) is a typed `ResumeProfile` loaded from one JSON file per culture in git and validated at startup. The Resume page, About skills grid, `/api/resume.json`, the `curl` card, `llms.txt` and the MCP `get_resume` tool all render the same data, so they can never disagree. Prose around it (About story, Services) stays in localized views.
-- **ADR-014 AI is an optional, local-first layer.** Visitor-facing AI (semantic search, related posts, MCP) uses a small embedding model running in-process via ONNX Runtime and pgvector in the existing PostgreSQL — no external API, so it works on the Iranian server and costs nothing per request. Every AI feature sits behind an `Ai.*` flag and Microsoft.Extensions.AI abstractions (`IEmbeddingGenerator`, `IChatClient`); with all flags off the site is complete. The point is to show *engineered* AI, not a thin wrapper.
-- **ADR-015 Admin-only AI assistant via an OpenAI-compatible Iranian gateway (AvalAI).** A deliberate, narrow exception to "no Iran-specific services": major AI APIs don't serve Iran, and only Mahdi uses this feature, so there is no public abuse surface and an outage only disables a helper button. Guard rails: flag `Ai.AdminAssistant` (off by default), daily token budget, prepaid credit, never auto-publishes. Behind `IChatClient`, switching providers (e.g. after moving abroad) is a config change. Public features must never depend on it.
-- **ADR-016 Bilingual from P2 (English moved up from P13).** European employers are a main audience. The i18n plumbing already exists, so every page is written in `fa` and `en` as it is built — cheaper than translating everything later. Only GeoIP language selection stays late (P14).
-- **ADR-017 One public identity: Mahdi Azghandi.** The legal name matches degrees, contracts and background checks. "Shahram Azghandi" is recorded as `alternateName` in JSON-LD, `shahramazghandi.ir` 301-redirects to the canonical domain, and About mentions it once. All UI text uses the primary name.
-- **ADR-018 Honest public telemetry.** Only numbers the site actually measures are shown (latency percentiles, error rate, cache hit ratio, deploy info, own projects' health). No CPU/RAM, container names or package versions (reconnaissance value for attackers, no value for visitors), and no availability percentage the site can't measure from inside itself.
-- **ADR-019 Two audiences via two paths, not a persona toggle.** Recruiters and clients get clear paths from Home (Resume/Decisions vs Services/Contact) and a request type on the contact form. A toggle would hide half the content, double the maintenance and confuse search engines.
-- **ADR-020 Inline scripts are allowed by CSP hash, not nonce.** The only inline script (the pre-paint theme script) is a constant in `InlineScripts`; its SHA-256 goes into `script-src` once at startup. A nonce must be new per response, which breaks as soon as HTML is served from a cache (output caching for the blog, P6) — a hash stays valid for every copy of the page. Cost: the script text must be byte-identical to what was hashed, so it is rendered from the same constant and guarded by a test.
+- **ADR-004 `IAppDbContext` instead of repositories.** EF Core's `DbContext` already *is* a unit of work + repository. Application depends on `IAppDbContext`. Trade-off accepted: Application references EF Core; in exchange we skip a layer of pass-through code.
+- **ADR-005 Markdown stored in DB, rendered HTML cached.** Admin-editable, fast reads, one render path (the API). The front-end inserts only this sanitized HTML (the single allowed `dangerouslySetInnerHTML`).
+- **ADR-006 Locale-prefixed URLs for every language (`/fa/...`, `/en/...`).** Unambiguous, cache-friendly, SEO-friendly (hreflang). Now implemented by Next.js `[locale]` segments.
+- **ADR-007 Self-host every runtime asset.** No CDNs/Google Fonts/hosted widgets at runtime: works under filtering, strict CSP, privacy, no migration surprises. Build-time packages (npm/NuGet) are fine — they ship inside our images.
+- **ADR-008 Tailwind standalone CLI.** *Superseded by ADR-021.* Avoided a Node toolchain while the UI was Razor; the front-end is now a Node app, so Tailwind runs through PostCSS there.
+- **ADR-009 Single PostgreSQL instance, separate DB for Umami.** One thing to back up and monitor; isolation via separate database + user. Demo sandboxes use a separate `demo` schema in the site DB.
+- **ADR-010 Comments moderated, no third-party service.** Honeypot + timing token + rate limit stops most bots without CAPTCHAs (reCAPTCHA is unreliable in Iran).
+- **ADR-011 Newsletter behind feature flags.** Data model and signup ship first; sending is off until an email provider is chosen. Double opt-in designed in.
+- **ADR-012 About/Services prose in localized files, not DB.** These change rarely; keeping them in git avoids an admin UI. *Amended:* now localized MDX in `frontend/content/` (was localized Razor views); résumé data per ADR-013.
+- **ADR-013 Structured résumé as one source, many renderings.** A typed `ResumeProfile` loaded from one JSON file per culture in the API project, validated at startup. The Resume page, About skills grid, `/api/resume.json`, the `curl` card, `llms.txt`, the keyboard hero's tech cards and MCP all render the same data, so they can never disagree.
+- **ADR-014 AI is an optional, local-first layer.** Visitor-facing AI (semantic search, related posts, MCP) uses a small in-process ONNX embedding model and pgvector — no external API. Every AI feature sits behind an `Ai.*` flag; with all flags off the site is complete.
+- **ADR-015 Admin-only AI assistant via an OpenAI-compatible Iranian gateway (AvalAI).** Narrow exception to "no Iran-specific services": only Mahdi uses it; flag off by default, token budget, never auto-publishes. Behind `IChatClient`, switching providers after moving abroad is a config change.
+- **ADR-016 Bilingual from the start of the new front-end.** European employers are a main audience; every page is written in `fa` and `en` as it is built (English enabled in P2-T6). Only GeoIP language selection stays late (P15).
+- **ADR-017 One public identity: Mahdi Azghandi.** "Shahram Azghandi" is `alternateName` in JSON-LD, `shahramazghandi.ir` 301-redirects, and About mentions it once.
+- **ADR-018 Honest public telemetry.** Only numbers the site actually measures are shown. No CPU/RAM, container names or package versions, no availability percentage the site can't measure. Applies to X-Ray and scrollytelling too: they show this site's real stack and this request's real timings.
+- **ADR-019 Two audiences via two paths, not a persona toggle.** Recruiters and clients get clear paths from Home and a request type on the contact form.
+- **ADR-020 Inline scripts allowed by CSP hash, not nonce.** *Superseded by ADR-025.* Was right for cached Razor HTML; Next.js emits per-page inline scripts that a fixed hash can't cover.
+- **ADR-021 Two applications: Next.js front-end + ASP.NET Core API, one origin.** Mahdi's positioning is now full-stack (ADR-022), and React/TypeScript must be shown in real, production-shaped code — the separated SPA/SSR front-end + Web API split is what full-stack roles use. Caddy serves both under one domain (`/api/*` → API, rest → Next.js), so the Identity cookie works without CORS or tokens in JavaScript. Cost accepted: two runtimes in production, a Node toolchain, and P1's Razor UI rebuilt in React. Rejected alternative: Razor Pages + React islands (smaller change, but less representative of full-stack work).
+- **ADR-022 Positioning: full-stack engineer (.NET + React/TypeScript).** The site sells both halves: back-end depth (concurrency, data, deployment under constraints) made visible by a front-end worth looking at. Every showpiece must reveal something real about the back-end.
+- **ADR-023 Hosting now in Iran, later abroad with `.com` and English-first.** The site launches on the Iranian VPS with the `.ir` domains and Persian as default. When Mahdi targets foreign clients, it moves to a foreign server with a `.com` domain and English as the default language. Everything that would change (hostnames, base URL, default locale) is configuration, and all state lives in volumes, so the move is a runbook (P15), not a rewrite.
+- **ADR-024 Design direction: dark Bento grid, single accent, strong typography.** The botanical direction (P1) is retired. The new look: near-black background, hairline-bordered Bento cards with a cursor spotlight, one accent color chosen by Mahdi, large confident Persian/English typography, and the signature features in §8.2. Dark is the default; the light theme must still work.
+- **ADR-025 CSP with a per-request nonce; HTML rendered per request.** Next.js needs inline scripts that differ per page, so scripts are allowed by a nonce created in `proxy.ts` (`script-src 'nonce-…' 'strict-dynamic'`, no `unsafe-eval`). A nonce makes every HTML response unique, so pages render per request and caching happens at the data layer (tagged fetches) instead. Styles allow `'unsafe-inline'`: React, Motion and `next/image` set `style` attributes, and style injection is far less dangerous than script injection — scripts stay strict.
+- **ADR-026 Typed API contract from OpenAPI.** The API generates `openapi/v1.json` at build time; the front-end generates TypeScript types and a typed client from it. A renamed field breaks the front-end build instead of production. CI fails if the committed document or the generated types are stale.
+- **ADR-027 Live demos run against real endpoints with sandboxed data.** A demo that only animates is a video; the point is to show the back-end working. Demos call `/api/demos/*`, which use real services and a real database in a separate `demo` schema with fake data, rate-limited and reset regularly. The gym demo uses invented members only (client permission given for the case study). Labelled "Live demo — sandbox data".

@@ -7,55 +7,60 @@ architecture decisions in short form, and where the full details live.
 
 ## 1. Project in one paragraph
 
-Personal website of **Mahdi Azghandi** (Mahdi; also known as Shahram — `alternateName` only, ADR-017), a backend developer (C#/.NET). It combines an online resume, a portfolio (including a
-live deployed project), a technical blog with moderated comments, a services page to attract freelance clients, a
-contact form and a newsletter signup (sending disabled for now). Audience: employers (often European), potential clients, blog readers.
-Site content is **Persian (RTL) and English (LTR)**: English is enabled in `P1-T11` and every page from P2 on ships in both.
-It is also a **learning project**: Mahdi wants to understand *why* each technical decision is made.
+Personal website of **Mahdi Azghandi** (Mahdi; also known as Shahram — `alternateName` only, ADR-017), a
+**full-stack engineer: C#/.NET back-end + React/TypeScript front-end** (ADR-022). It combines an online resume, a
+portfolio with **live demos** on real sandbox APIs, a technical blog with moderated comments, a services page to
+attract freelance clients, a contact form and a newsletter signup (sending disabled). Audience: employers (often
+European), potential clients, blog readers. Content is **Persian (RTL) and English (LTR)** from the first page.
+It is also a **learning project**: Mahdi is learning React/Next.js while building it and wants to understand *why*
+each technical decision is made. Target: launch in ≈ 6 months (≈ April 2027).
 
-**Positioning (filter for every feature):** *a C#/.NET backend engineer who builds real systems under hard constraints
-and engineers AI into them — and this site is the proof.* Three pillars: **show, don't tell** (under-the-hood
-telemetry, case studies, public decisions), **readable by machines & AI** (structured résumé, `curl`, MCP, semantic
-search with a local model), **become a reference** (content on .NET under Iranian constraints). Details, and the list
-of ideas already considered and rejected, are in `roadmap.md`.
+**Architecture (ADR-021):** two apps behind **one origin** — a **Next.js 16 front-end** (`frontend/`, React 19,
+TypeScript) and an **ASP.NET Core 10 API** (`src/PersonalSite.Api`). Caddy routes `/api/*` (and a few machine
+endpoints) to the API and everything else to Next.js. Phase 1 built a Razor Pages front-end; it is retired (P2-T1).
+
+**Positioning (filter for every feature):** *a full-stack engineer who builds real systems under hard constraints
+and engineers AI into them — and this site is the proof.* Pillars: **show, don't tell** (Bento home, keyboard hero,
+live demos, X-Ray mode, honest telemetry), **readable by machines & AI** (structured résumé, `curl`, OpenAPI, MCP,
+local-model search), **become a reference** (Persian content on .NET under Iranian constraints). Every showpiece must
+reveal something real about the back-end. Details and rejected ideas: `roadmap.md`.
 
 ## 2. Current status
 
-- **Phase:** P0 — Foundation **complete** (`P0-T1`…`P0-T7`). CI (`.github/workflows/ci.yml`) runs restore, build, format check and tests on every push and PR. Code is on GitHub: `shahramdevops-rgb/my-website` (`origin`).
-- **Phase P1** in progress: `P1-T1` (Tailwind pipeline + tokens), `P1-T2` (self-hosted fonts + type scale), `P1-T3` (culture routing + resx), `P1-T4` (date/number formatting), `P1-T5` (layout, header, footer), `P1-T7` (Alpine CSP build + baseline CSP; done before P1-T6), `P1-T6` (theme toggle), `P1-T8` (botanical motifs) done.
-- **Next task:** `P1-T9` (UI component partials + style guide page).
-- **Roadmap revised (2026-10-17):** positioning + three pillars; English moved up (`P1-T11`, bilingual P2); new
-  P2-T6 decisions page, P5-T7/T8 live status + gym case study, P9-T5 machine-readable résumé, P10 under the hood,
-  P11 AI layer; newsletter → P13, GeoIP → P14; content track `C-T1…T3`. ADR-013…019 record the decisions.
-- **JS:** `wwwroot/js/app.js` (ES module) imports Alpine CSP 3.17.4 + components and registers them with `Alpine.data`; markup uses `x-on:` (not `@`, which Razor reads as C#). Mobile menu = `<details>` + `mobileMenu` (Escape / outside click).
-- **CSP:** every response gets a baseline `Content-Security-Policy` (`SecurityHeadersMiddleware`, `default-src 'self'`, no `unsafe-inline`). The only inline script is the pre-paint theme script, allowed by its SHA-256 (`Infrastructure/InlineScripts.cs`, ADR-020) — never hand-write `<script>` blocks.
-- **Theme:** `$store.theme` + `_ThemeToggle`; server always renders `data-theme="dark"`, the head script applies a saved `light`.
-- **Motifs:** `Shared/Motifs/` (`_LeafDivider`, `_VineCorner`, `_Sprig`, `_BloomCluster`, `_HeroBotanical`) — the wrapper sets size + token color (`<div class="w-20 text-primary">`); `currentColor` only, no `style`/`id`, sway via `.motif-sway` (`MotifTests`). Shown on the home placeholder until the style guide (P1-T9).
-- **Contact links** (`Site:Social:Email|GitHub|Telegram`) are not set yet — waiting for Mahdi's values; the footer hides unset ones.
-- **Localization:** every public page is auto-prefixed with `{culture:culture}` by `CultureRouteConvention` (don't write `/fa` in `@page`); views use the injected `T["Key"]` (`IStringLocalizer<SharedResource>`, strings in `Resources/SharedResource.fa.resx`).
-- **Dates/numbers in views:** `<persian-date value="…" />` (tag helper), `DateDisplay`, `NumberDisplay` (`Formatting/`). .NET never emits Persian digits itself — always go through these.
-- **Tailwind CLI** is required to build the Web project: run `./tools/get-tailwind.ps1` once (CI/Docker run the `.sh`). New markup folders must be added as `@source` in `Styles/app.css`.
-- **Dev DB** is published on host port **5433** (Mahdi has another project's PostgreSQL on 5432). For `dotnet watch` on the host, the connection string lives in **user-secrets** (`ConnectionStrings:Default`); in Docker, `compose.yaml` builds it from `.env`.
-- **Tooling note:** when Claude runs locally (VS Code extension) it can use `dotnet` and reach nuget.org; in cloud sandboxes it may not — then Mahdi runs the `dotnet` commands.
-- **Tests** run on Microsoft.Testing.Platform (`global.json` → `test.runner`); `dotnet test` from the repo root (Docker must be running: integration tests start PostgreSQL via Testcontainers).
+- **Done:** P0 — Foundation (solution, Docker, EF Core + PostgreSQL, tests, CI on GitHub `shahramdevops-rgb/my-website`).
+  P1 — Razor front-end (T1–T8) — **retired** on 2026-10-18 by the full-stack decision (ADR-021…027); P1-T9…T11 cancelled.
+- **Next task:** `P2-T1` (rename `PersonalSite.Web` → `PersonalSite.Api` and remove the Razor UI).
+- **Waiting on Mahdi:** the accent color (needed by `P2-T8`), contact links (`Site:Social:Email|GitHub|Telegram`).
+- **Branches:** local `main` is at P1-T4 (`origin/main` at P0-T7); P1-T5…T8 and the full-stack docs change sit on
+  stacked feature branches — merge them in order (and push) before P2-T1.
+- **Code today** is still the P1 Razor app (`src/PersonalSite.Web`, Tailwind CLI, Alpine, resx). Don't extend it;
+  P2-T1 removes it. Its ideas that carry over are listed in `architecture.md §8.4`.
+- **Dev DB** is published on host port **5433** (Mahdi has another project's PostgreSQL on 5432). For `dotnet watch`
+  on the host, the connection string lives in **user-secrets** (`ConnectionStrings:Default`); in Docker, compose builds it from `.env`.
+- **Tooling note:** locally (VS Code extension) Claude can use `dotnet`, `node`/`pnpm` and reach nuget.org/npm; in
+  cloud sandboxes it may not — then Mahdi runs those commands.
+- **Tests** run on Microsoft.Testing.Platform (`global.json` → `test.runner`); `dotnet test` from the repo root
+  (Docker must be running: integration tests start PostgreSQL via Testcontainers). Front-end: `pnpm test`, `pnpm e2e` (from P2-T3).
 - Keep this section updated: after finishing a task, set "Next task" to the next unchecked item.
 
 ## 3. Communication with Mahdi
 
-- **Reply to Mahdi in Persian** (he writes in Persian). Keep technical terms in English where natural (`DbContext`, `middleware`).
+- **Reply to Mahdi in Persian** (he writes in Persian). Keep technical terms in English where natural (`DbContext`, `Server Component`).
 - **Everything in the repo is English**: code, identifiers, comments, commit messages, docs.
-- **Site content (UI text) is Persian and English**, stored in `.resx` files — never hard-coded. Claude drafts English text; Mahdi edits it.
-- Mahdi is learning: explain *why*, briefly. Prefer one clear reason over a list of five.
+- **Site content (UI text) is Persian and English**, stored in `frontend/messages/{fa,en}.json` or localized MDX —
+  never hard-coded. Claude drafts English text; Mahdi edits it.
+- Mahdi is learning (React/TypeScript especially): explain *why*, briefly. Prefer one clear reason over a list of five.
 - Ask before decisions that are hard to reverse (data model, URLs, public behaviour, new dependencies).
+- **Design direction is Mahdi's call.** Offer ideas and a recommendation; don't change the look without his choice.
 
 ## 4. Document map
 
 | File | Use it for |
 |---|---|
-| `architecture.md` | Layers, folders, data model, request flows, routing, ADR decision log |
-| `rules.md` | Mandatory coding conventions and checklists (full version of §8 below) |
-| `roadmap.md` | Phases and their order/rationale |
-| `TASKS.md` | Small executable tasks with acceptance criteria (IDs like `P6-T3`) |
+| `architecture.md` | System overview, both apps' structure, data model, request flows, routing, ADR decision log |
+| `rules.md` | Mandatory coding conventions and checklists (C#, API, TypeScript/React) |
+| `roadmap.md` | Positioning, phases and their order/rationale |
+| `TASKS.md` | Small executable tasks with acceptance criteria (IDs like `P7-T3`) |
 | `learning.md` | Plain-language explanations of concepts & decisions (for Mahdi) |
 | `README.md` | How to run/build/deploy |
 
@@ -63,90 +68,102 @@ of ideas already considered and rejected, are in `roadmap.md`.
 
 | # | Feature | Notes | Phase |
 |---|---|---|---|
-| 1 | Home | Value proposition + **two paths** (hiring / project) + featured projects + services teaser + latest posts; status line in P10 | P2 (+ wiring P5/P6/P10) |
-| 2 | About | "From circuits to cloud" story (EE → backend), localized prose view | P2 |
-| 3 | Projects / portfolio | DB + admin CRUD; **case studies**; "Live" badge + live health status; gym system is the flagship (client permission needed) | P5 |
-| 4 | Blog | Markdown written in **admin panel** (not DB-direct, not git files); tags, paging, growth stages (digital garden), translations | P6 |
-| 5 | Comments | Name + email + text; **Pending until Mahdi approves**; honeypot + timing token + rate limit | P7 |
-| 6 | Contact form | Name, email, message, **request type** → DB + admin inbox; email notify behind flag | P8 |
-| 7 | Resume page + PDF | Rendered from **structured résumé JSON** (ADR-013); PDF **uploaded from admin**; download button | P2 + P8 |
-| 8 | Contact links | Email, GitHub, Telegram only (**no LinkedIn, no phone** for now) | P1 |
-| 9 | Newsletter | Model + signup UI now; **sending disabled** behind `Newsletter.Sending` | P13 |
-| – | Services page | Freelance services, CTA to contact | P2 |
-| – | Engineering decisions page | ADR cards: challenge → decision → why | P2 |
-| – | Admin panel | ASP.NET Identity, single admin, no public registration | P4 |
-| – | Machine-readable résumé | `/api/resume.json`, `curl` card, `llms.txt` | P9 |
-| – | Under the hood + analytics | Honest live metrics, `Server-Timing`, architecture page, cinema simulation; Umami | P10 |
-| – | AI layer | Local-model semantic search, related posts, Ctrl+K, MCP server, admin-only assistant | P11 |
-| – | English | `en` culture + switcher, every page bilingual from P2 | P1 → P9 |
-| – | Geo-based default language | GeoIP on `/` only | P14 |
+| 1 | Home | **Bento grid** with cursor spotlight, **3D keyboard hero**, two paths (hiring / project), featured projects, demo card, latest posts; status line later | P3 (+ wiring P6/P7/P11) |
+| 2 | About | "From circuits to cloud" story (EE → software), localized MDX | P3 |
+| 3 | Projects / portfolio | DB + admin CRUD; case studies; live status; **gym system is the flagship (client permission given)** | P6 |
+| 4 | Live demos | Cinema seat picking with a real simultaneous-purchase race; gym check-in + lockers; sandbox data (ADR-027) | P6 |
+| 5 | Blog | Markdown written in the **admin panel**; tags, paging, growth stages, translations | P7 |
+| 6 | Comments | Name + email + text; **Pending until Mahdi approves**; honeypot + timing token + rate limit | P8 |
+| 7 | Contact form | Name, email, message, **request type** → DB + admin inbox; email notify behind flag | P9 |
+| 8 | Resume page + PDF | Rendered from **structured résumé JSON** (ADR-013); PDF uploaded from admin | P3 + P9 |
+| 9 | Contact links | Email, GitHub, Telegram only (**no LinkedIn, no phone** for now) | P2 |
+| 10 | Newsletter | Model + signup UI; **sending disabled** behind `Newsletter.Sending` | P14 |
+| – | Services page | Freelance services, CTA to contact | P3 |
+| – | Engineering decisions page | ADR cards: challenge → decision → why | P3 |
+| – | Admin panel | Next.js UI; ASP.NET Identity in the API; single admin, no registration | P5 |
+| – | Machine-readable résumé | `/api/resume.json`, `curl` card, `llms.txt` | P10 |
+| – | Under the hood | **X-Ray mode**, scrollytelling request journey, honest live metrics, Umami | P11 |
+| – | AI layer | Local-model semantic search, related posts, Ctrl+K, MCP server, admin-only assistant | P12 |
+| – | International move | Foreign server, `.com`, English-first, GeoIP | P15 |
 
 **Out of scope for now:** public user accounts, LinkedIn/phone, payments, newsletter sending, public AI chat (backlog).
 
 ## 6. Stack (short)
 
-ASP.NET Core 10 (LTS) Razor Pages · light Clean Architecture (Domain / Application / Infrastructure / Web) ·
-PostgreSQL 17 + EF Core 10 (snake_case) · ASP.NET Identity (single admin) · Tailwind v4 standalone CLI ·
-Alpine.js CSP build · Markdig + HtmlSanitizer · FluentValidation · Microsoft.FeatureManagement · Serilog ·
-Docker Compose (dev & prod) + Caddy · Umami (self-hosted) · xUnit v3 + Shouldly + NSubstitute + Testcontainers ·
-GitHub Actions → GHCR. Planned for P11 (approve per task): Microsoft.Extensions.AI · ONNX Runtime (local embeddings) ·
-pgvector · MCP C# SDK.
+**Front-end:** Next.js 16 (App Router) · React 19 · TypeScript (strict) · pnpm · Tailwind v4 · next-intl · Motion ·
+React Three Fiber · openapi-typescript + openapi-fetch · Vitest + Testing Library · Playwright (+ axe).
+**Back-end:** ASP.NET Core 10 (LTS) Minimal APIs · OpenAPI · light Clean Architecture (Domain / Application /
+Infrastructure / Api) · PostgreSQL 17 + EF Core 10 (snake_case) · ASP.NET Identity (cookie, single admin) ·
+Markdig + HtmlSanitizer · FluentValidation · Microsoft.FeatureManagement · Serilog · xUnit v3 + Shouldly +
+NSubstitute + Testcontainers.
+**Ops:** Docker Compose (frontend, api, db, caddy) · Caddy · Umami · GitHub Actions → GHCR (two images).
+Planned for P12 (approve per task): Microsoft.Extensions.AI · ONNX Runtime · pgvector · MCP C# SDK.
 
 ## 7. Architecture decisions (summary — full ADRs in `architecture.md §11`)
 
 | ADR | Decision | One-line reason |
 |---|---|---|
-| 001 | Razor Pages, not MVC | Each URL is a page; code stays together; SSR = good SEO |
-| 002 | Light Clean Architecture, 4 projects | Compiler-enforced layering, no CQRS ceremony |
+| 001 | ~~Razor Pages~~ → superseded by 021 | — |
+| 002 | Light Clean Architecture, 4 .NET projects | Compiler-enforced layering, no CQRS ceremony |
 | 003 | No MediatR / AutoMapper / FluentAssertions | Commercial licences + hidden indirection |
 | 004 | `IAppDbContext` instead of repositories | DbContext already is repo + unit of work |
 | 005 | Markdown in DB, rendered HTML cached | Admin-editable, fast reads, one render path |
-| 006 | Culture-prefixed URLs (`/fa/...`) for every language | Adding `/en` later needs no route changes |
-| 007 | Self-host every asset | Works under Iranian filtering, strict CSP, privacy |
-| 008 | Tailwind standalone CLI | No Node toolchain for the app |
-| 009 | One PostgreSQL, separate DB for Umami | One thing to back up |
+| 006 | Locale-prefixed URLs (`/fa/...`, `/en/...`) | Unambiguous, SEO-friendly (hreflang) |
+| 007 | Self-host every runtime asset | Works under filtering, strict CSP, privacy |
+| 008 | ~~Tailwind standalone CLI~~ → superseded by 021 | — |
+| 009 | One PostgreSQL, separate DB for Umami, `demo` schema for demos | One thing to back up |
 | 010 | Moderated comments, no third-party service / CAPTCHA | reCAPTCHA unreliable in Iran; privacy |
 | 011 | Newsletter behind feature flags | Ship model/UI now, send later without migration |
-| 012 | About/Services/Resume prose in localized views | Rarely changes; no admin UI needed |
-| 013 | Structured résumé JSON per culture, many renderings | Page, JSON, `curl`, `llms.txt`, MCP never disagree |
-| 014 | AI optional and local-first, behind `Ai.*` flags | Works on the Iranian server; shows engineered AI |
+| 012 | About/Services prose in localized MDX | Rarely changes; no admin UI needed |
+| 013 | Structured résumé JSON per culture, many renderings | Page, JSON, `curl`, `llms.txt`, keyboard, MCP never disagree |
+| 014 | AI optional and local-first, behind `Ai.*` flags | Works on our own server; shows engineered AI |
 | 015 | Admin-only AI assistant via AvalAI (exception to §9) | No public abuse surface; provider swap = config |
-| 016 | Bilingual from P2 | European employers; cheaper than translating later |
+| 016 | Bilingual from the first page | European employers; cheaper than translating later |
 | 017 | One public name: Mahdi Azghandi (Shahram = alternateName) | Matches legal documents |
-| 018 | Honest public telemetry only | No faked numbers, no reconnaissance data |
+| 018 | Honest public telemetry (also X-Ray, scrollytelling) | No faked numbers, no generic stack |
 | 019 | Two audience paths, no persona toggle | Nothing hidden, one version of each page |
-| 020 | Inline scripts allowed by CSP hash, not nonce | Stays valid when pages are served from cache |
+| 020 | ~~CSP by hash~~ → superseded by 025 | — |
+| 021 | **Next.js front-end + ASP.NET Core API, one origin** | Real full-stack shape; cookie auth without CORS |
+| 022 | **Positioning: full-stack (.NET + React/TS)** | Sell both halves; showpieces reveal the back-end |
+| 023 | **Now Iran (`.ir`, fa-first) → later abroad (`.com`, en-first)** | Move = config + runbook |
+| 024 | **Design: dark Bento grid, single accent, strong type** | Botanical retired; Mahdi picks the accent |
+| 025 | **CSP nonce per request; data cached, HTML dynamic** | Next.js inline scripts vary per page |
+| 026 | **Typed API contract from OpenAPI** | Contract drift breaks the build, not production |
+| 027 | **Live demos on real endpoints with sandbox data** | Show the back-end working, not a video |
 
-**Layering:** `Web → Application → Domain`; `Infrastructure → Application`. Page models are thin and call
-Application services only — never `AppDbContext`.
+**Layering:** `frontend ─HTTP→ Api → Application → Domain`; `Infrastructure → Application`. Endpoints are thin and
+call Application services only — never `AppDbContext`. The front-end uses only the generated API client.
 
-**Solution:** `src/PersonalSite.{Domain,Application,Infrastructure,Web}`, `tests/PersonalSite.{UnitTests,IntegrationTests}`.
+**Repo:** `src/PersonalSite.{Domain,Application,Infrastructure,Api}`, `tests/PersonalSite.{UnitTests,IntegrationTests}`,
+`frontend/` (Next.js), `openapi/v1.json` (generated contract).
 
 ## 8. Coding rules (essentials — full list in `rules.md`)
 
-- `TreatWarningsAsErrors`, nullable on, file-scoped namespaces, `sealed` classes by default, `record` DTOs.
-- Async all the way with `CancellationToken ct` as last parameter; no `.Result` / `.Wait()`.
-- Entities: private setters, state changes via methods (`post.Publish(now)`), enums stored as strings, IDs `Guid.CreateVersion7()`.
-- Expected failures → `Result<T>`; exceptions only for bugs/infrastructure.
-- Reads: `AsNoTracking()` + `Select` to DTOs; every list is paged.
-- EF config via `IEntityTypeConfiguration<T>` only; one migration per task; never edit an applied migration.
-- Times: `TimeProvider`, UTC in DB, Persian calendar only in views.
-- No magic strings: flags, policies, cache tags, routes in constant classes.
-- UI text only via `IStringLocalizer`/`IViewLocalizer` (keys like `Blog.Post.CommentsTitle`).
-- **RTL-safe CSS**: logical utilities only (`ms/me/ps/pe/start/end`); colors only via design tokens.
-- User input always HTML-encoded; `Html.Raw` only for sanitized Markdown output.
-- Tests: `Method_State_ExpectedResult`; integration tests on real PostgreSQL (Testcontainers), never EF InMemory.
-- Git: branch `feat/P6-T3-short-name`; Conventional Commits.
+**C#:** `TreatWarningsAsErrors`, nullable on, file-scoped namespaces, `sealed` by default, `record` DTOs · async all
+the way with `CancellationToken ct` last · entities with private setters and state-changing methods, enums as
+strings, IDs `Guid.CreateVersion7()` · expected failures → `Result<T>`, errors as ProblemDetails · reads
+`AsNoTracking()` + `Select`, every list paged · EF config via `IEntityTypeConfiguration<T>`, one migration per task ·
+`TimeProvider`, UTC in DB · no magic strings (flags, policies, cache tags, routes in constants).
+**TypeScript/React:** `strict`, no `any` · Server Components by default, `"use client"` only on leaves · data only via
+the generated client · text only via next-intl (both `fa.json` and `en.json`) · dates/numbers via `src/lib/format/` ·
+**RTL-safe CSS** (logical utilities only), colors only via tokens · reduced motion respected · heavy parts lazy-loaded
+behind a same-size placeholder · no `dangerouslySetInnerHTML` except sanitized `bodyHtml`.
+**Tests:** `Method_State_ExpectedResult` (.NET); integration tests on real PostgreSQL (Testcontainers), never EF
+InMemory; Vitest + Playwright for the front-end.
+**Git:** branch `feat/P7-T3-short-name`; Conventional Commits.
 
 ## 9. Non-negotiables
 
-- **No external runtime dependencies**: no CDNs, Google Fonts, reCAPTCHA, hosted comment/email/analytics/AI APIs, or Iran-specific services. Vendor assets into `wwwroot/lib`. Only exception: the admin-only AI assistant (ADR-015) — public features never depend on it.
-- **Honest telemetry**: never show a number the site doesn't measure, and never expose CPU/RAM, container names or package versions publicly (ADR-018).
+- **No external runtime dependencies**: no CDNs, Google Fonts, reCAPTCHA, hosted comment/email/analytics/AI APIs, or
+  Iran-specific services at runtime (build-time npm/NuGet packages are fine). Only exception: the admin-only AI
+  assistant (ADR-015) — public features never depend on it.
+- **Honest telemetry & demos**: never show a number the site doesn't measure or a stack it doesn't run; never expose
+  CPU/RAM, container names or package versions publicly (ADR-018). Demos run on real endpoints with sandbox data (ADR-027).
 - **Dark theme is the default**; everything must look right in both themes.
 - Public forms: honeypot + signed timing token + rate limit. Comments are `Pending` until approved.
 - Don't enable anything behind a feature flag unless Mahdi asks.
-- Secrets never in git. New config → add to `.env.example` and an Options class with `ValidateOnStart`.
-- Every admin page/endpoint requires the `Admin` policy.
+- Secrets never in git. New config → `.env.example` + an Options class with `ValidateOnStart` (API) or `src/lib/env.ts` (front-end).
+- Every admin endpoint requires the `Admin` policy; the admin UI is never the security gate.
 
 ## 10. Names to reuse (don't invent variants)
 
@@ -154,12 +171,13 @@ Application services only — never `AppDbContext`.
 |---|---|
 | Feature flags | `Newsletter.Signup` (on), `Newsletter.Sending` (off), `Notifications.Email` (off), `Comments.Enabled` (on), `Analytics.Umami` (on in prod), `Ai.SemanticSearch`, `Ai.Mcp` (on once built), `Ai.AdminAssistant` (off), `Ai.Chat` (off, backlog) |
 | Auth policy | `Admin` |
-| Rate-limit policies | `public-forms`, `login`, `public-api` (JSON/MCP/search/curl) |
-| Cache tags | `blog`, `post:{id}`, `projects` |
-| Cultures | `fa` (now), `en` (P1-T11) |
+| Rate-limit policies | `public-forms`, `login`, `public-api` (JSON/MCP/search/curl/demos) |
+| Cache tags | `blog`, `post:{id}`, `projects`, `project:{id}` |
+| Locales | `fa` (default now), `en` |
+| Compose services | `frontend`, `api`, `db`, `caddy` (+ `umami` in P11) |
 | Public name | `Mahdi Azghandi`; alternate `Shahram Azghandi` (JSON-LD only + one About line) |
 | Volumes | `pgdata`, `uploads`, `dpkeys`, `caddy_data` |
-| Domains | `mahdiazghandi.ir` (canonical), `shahramazghandi.ir` (301 → canonical) |
+| Domains | now `mahdiazghandi.ir` (canonical), `shahramazghandi.ir` (301 → canonical); later a `.com` (ADR-023) |
 
 ## 11. How to execute a task
 
@@ -167,45 +185,58 @@ When Mahdi says **"Do task Px-Ty"** (or «تسک Px-Ty رو انجام بده»)
 
 1. Read the task in `TASKS.md`, then the relevant sections of `architecture.md` and `rules.md`.
 2. If the task is ambiguous or conflicts with the docs, **ask before coding**. Don't silently expand scope.
-3. Check dependencies (e.g. `P5-T4` needs `P6-T1`). If a prerequisite is missing, say so.
+3. Check dependencies (e.g. `P6-T4` needs `P7-T1`). If a prerequisite is missing, say so.
 4. Implement the smallest change that satisfies **Done when**.
-5. Add/adjust tests. Run `dotnet build`, `dotnet test`, `dotnet format --verify-no-changes`.
+5. Add/adjust tests. Run `dotnet build`, `dotnet test`, `dotnet format --verify-no-changes`; for front-end changes
+   also `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build` in `frontend/`.
 6. Update docs: tick the task in `TASKS.md` (`[x]`), update §2 *Current status* here, and `architecture.md` if structure/model/decisions changed.
 7. **Teach:** end your reply with a short *"What we did & why"* section (3–8 bullets, in Persian).
    If a concept is new and important, add a short entry to `learning.md` (in English, with a tiny example).
 8. Suggest a Conventional Commit message. Commit only if asked.
 
 ### Definition of Done
-Build green · tests green · formatting clean · works in dark **and** light · works RTL (`fa`) and, from P1-T11,
-LTR (`en`) at 360px and 1440px · no new hard-coded UI strings (every key in both resx files) · docs updated · task ticked.
+Build green · tests green · lint/format clean · works in dark **and** light · works in `fa` (RTL) **and** `en` (LTR)
+at 360px and 1440px · no new hard-coded UI strings (every key in both message files) · OpenAPI + TS types regenerated
+if the contract changed · docs updated · task ticked.
 
 ## 12. Environment facts
 
 - Mahdi develops on **Windows** (repo at `C:\Users\shahram\source\repos\my-website`). Give PowerShell commands first,
   bash when relevant (server is Linux).
-- Production: an **Iranian VPS** (Linux, Docker). Docker Hub/NuGet/GitHub can be slow or blocked from there → images
-  are built in GitHub Actions and pulled from GHCR (fallback: `docker save/load`). Never assume the server can `dotnet restore`.
+- Production (for now): an **Iranian VPS** (Linux, Docker). Docker Hub/NuGet/npm/GitHub can be slow or blocked from
+  there → both images are built in GitHub Actions and pulled from GHCR (fallback: `docker save/load`). Never assume
+  the server can `dotnet restore` or `pnpm install`.
 - **Domains (purchased, `.ir`):** **`mahdiazghandi.ir` is canonical.** `shahramazghandi.ir` and all `www.` variants
-  301-redirect to it (same path). Caddy gets real Let's Encrypt certificates for all of them. Domain names live only in config (`SiteOptions.BaseUrl`, Caddyfile, env) —
-  never hard-coded in C#/Razor. Details: `architecture.md §9.1`.
-- Future migration to an international server → all state in volumes + env config, nothing host-specific in code.
+  301-redirect to it. Domain names live only in config (`Site__BaseUrl`, `SITE_URL`, Caddyfile, env) — never in code.
+  Details: `architecture.md §9.1`.
+- **Later (ADR-023):** when foreign clients are the target, move to a foreign server with a `.com` domain,
+  English-first. All state in volumes + env config, nothing host-specific in code. Speed of the Iranian network is
+  not a design constraint for this site.
 
-## 13. Design direction
+## 13. Design direction (ADR-024)
 
-Forest-green, botanical, artistic — *not* a generic template. Leaves, vines and small blossoms as SVG line-art motifs
-(original art, `currentColor`, `aria-hidden`), organic shapes, calm motion (respect `prefers-reduced-motion`).
-Tokens and palette in `architecture.md §8.1`. Fonts: Vazirmatn + JetBrains Mono (self-hosted).
-The metaphor "digital garden" fits the blog. Accessibility: WCAG AA contrast, keyboard navigable, visible focus.
+**Dark Bento grid**: near-black background, hairline-bordered cards, a soft **cursor spotlight** on the cards,
+**one accent color chosen by Mahdi**, large confident Persian/English typography (Vazirmatn + JetBrains Mono,
+optional display face). Signature features (`architecture.md §8.2`): Bento + spotlight, **3D mechanical keyboard
+hero** (keys = tech stack → projects), **live demos**, **X-Ray mode** (UI peels back to real code + this request's
+queries/timings), **fluid fa ↔ en** switch (View Transitions), **scrollytelling request journey** with the real
+stack. Motion is calm and always respects `prefers-reduced-motion`; every showpiece has an accessible equivalent.
+Accessibility: WCAG AA contrast, keyboard navigable, visible focus. The botanical direction of P1 is retired.
 
-## 14. Useful commands (once the solution exists)
+## 14. Useful commands
 
 ```powershell
-docker compose up -d db                     # start PostgreSQL only
-dotnet watch --project src/PersonalSite.Web # run app with hot reload
-./tools/tailwind-watch.ps1                  # CSS watcher (separate terminal)
+docker compose up -d db                       # start PostgreSQL only
+dotnet watch --project src/PersonalSite.Web   # API with hot reload (PersonalSite.Api after P2-T1)
 dotnet ef migrations add <Name> -p src/PersonalSite.Infrastructure -s src/PersonalSite.Web
 dotnet test
-docker compose up --build                   # full stack in containers
+docker compose up --build                     # full stack in containers
+
+# front-end (from P2-T3), in frontend/
+pnpm install
+pnpm dev                                      # http://localhost:3000 (proxies /api to the API in dev)
+pnpm lint; pnpm typecheck; pnpm test; pnpm build
+pnpm gen:api                                  # regenerate TS types from openapi/v1.json (from P2-T4)
 ```
 
 ## 15. When unsure

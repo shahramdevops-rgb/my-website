@@ -1,12 +1,13 @@
 # Personal Website
 
-Personal site of Mahdi Azghandi — backend developer (C#/.NET): resume, portfolio, technical blog, services, contact.
-Content is Persian (RTL); the structure is ready for English.
+Personal site of Mahdi Azghandi — full-stack engineer (C#/.NET + React/TypeScript): resume, portfolio with live
+demos, technical blog, services, contact. Content in Persian (RTL) and English (LTR).
 
 [![CI](https://github.com/shahramdevops-rgb/my-website/actions/workflows/ci.yml/badge.svg)](https://github.com/shahramdevops-rgb/my-website/actions/workflows/ci.yml)
 
-> **Status:** Phase 0 (foundation) complete: solution, Docker dev stack, EF Core + PostgreSQL, tests, CI.
-> Next: Phase 1 (design system & layout); see [`TASKS.md`](TASKS.md).
+> **Status:** Phase 0 (foundation) complete. Phase 1 built a Razor Pages front-end that is now **retired**: the site
+> is being rebuilt as a **Next.js front-end + ASP.NET Core API** behind one origin (ADR-021).
+> Next: Phase 2 (full-stack foundation); see [`TASKS.md`](TASKS.md). Until `P2-T5` the commands below still run the old Razor app.
 
 ## Documentation
 
@@ -21,12 +22,14 @@ Content is Persian (RTL); the structure is ready for English.
 
 ## Stack
 
-ASP.NET Core 10 (Razor Pages) · PostgreSQL 17 · EF Core 10 · ASP.NET Identity · Tailwind CSS v4 · Alpine.js ·
-Docker Compose · Caddy · Umami · xUnit + Testcontainers · GitHub Actions.
+**Front-end:** Next.js 16 · React 19 · TypeScript · Tailwind CSS v4 · next-intl · Motion · React Three Fiber · Vitest · Playwright.
+**Back-end:** ASP.NET Core 10 (Minimal APIs, OpenAPI) · PostgreSQL 17 · EF Core 10 · ASP.NET Identity · xUnit + Testcontainers.
+**Ops:** Docker Compose · Caddy · Umami · GitHub Actions → GHCR.
 
 ## Prerequisites (Windows dev machine)
 
 - .NET 10 SDK
+- Node.js 24 LTS + pnpm (via `corepack enable`) — from P2-T3
 - Docker Desktop (WSL 2 backend)
 - Git
 - Editor: Visual Studio 2026 / VS Code / Rider

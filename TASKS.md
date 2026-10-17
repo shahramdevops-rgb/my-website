@@ -3,7 +3,7 @@
 > Each task is small, independent and ends in a working, committed state.
 > To run one, tell Claude: **"Do task P1-T3"**. Claude reads `CLAUDE.md` → the task → relevant sections of `architecture.md`/`rules.md`, implements it, and ticks the box.
 > Format: **Scope** (what to build) · **Done when** (acceptance criteria) · **Learn** (concept to note in `learning.md`, if new).
-> Status: `[ ]` todo · `[~]` in progress · `[x]` done
+> Status: `[ ]` todo · `[~]` in progress · `[x]` done · `[-]` cancelled
 
 ---
 
@@ -43,7 +43,10 @@
   Scope: `.github/workflows/ci.yml` — restore, build, `dotnet format --verify-no-changes`, test (on push & PR).
   Done when: CI green on GitHub.
 
-## Phase 1 — Design system, layout & i18n infrastructure
+## Phase 1 — Razor front-end (retired)
+
+> Done in Razor Pages, then retired by ADR-021 (2026-10-18): the front-end is now Next.js (Phase 2). P2-T1 removes
+> this code; what carries over is in `architecture.md §8.4`. Kept here as history.
 
 - [x] **P1-T1 Tailwind v4 pipeline + design tokens**
   Scope: download Tailwind standalone CLI (script `tools/get-tailwind.ps1` + `.sh`, version pinned), `Styles/app.css` with `@theme` tokens from architecture §8.1, `data-theme` dark/light variants, MSBuild target to compile on build, watch script for dev; Docker build stage runs the CLI with `--minify`.
@@ -83,331 +86,411 @@
   Scope: Razor partials in `Shared/Motifs/`: `_LeafDivider`, `_VineCorner`, `_Sprig`, `_BloomCluster`, `_HeroBotanical` (larger line-art composition). `currentColor`-based, `aria-hidden`, subtle motion-safe sway animation for hero leaves. Original art only (hand-authored SVG paths).
   Done when: motifs recolor with theme; zero layout shift.
 
-- [ ] **P1-T9 UI component partials + style guide page**
-  Scope: `_Button` (primary/ghost/link), `_Card`, `_Tag`, `_SectionHeader` (with leaf motif), `_FormField` (label, input/textarea, validation message), `_Alert`, `_Badge` (Live/InProgress/Archived); dev-only `/fa/_styleguide` page showing everything.
-  Done when: style guide renders all components in both themes (and in LTR at `/en/_styleguide` once P1-T11 is done).
+- [-] **P1-T9 UI component partials + style guide page** — cancelled, replaced by P2-T10.
+- [-] **P1-T10 Error pages** — cancelled, replaced by P2-T9.
+- [-] **P1-T11 English culture & language switcher** — cancelled, replaced by P2-T6 and P2-T9.
 
-- [ ] **P1-T10 Error pages**
-  Scope: `NotFound` (friendly botanical "this path hasn't grown yet"), `Error` (500, shows request id in dev only), status code re-execute.
-  Done when: unknown URL shows 404 page with correct status code.
+## Phase 2 — Full-stack foundation
 
-- [ ] **P1-T11 English culture & language switcher** (moved from P13, ADR-016)
-  Scope: `SupportedCultures` → `["fa", "en"]`; `SharedResource.en.resx` with every key of the `fa` file; `_LanguageSwitcher` in the header (sets the `lang` cookie, links to the same page in the other language — DB content gets "translation if it exists, else that language's home" in P6-T8); LTR check at 360px and 1440px; dates/numbers in `en` use the Gregorian calendar and Latin digits through the existing `Formatting/` helpers; English text keeps Vazirmatn's Latin glyphs for now (pairing optional, P14-T2). Update the P1-T3 test that expects `/en` → 404.
-  Done when: `/en` renders LTR with English chrome; a test fails when a key exists in `fa` but not in `en`; `/` with `Accept-Language: en` → 302 `/en`.
-  Learn: LTR/RTL with logical properties, resource fallback.
+> ADR-021: a Next.js front-end (`frontend/`) and an ASP.NET Core API (`src/PersonalSite.Api`) behind one origin.
+> Front-end tasks: verify the current stable versions at the start of the task and pin them exactly.
+> From here on every public page ships in **`fa` and `en`** (strings in both `messages/*.json`).
 
-## Phase 2 — Static public pages (bilingual)
+- [ ] **P2-T1 API project: rename and retire the Razor UI**
+  Scope: rename `PersonalSite.Web` → `PersonalSite.Api` (folder, csproj, namespaces, `.slnx`, Dockerfile, compose service `web` → `api`, CI, test references; keep the user-secrets id). Remove the P1 front-end: `Pages/`, `Styles/`, `wwwroot/` (move `wwwroot/fonts/*` with their licences to `frontend/src/fonts/`), `Localization/` (culture routing, `LanguageResolver`), `Resources/` + `SharedResource`, `Formatting/`, tag helpers, `InlineScripts`, Alpine, the Tailwind MSBuild target and `tools/*tailwind*`, the language-redirect endpoint. Delete the tests that cover removed code; keep the Persian date test vectors in a note for P2-T6 and the contrast test for P2-T8. `SecurityHeadersMiddleware` becomes the API variant (`default-src 'none'; frame-ancestors 'none'`). `.env.example` and README updated.
+  Done when: build, tests and format are green; `/health` and `/health/ready` work; no `.cshtml`, `wwwroot` or Tailwind reference is left in `src/` (grep in PR).
+  Learn: what an API-only ASP.NET Core app needs (and doesn't).
 
-> Every page in this phase ships in **`fa` and `en`** (prose partials `.fa.cshtml` + `.en.cshtml`, strings in both resx files).
-> Mahdi provides the facts; Claude drafts the English text for Mahdi to edit. Requires P1-T11.
+- [ ] **P2-T2 OpenAPI document + `GET /api/site`**
+  Scope: `Microsoft.AspNetCore.OpenApi`; build-time generation (`Microsoft.Extensions.ApiDescription.Server`) to `openapi/v1.json` (committed); all endpoints under `MapGroup("/api")` in per-feature `Endpoints/*` classes; ProblemDetails responses documented; first endpoint `GET /api/site` (`SiteInfoService`: site name per language, social links from `Site:Social`, public feature flags). Integration test: the endpoint returns the configured values; CI step fails when the committed document differs from the generated one.
+  Done when: `openapi/v1.json` describes `/api/site`; CI catches a stale document.
+  Learn: OpenAPI, code-first contracts.
 
-- [ ] **P2-T1 Home page**
-  Scope: Hero (name, a **concrete** value proposition instead of a generic "backend developer" line, `_HeroBotanical`); **two audience paths**: "Hiring?" → Resume / Decisions and "Have a project?" → Services / Contact (`?type=project`); short intro; sections with placeholders to be wired later: featured projects, services teaser, latest posts. Leave a slot for the status line (P10-T7).
-  Done when: responsive, both themes, both languages, Lighthouse a11y ≥ 90.
+- [ ] **P2-T3 Next.js app scaffold**
+  Scope: `frontend/` — Next.js 16 App Router, React 19, TypeScript (`strict`, `noUncheckedIndexedAccess`), `src/` dir, pnpm 10 (`packageManager` field, Corepack), Node 24 LTS (`.nvmrc`, `engines`), `output: 'standalone'`; ESLint (Next config) + Prettier; Vitest + Testing Library (one component test); Playwright (one smoke test); scripts `dev`, `build`, `start`, `lint`, `typecheck`, `test`, `e2e`, `format`; `.gitignore`/`.dockerignore`. CI: a `frontend` job (frozen-lockfile install → lint → typecheck → test → build) next to the .NET job.
+  Done when: `pnpm dev` serves a page; both CI jobs green.
+  Learn: App Router basics; server vs client components.
 
-- [ ] **P2-T2 About page — "From circuits to cloud"**
-  Scope: localized prose partials `_AboutContent.fa.cshtml` / `.en.cshtml`, photo slot, skills/tech grid (from the structured résumé, P2-T4), timeline component: BSc Electrical Engineering (University of Guilan) → MSc Electrical Engineering (Shahid Beheshti University) → backend engineering, with at most 2–3 concrete bridges (e.g. control systems & feedback → observability; state machines → domain invariants); one line "also known as Shahram" (ADR-017).
-  Done when: page complete in both languages with real text or clearly marked placeholders.
+- [ ] **P2-T4 Typed API client**
+  Scope: `openapi-typescript` → `src/lib/api/schema.d.ts` (`pnpm gen:api` from `../openapi/v1.json`), `openapi-fetch` client factory (server: `API_INTERNAL_URL`; browser: same-origin `/api`), forwarding of the incoming cookie for server calls (helper, used from P5), env validation in `src/lib/env.ts` (fails startup on missing values); the placeholder home page shows the site name from `/api/site`. CI fails when generated types are stale.
+  Done when: renaming a field of the `/api/site` DTO breaks `pnpm typecheck` (shown in the PR).
+  Learn: one contract, two languages.
 
-- [ ] **P2-T3 Services page**
-  Scope: services list (e.g. API development, .NET backend, performance/DB optimization, code review/consulting) as cards with icons, "how I work" steps, CTA to `/{culture}/contact?type=project`.
-  Done when: page renders in both languages; content in localized partials.
+- [ ] **P2-T5 One origin: Docker + Caddy for development**
+  Scope: `frontend/Dockerfile` (multi-stage, standalone output, non-root, healthcheck); compose services `frontend`, `api`, `db`, `caddy` (dev Caddyfile routing per architecture §1/§6: `/api/*`, `/media/*`, `/health*`, `/llms.txt`, `/mcp` → api, `/internal/*` → 404, rest → frontend); dev ports: Caddy `127.0.0.1:8080`, db `127.0.0.1:5433`. Host workflow: Next `rewrites` send `/api/*` to `http://localhost:5080` in development only. README "Getting started" rewritten for both workflows.
+  Done when: `docker compose up --build` → `http://localhost:8080/` is Next.js and `http://localhost:8080/api/site` is the API; host workflow works on `:3000`.
+  Learn: reverse proxy routing, why one origin removes CORS.
 
-- [ ] **P2-T4 Structured résumé + Resume page**
-  Scope: `ResumeProfile` record (experience, education, skills, links) loaded from one JSON file per culture in the Web project (`resume.fa.json`, `resume.en.json`; ADR-013), validated at startup; Resume page renders it; print-friendly basics; download button placeholder (disabled until P8). The same data later feeds the About skills grid, `/api/resume.json`, the `curl` card, `llms.txt` (P9-T5) and MCP (P11-T6).
-  Done when: page renders cleanly in both languages and prints legibly; an invalid or incomplete file fails startup (test).
+- [ ] **P2-T6 i18n (fa + en) & formatting**
+  Scope: next-intl with `app/[locale]` (`fa`, `en`; other values → 404), `messages/fa.json` + `messages/en.json` (English dot-notation keys), key-parity test, `<html lang dir>` per locale, `/` redirect in `proxy.ts` (cookie `lang` → `Accept-Language` → `fa`), `src/lib/format/`: dates (`fa`: Persian calendar, `Asia/Tehran`, Persian digits from `Intl`; `en`: Gregorian, Latin digits), relative time ("۳ روز پیش" / "3 days ago"), numbers, reading time — with tests that reuse P1's vectors.
+  Done when: `/` → 302 `/fa` (or `/en` for an English browser); `/de` → 404; a key missing in one file fails a test; formatter tests green.
+  Learn: `Intl` APIs, locale routing in Next.js.
+
+- [ ] **P2-T7 Security headers & CSP with nonce** (ADR-025)
+  Scope: `proxy.ts` creates a nonce per request and sets `Content-Security-Policy` (`default-src 'self'; script-src 'self' 'nonce-…' 'strict-dynamic'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'`; dev additions for HMR only in development), plus `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`. Playwright test visits every route and fails on any CSP violation in the console.
+  Done when: no `unsafe-eval`, no `unsafe-inline` for scripts; zero CSP violations in e2e.
+  Learn: nonces vs hashes, `strict-dynamic`.
+
+- [ ] **P2-T8 Design tokens, fonts & theme** (ADR-024) — needs Mahdi's accent color
+  Scope: Tailwind v4 (`@tailwindcss/postcss`), `styles/globals.css` with the tokens of architecture §8.1 for dark (default) and light, default palette removed (`--color-*: initial`), contrast test in Vitest (port of P1's `ColorContrastTests`: text ≥ 4.5:1, focus/non-text ≥ 3:1); fonts via `next/font/local` (Vazirmatn variable, JetBrains Mono; optional display face picked by Mahdi, OFL only, licence file kept); type scale with Persian line-heights; `code, pre` always LTR; theme: pre-paint script with the nonce (saved choice before first paint), toggle button (`aria-pressed`), color fade only when motion is allowed.
+  Done when: no theme flash on reload; contrast test green in both themes; no font request leaves the origin.
+  Learn: CSS variables as a theme API, FOUC.
+
+- [ ] **P2-T9 Layout shell & language switcher**
+  Scope: per-locale layout: skip link, header (name, nav: Home, About, Projects, Blog, Services, Resume, Contact; theme toggle; language switcher), accessible mobile menu (Esc, focus return), footer (social links from `/api/site`, copyright with the year in the locale's calendar); language switcher goes to the same page in the other locale with the `lang` cookie set and a **View Transition** that slides shared elements to their mirrored places (plain navigation where unsupported); `not-found.tsx` and `error.tsx` (request id only in development).
+  Done when: keyboard navigable; 360 px and 1440 px in both locales and themes; unknown URL → 404 page with status 404.
+  Learn: logical properties for RTL/LTR, View Transitions.
+
+- [ ] **P2-T10 UI kit & style guide**
+  Scope: `Button` (primary/ghost/link), `Card`, **`BentoGrid` + `BentoCard` with cursor spotlight** (one pointer listener writes `--x/--y`; radial glow on border/surface; disabled on touch and reduced motion), `Tag`, `Badge` (Live/InProgress/Archived), `SectionHeader`, `FormField` (label, input/textarea, error), `Alert`; component tests; `/[locale]/_styleguide` dev-only page (404 in production) showing everything.
+  Done when: the style guide renders every component in both themes and both directions; spotlight off with reduced motion (test).
+
+## Phase 3 — Static pages, Bento home & keyboard hero (bilingual)
+
+> Mahdi provides the facts; Claude drafts the English text for Mahdi to edit. Prose lives in `frontend/content/*.{locale}.mdx`.
+
+- [ ] **P3-T1 Structured résumé in the API**
+  Scope: `ResumeProfile` record (experience, education, skills with categories, tech stack, links) loaded from `Content/resume.fa.json` + `resume.en.json` (ADR-013), validated at startup; `GET /api/resume?lang=` for the pages; regenerated OpenAPI + TS types.
+  Done when: an invalid or incomplete file fails startup (test); endpoint test for both languages.
   Learn: single source of truth, many renderings.
 
-- [ ] **P2-T5 Contact page (links only)**
-  Scope: email (obfuscated `mailto` to reduce scraping), GitHub, Telegram cards; placeholder area for form (P8).
-  Done when: links correct from `SiteOptions`; both languages.
+- [ ] **P3-T2 Home — Bento grid**
+  Scope: hero card (name, a **concrete** value proposition), **two audience paths** ("Hiring?" → Resume / Decisions, "Have a project?" → Services / Contact `?type=project`), slot for the keyboard hero (P3-T3), cards with placeholders wired later: featured projects (P6), live demo (P6), latest posts (P7), status line (P11); grid reflows from 1 column (360 px) to the full Bento layout.
+  Done when: responsive, both themes, both languages, Lighthouse a11y ≥ 90.
 
-- [ ] **P2-T6 Engineering decisions page**
-  Scope: `/{culture}/decisions` with 5–6 cards **Challenge → Decision → Why**, picked across projects (this site, gym system, cinema reservation, microservices platform — e.g. modular monolith instead of microservices for an MVP, no generic repository over EF Core, PostgreSQL + MongoDB split); localized prose partials; linked from the Home hiring path, About and Resume.
-  Done when: renders in both languages and themes; all card content readable without interaction.
+- [ ] **P3-T3 Keyboard hero (3D)**
+  Scope: React Three Fiber + drei mechanical keyboard; keycaps show the tech stack from the résumé (C#, .NET, React, TypeScript, PostgreSQL, Docker, AI …); hover or pressing the matching real key depresses the keycap and opens a glass card (what it is, projects that used it); soft RGB lighting; loaded with `next/dynamic` after hydration and only on Home; a static poster of the same size renders first and stays for reduced-motion users and when WebGL is unavailable; an accessible equivalent (list of buttons with the same cards) for keyboard and screen-reader users.
+  Done when: poster appears with the first paint (no layout shift); real key presses work; the accessible list exposes every card.
+  Learn: 3D on the web, progressive enhancement, lazy loading.
 
-## Phase 3 — First deployment (walking skeleton)
+- [ ] **P3-T4 About — "From circuits to cloud"**
+  Scope: `about.{fa,en}.mdx`, photo slot, skills grid from the résumé, timeline: BSc Electrical Engineering (University of Guilan) → MSc Electrical Engineering (Shahid Beheshti University) → software engineering, with 2–3 concrete bridges (control systems & feedback → observability; state machines → domain invariants); one line "also known as Shahram" (ADR-017).
+  Done when: complete in both languages with real text or clearly marked placeholders.
 
-- [ ] **P3-T1 Production compose & Caddy**
-  Scope: `compose.prod.yaml` (image from GHCR, restart policies, no DB port exposed, volumes `pgdata`/`uploads`/`dpkeys`/`caddy_data`), `deploy/Caddyfile` (`mahdiazghandi.ir` served with Let's Encrypt; `shahramazghandi.ir` + `www.` variants 301 → canonical per architecture §9.1; hostnames from env), security headers baseline, compression.
+- [ ] **P3-T5 Services page**
+  Scope: services as cards (full-stack web apps, .NET APIs, React front-ends, performance/DB optimization, code review/consulting), "how I work" steps, CTA to `/{locale}/contact?type=project`; prose in MDX.
+  Done when: renders in both languages.
+
+- [ ] **P3-T6 Resume page**
+  Scope: renders `/api/resume`, print-friendly basics, download button placeholder (disabled until P9).
+  Done when: clean in both languages and prints legibly.
+
+- [ ] **P3-T7 Contact page (links only)**
+  Scope: email (obfuscated `mailto`), GitHub, Telegram cards from `/api/site`; placeholder for the form (P9).
+  Done when: links correct; both languages.
+
+- [ ] **P3-T8 Engineering decisions page**
+  Scope: `/{locale}/decisions` with 5–6 cards **Challenge → Decision → Why** across projects (this site's front-end/API split, gym system, cinema reservation, microservices platform — e.g. modular monolith for an MVP, no generic repository over EF Core, PostgreSQL + MongoDB split); MDX per locale; linked from the hiring path, About and Resume.
+  Done when: both languages and themes; readable without interaction.
+
+## Phase 4 — First deployment (walking skeleton)
+
+- [ ] **P4-T1 Production compose & Caddy**
+  Scope: `compose.prod.yaml` (images from GHCR, restart policies, no DB/app ports exposed, volumes `pgdata`/`uploads`/`dpkeys`/`caddy_data`), `deploy/Caddyfile` (routing as in dev, `/internal/*` blocked, `curl` User-Agent on `/` → API, `mahdiazghandi.ir` with Let's Encrypt, `shahramazghandi.ir` + `www.` → 301 canonical per architecture §9.1, hostnames from env), compression.
   Done when: `docker compose -f compose.yaml -f compose.prod.yaml config` validates; runs locally.
 
-- [ ] **P3-T2 App production settings**
-  Scope: `ForwardedHeaders` (trust Caddy network only), HSTS (prod), Data Protection keys persisted to `/app/data/dp-keys` with app name set, `appsettings.Production.json`, migrations run via `--migrate` CLI flag (not at normal startup).
-  Done when: restart of `web` container doesn't invalidate cookies (verify after P4); migrations run only when asked.
+- [ ] **P4-T2 API production settings**
+  Scope: `ForwardedHeaders` (trust the Caddy network only), HSTS, Data Protection keys in `/app/data/dp-keys` with app name, `appsettings.Production.json`, migrations only via `--migrate`.
+  Done when: restarting `api` doesn't invalidate cookies (verify after P5); migrations run only when asked.
   Learn: reverse proxy headers, Data Protection.
 
-- [ ] **P3-T3 Release workflow**
-  Scope: `.github/workflows/release.yml` — on tag `v*` or manual: build image, tag with version + `sha`, push to GHCR.
-  Done when: an image appears in GHCR.
+- [ ] **P4-T3 Release workflow**
+  Scope: `.github/workflows/release.yml` — on tag `v*` or manual: build **both** images (`api`, `frontend`), tag version + `sha`, push to GHCR.
+  Done when: both images appear in GHCR.
   Learn: why build outside Iran; image tagging.
 
-- [ ] **P3-T4 Server setup & deploy script**
-  Scope: `deploy/README.md` (Ubuntu LTS setup: Docker install via mirror if needed, firewall 22/80/443, non-root deploy user, SSH keys, registry login), `deploy/scripts/deploy.sh` (pull → migrate → up -d → health check → prune), fallback `docker save | ssh docker load` instructions.
-  Done when: Mahdi deploys with one command and site loads over HTTPS (IP/temporary host).
+- [ ] **P4-T4 Server setup & deploy script**
+  Scope: `deploy/README.md` (Ubuntu LTS, Docker, firewall 22/80/443, deploy user, SSH keys, registry login), `deploy/scripts/deploy.sh` (pull → migrate → up -d → health check → prune), `docker save | ssh docker load` fallback.
+  Done when: Mahdi deploys with one command and the site loads over HTTPS.
 
-- [ ] **P3-T5 Backups**
-  Scope: `backup.sh` (`pg_dump -Fc` + tar of `uploads`, 14-day rotation), cron entry, `restore.sh`, documented off-server copy step.
+- [ ] **P4-T5 Backups**
+  Scope: `backup.sh` (`pg_dump -Fc` + tar of `uploads`, 14-day rotation), cron, `restore.sh`, off-server copy step.
   Done when: a restore into a fresh DB has been performed once and documented.
 
-## Phase 4 — Admin panel & authentication
+## Phase 5 — Admin panel & authentication
 
-- [ ] **P4-T1 Identity setup**
-  Scope: `AppUser : IdentityUser<Guid>`, `AppDbContext : IdentityDbContext<AppUser, IdentityRole<Guid>, Guid>`, password & lockout options (5 attempts, 15 min), cookie settings (HttpOnly, Secure, SameSite=Lax, 7-day sliding), migration.
+- [ ] **P5-T1 Identity setup**
+  Scope: `AppUser : IdentityUser<Guid>`, `AppDbContext : IdentityDbContext<…>`, password & lockout options (5 attempts, 15 min), cookie (`HttpOnly`, `Secure`, `SameSite=Strict`, 7-day sliding; API returns 401/403 instead of redirects), migration.
   Done when: Identity tables created.
 
-- [ ] **P4-T2 Admin seeding & no registration**
-  Scope: `AdminSeeder` reads `Admin__Email`/`Admin__Password` from env, creates user + `Admin` role once; no register page exists at all.
-  Done when: fresh DB + env vars → admin can log in; without env vars app logs a warning, doesn't crash.
+- [ ] **P5-T2 Admin seeding & no registration**
+  Scope: `AdminSeeder` from `Admin__Email`/`Admin__Password`, creates user + `Admin` role once; no registration endpoint exists.
+  Done when: fresh DB + env → admin can log in; without env vars a warning, no crash.
 
-- [ ] **P4-T3 Login / logout pages**
-  Scope: custom `Areas/Admin/Pages/Account/Login` + `Logout` (POST only), Persian UI, generic error message, rate-limit policy `login`, return-URL validation (local only).
-  Done when: integration tests: wrong password → error; 5× → locked; open-redirect attempt blocked.
-  Learn: cookie auth flow, open redirects.
+- [ ] **P5-T3 Auth endpoints & CSRF defence**
+  Scope: `POST /api/auth/login` (rate limit `login`, generic error), `POST /api/auth/logout`, `GET /api/auth/me`; unsafe methods require a same-origin `Origin` header; no open redirect (return URLs handled by the front-end, local paths only).
+  Done when: integration tests: wrong password → 401; 5× → locked; cross-origin POST rejected.
+  Learn: cookie auth on one origin, CSRF, open redirects.
 
-- [ ] **P4-T4 Authorization convention**
-  Scope: `Admin` policy; `AuthorizeAreaFolder("Admin", "/")` with `AllowAnonymous` only on Login; `/admin/api/*` endpoints require policy.
-  Done when: test proves every admin page redirects anonymous users.
+- [ ] **P5-T4 Authorization convention**
+  Scope: `/api/admin` group with `RequireAuthorization("Admin")`; a test enumerates every admin endpoint from the endpoint data source and asserts 401 for anonymous calls.
+  Done when: the test covers all admin endpoints automatically.
 
-- [ ] **P4-T5 Admin layout & dashboard**
-  Scope: `_AdminLayout` (sidebar: داشبورد، پست‌ها، نمونه‌کارها، کامنت‌ها، پیام‌ها، رزومه، مشترکین), TempData flash messages partial, dashboard cards (counts: posts, pending comments, new messages — show 0 until features exist), `noindex` meta.
-  Done when: navigation works; admin pages never cached publicly.
+- [ ] **P5-T5 Admin shell in Next.js**
+  Scope: `/admin/login` page, `proxy.ts` redirect to login without the auth cookie (UX only), admin layout (sidebar: داشبورد، پست‌ها، نمونه‌کارها، کامنت‌ها، پیام‌ها، رزومه، مشترکین), toast/flash messages, dashboard counts (`GET /api/admin/dashboard`, zeros until features exist), `noindex`, `Cache-Control: no-store`.
+  Done when: login → dashboard → logout works in the browser; e2e test.
 
-## Phase 5 — Projects, portfolio & case studies
+## Phase 6 — Projects, case studies & live demos
 
-- [ ] **P5-T1 Domain: Project & MediaFile**
-  Scope: entities per architecture §4 (including nullable `HealthUrl`, https only), `ProjectStatus`, `Slug` value object with validation, domain methods (`Feature()`, `Archive()`, `Reorder()`), unit tests.
+- [ ] **P6-T1 Domain: Project & MediaFile**
+  Scope: entities per architecture §4 (nullable `HealthUrl` https only, nullable `DemoKey`), `ProjectStatus`, `Slug` value object, domain methods (`Feature()`, `Archive()`, `Reorder()`), unit tests.
   Done when: tests pass.
 
-- [ ] **P5-T2 Persistence for projects & media**
+- [ ] **P6-T2 Persistence for projects & media**
   Scope: EF configurations (indexes, `text[]` tech stack, unique `(language, slug)`), migration.
   Done when: migration applied; SQL reviewed.
 
-- [ ] **P5-T3 File storage & image upload**
-  Scope: `IFileStorage` + `LocalFileStorage` (volume path from options), upload validator (jpg/png/webp, magic bytes, ≤ 5 MB), dimensions read, `MediaFile` record, static serving of `/media/{key}` with long cache headers.
-  Done when: tests reject a renamed `.exe`; valid image stored and served.
-  Learn: why never trust file extensions/content-type.
+- [ ] **P6-T3 File storage & image upload**
+  Scope: `IFileStorage` + `LocalFileStorage`, upload validator (jpg/png/webp, magic bytes, ≤ 5 MB), dimensions, `MediaFile`, `GET /media/{key}` with long cache headers.
+  Done when: tests reject a renamed `.exe`; a valid image is stored and served.
+  Learn: never trust extensions or content-type.
 
-- [ ] **P5-T4 Result pattern & ProjectAdminService**
-  Scope: `Result`/`Error` types, `CreateProjectCommand`/`UpdateProjectCommand` + FluentValidation, Markdown body rendering via `IMarkdownRenderer`, slug uniqueness.
-  Depends on: **P6-T1** (Markdown renderer) — do that task first; it has no other dependencies.
+- [ ] **P6-T4 Result pattern & ProjectAdminService**
+  Scope: `Result`/`Error`, create/update commands + FluentValidation, Markdown body via `IMarkdownRenderer`, slug uniqueness, admin endpoints.
+  Depends on: **P7-T1** (Markdown renderer) — do that first; it has no other dependencies.
   Done when: service tests cover create/update/duplicate slug.
 
-- [ ] **P5-T5 Admin CRUD pages for projects**
-  Scope: list (sortable order, featured toggle), create/edit form (title, slug suggestion, summary, markdown body, status, live URL, health URL, source URL, tech tags input, cover upload, dates), new projects start with a **case-study Markdown template** (Problem · Architecture · Key decisions · Results · What went wrong), delete with confirm page (no JS `confirm()`).
-  Done when: full CRUD works through the browser.
+- [ ] **P6-T5 Admin CRUD for projects**
+  Scope: React list (sortable order, featured toggle) and form (title, slug suggestion, summary, Markdown body with the **case-study template**, status, live/health/source URLs, demo key, tech tags, cover upload, dates), delete with confirmation dialog.
+  Done when: full CRUD works in the browser.
 
-- [ ] **P5-T6 Public project pages**
-  Scope: `ProjectService` queries, `/{culture}/projects` grid (cover, title, summary, tech tags, "Live" badge + external link with `rel="noopener"`, live status from P5-T7), `/{culture}/projects/{slug}` details (case study), featured projects on Home.
+- [ ] **P6-T6 Cache revalidation across apps**
+  Scope: `IFrontendRevalidator` (API → `POST {FRONTEND_INTERNAL_URL}/internal/revalidate`, shared secret `Revalidate__Secret`, timeout, failure logged not thrown), Next route handler revalidating tags; tags `projects`, `project:{id}`, `blog`, `post:{id}` as constants on both sides.
+  Done when: integration test with a fake front-end; e2e: edit in admin shows on the public page on the next request.
+  Learn: cache invalidation across services.
+
+- [ ] **P6-T7 Public project pages**
+  Scope: `/{locale}/projects` (Bento cards: cover, title, summary, tech tags, "Live" badge + status, demo badge), `/{locale}/projects/{slug}` (case study, demo slot), featured projects on Home.
   Done when: your live project is visible with a working link.
 
-- [ ] **P5-T7 Live status monitor**
-  Scope: `ProjectHealthMonitor : BackgroundService` with `PeriodicTimer` (every 5 min) requests each `HealthUrl` (5 s timeout, typed `HttpClient`), keeps the last result in memory (`Up` / `Down` / `Unknown` + checked-at); badge 🟢/🔴 with "checked N min ago" on cards and details. Only our own projects' URLs are called; a failure never breaks a page (shows `Unknown`).
-  Done when: tests with a fake handler cover up, down and timeout; status survives without blocking page rendering.
-  Learn: background services, `IHttpClientFactory`, timeouts.
+- [ ] **P6-T8 Live status monitor**
+  Scope: `ProjectHealthMonitor : BackgroundService` (`PeriodicTimer` 5 min, 5 s timeout, typed `HttpClient`), last result in memory (`Up`/`Down`/`Unknown` + checked-at), exposed by the project endpoints; badge 🟢/🔴 "checked N min ago".
+  Done when: tests with a fake handler cover up, down and timeout; failures never break a page.
+  Learn: background services, `IHttpClientFactory`.
 
-- [ ] **P5-T8 Gym system — flagship case study (content)**
-  Scope: get the client's **written permission** to name the business and show screenshots (else anonymize: "gym management system for a sports club"); case study with the template; screenshots or a short video of the admin panel **with fake data only**; public site link + health URL; the admin panel is never linked.
-  Done when: case study published in both languages; permission (or anonymization) noted in the admin record.
+- [ ] **P6-T9 Gym system — flagship case study (content)**
+  Scope: client permission is given — record it (date, scope) in the admin record; case study with the template in both languages; screenshots/video with fake data; public site link + health URL; the client's admin panel is never linked.
+  Done when: case study published in both languages.
 
-## Phase 6 — Blog
+- [ ] **P6-T10 Demo sandbox infrastructure** (ADR-027)
+  Scope: `demo` schema + migration, `DemoSeeder`, reset job (nightly + `POST /api/demos/{key}/reset` with cooldown), `/api/demos` group with rate limit `public-api`, session-free design (a visitor gets a random demo session id in a cookie), "Live demo — sandbox data" label component.
+  Done when: integration tests for reset and rate limiting; demo data never appears in public content queries.
 
-- [ ] **P6-T1 Markdown renderer**
-  Scope: `IMarkdownRenderer` → `MarkdigRenderer` (advanced extensions, `DisableHtml`, auto heading ids, `dir="auto"` on paragraphs, `dir="ltr"` on code blocks, external links `rel="noopener nofollow"`), HtmlSanitizer allow-list, TOC extraction, reading-time calculation; unit tests including XSS payloads.
+- [ ] **P6-T11 Cinema live demo**
+  Scope: seat map UI (screen, rows, seat states, price total updating instantly), hold → purchase flow on real endpoints with a concurrency guard (row lock or optimistic `version` column — decide and explain in the task), **"simulate simultaneous purchase"** fires two parallel purchases for the same seat: one succeeds, the other gets a clean "seat already taken", and the UI explains why with a link to the code excerpt; Motion for seat feedback; keyboard operable; text summary for reduced motion.
+  Done when: a test fires N parallel purchases for one seat and always gets exactly one success; demo works in both languages.
+  Learn: race conditions, row locks vs optimistic concurrency.
+
+- [ ] **P6-T12 Gym live demo**
+  Scope: mini dashboard: check in an invented member, assign a free locker from a visual locker grid, capacity chart updates live (Server-Sent Events or short polling — decide in task); all data invented.
+  Done when: two browser tabs see each other's check-ins; works in both languages and themes.
+  Learn: real-time updates over HTTP.
+
+## Phase 7 — Blog
+
+- [ ] **P7-T1 Markdown renderer**
+  Scope: `IMarkdownRenderer` → `MarkdigRenderer` (advanced extensions, `DisableHtml`, heading ids, `dir="auto"` on paragraphs, `dir="ltr"` on code blocks, external links `rel="noopener nofollow"`), HtmlSanitizer allow-list, TOC extraction, reading time; unit tests with XSS payloads.
   Done when: `<script>`/`javascript:` payloads are stripped in tests.
   Learn: XSS, defense in depth.
 
-- [ ] **P6-T2 Domain & persistence: Post, Tag**
-  Scope: entities, `PostStatus` transitions (`Publish`, `Unpublish`, `Archive`), `GrowthStage` (`Seedling` | `Budding` | `Evergreen`, default `Seedling`, changed via `post.SetGrowthStage(stage)`), many-to-many tags, indexes (`status, published_at desc`), migration.
-  Done when: domain tests for status transitions pass.
+- [ ] **P7-T2 Domain & persistence: Post, Tag**
+  Scope: entities, `PostStatus` transitions, `GrowthStage` (default `Seedling`, `post.SetGrowthStage(stage)`), many-to-many tags, indexes, migration.
+  Done when: domain tests pass.
 
-- [ ] **P6-T3 PostAdminService**
-  Scope: create/update/publish/unpublish/delete, tag upsert by name, SEO fields, re-render HTML on save, cache eviction hook.
+- [ ] **P7-T3 PostAdminService**
+  Scope: create/update/publish/unpublish/delete, tag upsert, SEO fields, re-render HTML on save, revalidation (P6-T6), admin endpoints.
   Done when: service tests pass.
 
-- [ ] **P6-T4 Admin post editor with live preview**
-  Scope: list (filter by status, search by title), editor page (title, slug, excerpt, tags, growth stage, cover, SEO fields, markdown textarea with monospace font), Alpine `markdownPreview` component → debounced `POST /admin/api/markdown-preview`, side-by-side on desktop / tabs on mobile, image upload that inserts `![alt](/media/...)` at cursor, save draft / publish buttons.
-  Done when: preview matches published output exactly.
+- [ ] **P7-T4 Admin post editor with live preview**
+  Scope: React list (filter by status, search) and editor (title, slug, excerpt, tags, growth stage, cover, SEO fields, Markdown editor in monospace), debounced `POST /api/admin/markdown/preview`, side-by-side on desktop / tabs on mobile, image upload inserting `![alt](/media/...)` at the cursor, save draft / publish.
+  Done when: preview matches the published output exactly.
 
-- [ ] **P6-T5 Public blog list & tag pages**
-  Scope: `/{culture}/blog` paged (10/page, `?page=`), post cards (title, excerpt, date, reading time, tags, growth-stage badge 🌱/🌿/🌳), filter `?stage=`, `/{culture}/blog/tag/{slug}`, latest 3 posts on Home.
-  Done when: pagination links correct; empty state designed.
+- [ ] **P7-T5 Public blog list & tag pages**
+  Scope: `/{locale}/blog` paged (10/page), post cards (title, excerpt, date, reading time, tags, growth-stage badge 🌱/🌿/🌳), filter `?stage=`, tag pages, latest 3 posts on Home.
+  Done when: pagination correct; empty state designed.
 
-- [ ] **P6-T6 Post page**
-  Scope: title, meta line (with growth stage), cover, TOC (collapsible), body with typography styles (`prose`-like custom styles for RTL), highlight.js (vendored, only on this page), copy-code button, prev/next posts, tags.
-  Done when: mixed Persian text + English code renders correctly.
+- [ ] **P7-T6 Post page**
+  Scope: title, meta line, cover, TOC (collapsible; sticky on desktop), body typography for RTL with LTR code, server-side code highlighting (Shiki — decide API vs front-end in the task), copy-code button, prev/next, tags.
+  Done when: mixed Persian text + English code renders correctly; no highlighting JS shipped to the browser.
   Learn: bidi text (`dir="auto"`, isolation).
 
-- [ ] **P6-T7 Output caching**
-  Scope: `AddOutputCache` policies for public pages (vary by culture, page query), tags `blog`, `post:{id}`, `projects`; eviction from admin services; no caching for authenticated requests.
-  Done when: edit in admin shows immediately on public page; repeated GETs don't hit DB (verify via logs).
+- [ ] **P7-T7 Blog caching**
+  Scope: tagged fetches (`blog`, `post:{id}`) on all blog pages; revalidation from `PostAdminService`; API `Cache-Control` for public reads; no caching for authenticated requests.
+  Done when: edit in admin shows on the next request; repeated reads don't hit the DB (logs).
   Learn: caching & invalidation.
 
-- [ ] **P6-T8 Translations for posts & projects** (moved from P13)
-  Scope: admin "Add translation" action for posts and projects (new row, same `translation_group`, other language), per-language lists in admin, language switcher links to the translated URL when one exists (else that language's list page).
+- [ ] **P7-T8 Translations for posts & projects**
+  Scope: admin "Add translation" (new row, same `translation_group`, other language), per-language lists, language switcher links to the translated URL when one exists (else that language's list page).
   Done when: a Persian post and its English translation link to each other; untranslated items fall back cleanly.
 
-## Phase 7 — Comments with moderation
+## Phase 8 — Comments with moderation
 
-- [ ] **P7-T1 Domain & persistence: Comment**
+- [ ] **P8-T1 Domain & persistence: Comment**
   Scope: entity + `CommentStatus` + `Approve/Reject/MarkSpam`, `ip_hash` (salted SHA-256), migration, index.
   Done when: domain tests pass.
 
-- [ ] **P7-T2 Spam guard**
-  Scope: `ISpamGuard` (honeypot check, Data-Protection-signed render timestamp, min 3 s / max 24 h), rate limiter policy `public-forms` (fixed window per client IP), reusable `_AntiSpamFields` partial.
-  Done when: tests: filled honeypot → dropped; instant submit → dropped; 4th submit in window → 429 page.
-  Learn: honeypots, time traps, rate limiting algorithms.
+- [ ] **P8-T2 Spam guard**
+  Scope: `ISpamGuard` (honeypot, Data-Protection-signed render timestamp, min 3 s / max 24 h), `GET /api/forms/token` used by server components, rate limiter `public-forms`, reusable `AntiSpamFields` React component.
+  Done when: tests: filled honeypot → dropped; instant submit → dropped; 4th submit in window → 429.
+  Learn: honeypots, time traps, rate limiting.
 
-- [ ] **P7-T3 Comment form & display**
-  Scope: form under post (if `allow_comments` and flag `Comments.Enabled`), PRG with "your comment awaits approval" message, approved comments list (name, Persian date, text with line breaks, encoded), count.
-  Done when: pending comment not visible; approved visible; email never in HTML.
+- [ ] **P8-T3 Comment form & display**
+  Scope: form under posts (if `allow_comments` and flag `Comments.Enabled`), "awaits approval" message, approved list (name, localized date, text with line breaks), count.
+  Done when: pending not visible; approved visible; emails never in any public response.
 
-- [ ] **P7-T4 Moderation queue**
-  Scope: `/admin/comments` tabs (Pending/Approved/Rejected/Spam), approve/reject/spam per item + bulk, link to post, pending badge in sidebar & dashboard, cache eviction on approve.
-  Done when: approving shows comment publicly within one request.
+- [ ] **P8-T4 Moderation queue**
+  Scope: `/admin/comments` tabs (Pending/Approved/Rejected/Spam), per-item + bulk actions, link to post, pending badge, revalidation on approve.
+  Done when: an approved comment shows publicly on the next request.
 
-- [ ] **P7-T5 Email notification (flagged off)**
-  Scope: `IEmailSender`, `LoggingEmailSender` (default), `SmtpEmailSender` (MailKit, options), notify admin on new comment when `Notifications.Email` is on.
-  Done when: with flag off → log line only; with flag on + local MailPit container → email received.
+- [ ] **P8-T5 Email notification (flagged off)**
+  Scope: `IEmailSender`, `LoggingEmailSender` (default), `SmtpEmailSender` (MailKit), notify on new comment when `Notifications.Email` is on.
+  Done when: flag off → log line only; flag on + local MailPit → email received.
 
-## Phase 8 — Contact form & resume PDF
+## Phase 9 — Contact form & resume PDF
 
-- [ ] **P8-T1 Contact form**
-  Scope: `ContactMessage` entity + migration (with `type`: `Hiring` | `Project` | `Other`), `ContactService`, form on `/{culture}/contact` with `_AntiSpamFields` and a request-type choice preselected from `?type=`, success state, admin notification via `IEmailSender`.
+- [ ] **P9-T1 Contact form**
+  Scope: `ContactMessage` + migration (`type`: `Hiring` | `Project` | `Other`), `ContactService`, form on `/{locale}/contact` with anti-spam and the type preselected from `?type=`, success state, admin notification via `IEmailSender`.
   Done when: submission stored with its type; spam protections tested.
 
-- [ ] **P8-T2 Admin inbox**
-  Scope: list (New/Read/Archived, filter by type), detail view marks as read, reply via `mailto:` link, archive, new-count badge.
-  Done when: workflow works end-to-end.
+- [ ] **P9-T2 Admin inbox**
+  Scope: list (New/Read/Archived, filter by type), detail marks as read, reply via `mailto:`, archive, new-count badge.
+  Done when: workflow works end to end.
 
-- [ ] **P8-T3 Resume PDF management**
-  Scope: `ResumeDocument` + migration, admin upload/replace (PDF only, magic bytes, ≤ 10 MB), keeps history, marks one current per language.
-  Done when: uploading new file switches current.
+- [ ] **P9-T3 Resume PDF management**
+  Scope: `ResumeDocument` + migration, admin upload/replace (PDF only, magic bytes, ≤ 10 MB), history, one current per language.
+  Done when: uploading a new file switches current.
 
-- [ ] **P8-T4 Resume download endpoint**
-  Scope: `GET /{culture}/resume/download` streams current file for that language, `Content-Disposition: attachment; filename="Resume-<Name>.pdf"`, `ETag`, 404 page if none; enable button on Resume page & Home.
-  Done when: download works in browsers; button hidden if no file.
+- [ ] **P9-T4 Resume download endpoint**
+  Scope: `GET /api/resume/{lang}/download` streams the current file (`Content-Disposition: attachment; filename="Resume-<Name>.pdf"`, `ETag`), 404 if none; enable the buttons on Resume and Home.
+  Done when: download works; buttons hidden without a file.
 
-## Phase 9 — SEO & machine-readable → MVP launch
+## Phase 10 — SEO & machine-readable → MVP launch
 
-- [ ] **P9-T1 SEO head & structured data**
-  Scope: `SeoMetadata` model set by each page, `_SeoHead` (title template, description, canonical, OG, Twitter, `og:locale` per culture: `fa_IR` / `en_US`), JSON-LD `Person` (`name` Mahdi Azghandi, `alternateName` Shahram Azghandi + Persian forms, `sameAs` from `Site:Social`; ADR-017) + `WebSite` (layout), `BlogPosting` (post page), default OG image (botanical, 1200×630).
-  Done when: validators (Rich Results Test, OG preview) pass.
+- [ ] **P10-T1 Metadata & structured data**
+  Scope: Next.js metadata per page (title template, description, canonical, OG, Twitter, `og:locale` `fa_IR`/`en_US`), JSON-LD `Person` (`name` Mahdi Azghandi, `alternateName` Shahram Azghandi + Persian forms, `sameAs` from `/api/site`; ADR-017) + `WebSite` + `BlogPosting`.
+  Done when: Rich Results Test and OG previews pass.
 
-- [ ] **P9-T2 sitemap, robots, feed**
-  Scope: `/sitemap.xml` (pages, projects, posts, tags with `lastmod` and `xhtml:link` language alternates), `/robots.txt` (disallow `/admin`), `/feed.xml` Atom per culture, `<link rel="alternate">` for feed, hreflang for every translated pair from `translation_group` + `x-default` → `/` (moved from P13).
-  Done when: feeds validate (W3C feed validator); hreflang pairs are reciprocal (test).
+- [ ] **P10-T2 Sitemap, robots, feeds, hreflang**
+  Scope: `sitemap.ts` (pages, projects, posts, tags with `lastmod` and language alternates), `robots.ts` (disallow `/admin`), Atom feed per locale (route handler), `<link rel="alternate">` for feeds, hreflang for translated pairs + `x-default`.
+  Done when: feeds validate; hreflang pairs are reciprocal (test).
 
-- [ ] **P9-T3 Performance pass**
-  Scope: responsive images (`srcset` from stored sizes or on-upload resize via ImageSharp — license check, else SkiaSharp), lazy loading, preload critical font, compression in Caddy, cache headers review.
-  Done when: Lighthouse ≥ 90 in all categories on Home, Blog post, Projects (mobile).
+- [ ] **P10-T3 OG images**
+  Scope: per-page OG images (1200×630) in the site's style. Persian shaping in `next/og` (Satori) must be verified first; if it breaks Persian text, render them in the API (SkiaSharp + HarfBuzzSharp) instead.
+  Done when: Persian and English titles render correctly in Telegram/LinkedIn previews.
 
-- [ ] **P9-T4 Launch checklist**
-  Scope: real content in **both languages** (about, services, decisions, resume data + PDF, gym case study with client permission, at least 2 posts from the content track), favicon/app icons (leaf mark), `humans.txt` optional, final backup check, admin password rotated, dev seeder disabled in prod.
-  Done when: every item ticked → 🚀
+- [ ] **P10-T4 Performance pass**
+  Scope: `next/image` with responsive sizes for uploads, lazy loading, bundle analysis (heavy parts only where used), font preload check, compression in Caddy, cache headers review.
+  Done when: Lighthouse ≥ 90 in all categories on Home, a blog post and Projects (mobile).
 
-- [ ] **P9-T5 Machine-readable résumé: JSON, `curl`, `llms.txt`**
-  Scope: all three render the structured résumé (P2-T4) — `GET /api/resume.json?lang=fa|en` (JSON Resume schema); `curl mahdiazghandi.ir` (request to `/` from a terminal client — `curl`/`Wget`/`HTTPie` user agent and no `text/html` in `Accept`) returns a plain-text card with ANSI colours instead of the redirect, with `Vary: User-Agent, Accept`; `/llms.txt` (Markdown summary of who Mahdi is + links to résumé, projects, posts). Rate limit `public-api`.
+- [ ] **P10-T5 Machine-readable résumé: JSON, `curl`, `llms.txt`**
+  Scope: from the structured résumé (P3-T1): `GET /api/resume.json?lang=fa|en` (JSON Resume schema); `curl mahdiazghandi.ir` (Caddy routes terminal User-Agents without `text/html` in `Accept` on `/` to the API) returns a plain-text card with ANSI colours, `Vary: User-Agent, Accept`; `/llms.txt`. Rate limit `public-api`.
   Done when: integration tests for each; browsers still get the normal redirect.
   Learn: content negotiation, `Vary`.
 
-## Phase 10 — Under the hood & analytics
+- [ ] **P10-T6 Launch checklist**
+  Scope: real content in **both languages** (about, services, decisions, résumé data + PDF, gym case study, demos live, at least 2 posts), favicon/app icons, final backup check, admin password rotated, dev seeders off in prod.
+  Done when: every item ticked → 🚀
 
-> Honest telemetry only (ADR-018): every number shown is measured by this site. Never public: CPU/RAM, container
-> names, package versions, internal hostnames.
+## Phase 11 — Under the hood: X-Ray, scrollytelling, metrics & analytics
 
-- [ ] **P10-T1 Umami service**: add to compose (pinned tag), init script creates `umami` DB/user, `APP_SECRET` env, Caddy route (`analytics.<domain>` or `/stats` path). Done when: dashboard reachable, admin password changed.
-- [ ] **P10-T2 Tracking integration**: `_Analytics` partial behind flag `Analytics.Umami`, script served via own domain (proxy), excluded on admin & for authenticated admin, respects DNT; CSP updated. Done when: page views appear.
-- [ ] **P10-T3 Custom events & privacy note**: events for resume download, contact submit (with type), live-project click, `curl` card hit, newsletter signup; short privacy page (cookieless analytics, what's stored for comments). Done when: events visible in Umami.
+> Honest telemetry only (ADR-018): every number shown is measured by this site; X-Ray and scrollytelling show the
+> real stack. Never public: CPU/RAM, container names, package versions, internal hostnames.
 
-- [ ] **P10-T4 Request metrics & build info**
-  Scope: `System.Diagnostics.Metrics` instruments + a small in-memory rolling-window aggregator (last 1 h / 24 h): request count, p50/p95 latency, error rate, output-cache hit ratio; build info (version, commit SHA, build time) stamped by CI into the assembly; process start time = "deployed at".
-  Done when: unit tests for the percentile window; numbers match a local load test with known latencies.
-  Learn: percentiles vs averages, metrics instruments.
+- [ ] **P11-T1 Umami service**: compose (pinned tag), init script creates the `umami` DB/user, `APP_SECRET`, Caddy route (`analytics.<domain>`). Done when: dashboard reachable, admin password changed.
+- [ ] **P11-T2 Tracking integration**: script served from our own domain with the CSP nonce, behind `Analytics.Umami`, excluded on admin, respects DNT. Done when: page views appear.
+- [ ] **P11-T3 Custom events & privacy page**: resume download, contact submit (with type), live-project click, demo run, `curl` card hit; short privacy page. Done when: events visible.
 
-- [ ] **P10-T5 Per-page `Server-Timing` line**
-  Scope: middleware emits `Server-Timing` (app duration, DB query count via a `DbCommandInterceptor`, cache hit/miss); a tiny Alpine component reads `performance.getEntriesByType('navigation')[0].serverTiming` and shows "this page: 12 ms · 2 queries" (or "served from cache") in the footer.
-  Done when: correct on cached and uncached responses; nothing shown with JS off.
+- [ ] **P11-T4 Request metrics & build info**
+  Scope: `System.Diagnostics.Metrics` + in-memory rolling window (1 h / 24 h): request count, p50/p95 latency, error rate, cache hit ratio; build info (version, commit SHA, build time) stamped by CI into both images; "deployed at".
+  Done when: percentile window unit-tested; numbers match a local load test.
+  Learn: percentiles vs averages.
+
+- [ ] **P11-T5 Per-page timing line**
+  Scope: API emits `Server-Timing` (handler time, DB query count via a `DbCommandInterceptor`, cache hit); the front-end collects the timings of the API calls made while rendering the page plus its own render time and shows "this page: 12 ms · 2 queries" in the footer (server-rendered).
+  Done when: correct on cached and uncached data.
   Learn: `Server-Timing`, EF Core interceptors.
 
-- [ ] **P10-T6 Status API & "Under the hood" page**
-  Scope: `GET /api/status` (JSON from P10-T4 + P5-T7 project statuses, cached 10 s, rate limit `public-api`); `/{culture}/under-the-hood`: live numbers (poll every 30 s, paused while the tab is hidden), architecture diagram (inline SVG, both themes), links to CI and the decisions page, a short "what is measured and what isn't" note, and "connect your AI assistant" instructions once P11-T6 exists.
-  Done when: both languages and themes; numbers update; with JS off a server-rendered snapshot is shown.
+- [ ] **P11-T6 Status API & "Under the hood" page**
+  Scope: `GET /api/status` (P11-T4 + project statuses, cached 10 s, `public-api`); `/{locale}/under-the-hood`: live numbers (poll 30 s, paused when hidden), architecture section, "what is measured and what isn't", links to CI and decisions.
+  Done when: both languages and themes; numbers update.
 
-- [ ] **P10-T7 Hero status line**
-  Scope: compact `🟢 online · p95 38 ms · deployed 2 h ago` in the Home hero slot (P2-T1), fetched from `/api/status` after first paint, linking to the under-the-hood page.
-  Done when: Home stays output-cached; Lighthouse performance/LCP unchanged.
+- [ ] **P11-T7 Hero status line**
+  Scope: `🟢 online · p95 38 ms · deployed 2 h ago` in the Home slot, from `/api/status` after first paint, linking to under-the-hood.
+  Done when: Home LCP unchanged.
 
-- [ ] **P10-T8 Cinema double-booking simulation**
-  Scope: in the cinema case study: a scripted SVG animation (Alpine CSP, motion-safe; a readable step list when `prefers-reduced-motion`) of two users booking the same seat → gateway → API → PostgreSQL row lock → one success, one clean "seat already taken"; clearly labelled **Simulation**; next to it the real code excerpt and a link to the project's concurrency test. No requests to the real cinema system.
-  Depends on: the cinema project entered in P5 with its repository link.
-  Done when: understandable without animation; keyboard operable; both languages.
+- [ ] **P11-T8 X-Ray mode**
+  Scope: global toggle "See behind the scenes"; the UI layer peels back (CSS 3D / Motion) to show, per section: the real code excerpt that produced it (extracted at build time from regions marked `// xray:<name>` in the repo, with a GitHub link at the build's commit), and the API calls, queries and timings of *this* request (P11-T5). Keyboard operable; reduced motion → instant switch.
+  Done when: every Home section has an X-Ray view; excerpts can't drift from the code (build fails on a missing marker).
+  Learn: build-time code extraction, honest demos.
 
-## Phase 11 — AI layer
+- [ ] **P11-T9 Scrollytelling request journey**
+  Scope: on under-the-hood: a scroll-driven line follows a real request — browser → Caddy → Next.js → ASP.NET Core → PostgreSQL → back — each stop annotated with what it does on this site and the visitor's own measured timings; CSS scroll-driven animations with a static diagram fallback.
+  Done when: both languages; readable as a static page without animation.
 
-> AI is an optional layer (ADR-014): every feature is behind an `Ai.*` flag, and with all of them off the site is
-> complete. New dependencies (pgvector, ONNX Runtime, MCP C# SDK, Microsoft.Extensions.AI) are approved by Mahdi at
-> the start of the task that adds them. Public features never call an external AI service.
+## Phase 12 — AI layer
 
-- [ ] **P11-T1 Local embedding model**
-  Scope: `IEmbeddingGenerator<string, Embedding<float>>` (Microsoft.Extensions.AI) implemented with ONNX Runtime and a small multilingual model with good Persian support (licence checked); the model file ships with the image or a mounted volume (decided in this task) — never downloaded at runtime.
-  Done when: unit test — two Persian sentences with the same meaning score closer than an unrelated pair; one embedding < 100 ms on the VPS CPU.
-  Learn: embeddings, cosine similarity, running models in-process.
+> AI is optional (ADR-014): every feature is behind an `Ai.*` flag; with all off the site is complete. New
+> dependencies (pgvector, ONNX Runtime, MCP C# SDK, Microsoft.Extensions.AI) are approved by Mahdi at the start of
+> the task that adds them. Public features never call an external AI service.
 
-- [ ] **P11-T2 Vector storage & indexing**
-  Scope: pgvector (DB image becomes a pgvector build of PostgreSQL 17), `content_embeddings` table (chunks of posts and projects per language), HNSW index, indexing on publish via a background queue, admin "re-index all" action.
-  Done when: publishing a post creates its chunks; integration test on real PostgreSQL with pgvector.
+- [ ] **P12-T1 Local embedding model**
+  Scope: `IEmbeddingGenerator<string, Embedding<float>>` with ONNX Runtime and a small multilingual model with good Persian support (licence checked); model file in the image or a mounted volume — never downloaded at runtime.
+  Done when: two Persian sentences with the same meaning score closer than an unrelated pair; one embedding < 100 ms on the VPS CPU.
+  Learn: embeddings, cosine similarity.
 
-- [ ] **P11-T3 Semantic search page**
-  Scope: `/{culture}/search?q=` hybrid ranking (vector similarity + PostgreSQL full-text with the `simple` config and Persian normalization: ي→ی, ك→ک, ZWNJ handling), rate limit `public-api`, flag `Ai.SemanticSearch`; result header "found in 40 ms by a local model".
-  Done when: a query sharing no words with a post still finds it; works with JS off (plain form).
-  Learn: hybrid search, why Persian text needs normalization.
+- [ ] **P12-T2 Vector storage & indexing**
+  Scope: pgvector (DB image becomes a pgvector build of PostgreSQL 17), `content_embeddings`, HNSW index, indexing on publish via a background queue, admin "re-index all".
+  Done when: publishing a post creates its chunks; integration test with pgvector.
 
-- [ ] **P11-T4 Related posts**
-  Scope: nearest neighbours computed on publish and stored; shown at the end of the post page; fallback to shared tags.
-  Done when: related list updates after a post is edited.
+- [ ] **P12-T3 Semantic search page**
+  Scope: `/{locale}/search?q=` hybrid ranking (vector + full-text with Persian normalization: ي→ی, ك→ک, ZWNJ), rate limit `public-api`, flag `Ai.SemanticSearch`; "found in 40 ms by a local model".
+  Done when: a query sharing no words with a post still finds it; works without JS (plain form).
+  Learn: hybrid search, Persian normalization.
 
-- [ ] **P11-T5 Ctrl+K command palette**
-  Scope: Alpine component: go to pages/projects, switch language and theme, download résumé, copy email, and search (P11-T3); a visible search button opens it on touch devices.
-  Done when: fully keyboard operable (`Esc` closes, focus restored); usable at 360px via the button.
+- [ ] **P12-T4 Related posts**: nearest neighbours computed on publish and stored; shown at the end of posts; fallback to shared tags.
 
-- [ ] **P11-T6 MCP server**
-  Scope: official MCP C# SDK, Streamable HTTP at `/mcp`; read-only tools `get_resume`, `list_projects`, `get_project`, `search_posts`, `get_post` calling the same Application services; public data only, no auth; rate limit `public-api`; flag `Ai.Mcp`.
-  Done when: an MCP client (MCP Inspector / Claude Code) lists and calls every tool; integration test per tool.
-  Learn: the Model Context Protocol, tools vs resources.
+- [ ] **P12-T5 Ctrl+K command palette**
+  Scope: React palette: go to pages/projects, switch language and theme, download résumé, copy email, search (P12-T3); visible search button on touch devices.
+  Done when: fully keyboard operable (`Esc` closes, focus restored); usable at 360 px.
 
-- [ ] **P11-T7 Admin AI assistant**
-  Scope: `IChatClient` (Microsoft.Extensions.AI) against an OpenAI-compatible endpoint (AvalAI today; options `Ai:Chat:BaseUrl|ApiKey|Model`, validated when the flag is on, added to `.env.example`); admin-only actions: suggest excerpt + SEO description, suggest tags, draft an English translation into the P6-T8 form (never auto-published); daily token budget guard; provider failure → friendly message, editor keeps working. Flag `Ai.AdminAssistant` (off until Mahdi enables it). ADR-015.
-  Done when: tests with a fake `IChatClient`; budget exceeded → actions disabled; no admin AI endpoint reachable without the `Admin` policy.
+- [ ] **P12-T6 MCP server**
+  Scope: official MCP C# SDK, Streamable HTTP at `/mcp`; read-only tools `get_resume`, `list_projects`, `get_project`, `search_posts`, `get_post` over the same Application services; rate limit `public-api`; flag `Ai.Mcp`.
+  Done when: an MCP client lists and calls every tool; integration test per tool.
+  Learn: the Model Context Protocol.
 
-## Phase 12 — Hardening & polish
+- [ ] **P12-T7 Admin AI assistant**
+  Scope: `IChatClient` against an OpenAI-compatible endpoint (AvalAI today; `Ai:Chat:BaseUrl|ApiKey|Model`, validated when the flag is on, in `.env.example`); admin-only: suggest excerpt + SEO description, suggest tags, draft an English translation (never auto-published); daily token budget; flag `Ai.AdminAssistant` (off). ADR-015.
+  Done when: tests with a fake `IChatClient`; budget exceeded → actions disabled; no AI endpoint reachable without `Admin`.
 
-- [ ] **P12-T1 Strict CSP** (inline scripts by hash, ADR-020) + security headers audit (securityheaders.com A).
-- [ ] **P12-T2 Admin 2FA (TOTP)** with recovery codes.
-- [ ] **P12-T3 Dependabot + `dotnet list package --vulnerable` in CI.**
-- [ ] **P12-T4 Accessibility audit** (keyboard pass, screen reader smoke test with NVDA, contrast re-check).
-- [ ] **P12-T5 Resume print stylesheet** & page polish.
-- [ ] **P12-T6 Backup restore drill #2** + documented RPO/RTO.
+## Phase 13 — Hardening & polish
 
-## Phase 13 — Newsletter (signup only)
+- [ ] **P13-T1 CSP & security headers audit** (ADR-025) — securityheaders.com A on HTML and API responses.
+- [ ] **P13-T2 Admin 2FA (TOTP)** with recovery codes.
+- [ ] **P13-T3 Dependabot (NuGet + npm)** + `dotnet list package --vulnerable` and `pnpm audit` in CI.
+- [ ] **P13-T4 Accessibility audit** (keyboard pass, NVDA smoke test, contrast re-check, signature features' fallbacks).
+- [ ] **P13-T5 Resume print stylesheet** & page polish.
+- [ ] **P13-T6 Backup restore drill #2** + documented RPO/RTO.
 
-- [ ] **P13-T1 Subscriber model**: entity per architecture §4, token hashing, unique email (citext), migration, domain tests.
-- [ ] **P13-T2 Signup UI**: `_NewsletterSignup` partial (footer + end of post), `/{culture}/newsletter` page, anti-spam, flag `Newsletter.Signup`; stores as `Pending`; message "confirmation email coming soon" (from resx). Idempotent for existing emails (no enumeration leak).
-- [ ] **P13-T3 Admin subscribers**: list, filter by status, CSV export, manual unsubscribe/delete (privacy).
-- [ ] **P13-T4 Sending scaffold (disabled)**: `INewsletterSender`, confirmation & unsubscribe pages/handlers implemented but guarded by `Newsletter.Sending` (false → 404/no-op), tests for both flag states.
+## Phase 14 — Newsletter (signup only)
 
-## Phase 14 — Geo-based default language
+- [ ] **P14-T1 Subscriber model**: entity per architecture §4, token hashing, unique email (citext), migration, domain tests.
+- [ ] **P14-T2 Signup UI**: component (footer + end of post), `/{locale}/newsletter` page, anti-spam, flag `Newsletter.Signup`; stored as `Pending`; idempotent (no enumeration leak).
+- [ ] **P14-T3 Admin subscribers**: list, filter, CSV export, manual unsubscribe/delete.
+- [ ] **P14-T4 Sending scaffold (disabled)**: `INewsletterSender`, confirm/unsubscribe handlers behind `Newsletter.Sending` (false → 404/no-op), tests for both flag states.
 
-> English itself ships from P1-T11 / P2 / P6-T8 / P9-T2 (ADR-016). Only these are left.
+## Phase 15 — International move (ADR-023)
 
-- [ ] **P14-T1** GeoIP step in `ILanguageResolver` (GeoLite2 file mounted as volume, refreshed monthly; `IR → fa`, else `en`); only on `/`, never on deep links.
-- [ ] **P14-T2** Optional dedicated English font pairing (self-hosted, OFL) — only if Vazirmatn's Latin glyphs look weak on English pages.
+- [ ] **P15-T1 Domain & server choice**: `.com` name, foreign VPS, DNS plan; decide the `.ir` domains' role (301 to `.com` or a Persian mirror).
+- [ ] **P15-T2 Migration runbook & move**: volumes + `pg_dump` restore + DNS switch, rehearsed once on a staging host; downtime noted.
+- [ ] **P15-T3 English-first default**: `/` defaults to `en`, canonical `Site__BaseUrl`/`SITE_URL` = `.com`, hreflang/sitemaps updated, redirects per P15-T1.
+- [ ] **P15-T4 GeoIP language step** on `/` only (GeoLite2 file mounted, refreshed monthly; `IR → fa`, else `en`).
+- [ ] **P15-T5 Provider review**: AI assistant provider (ADR-015), optional English display font, public chat reconsidered (Backlog).
 
 ## Content track (parallel, writing only)
 
 > No code. Drafts are written by Mahdi (Claude helps with structure and the English versions) and published through
-> the admin once P6 exists. Two posts must be ready for the launch (P9-T4).
+> the admin once P7 exists. Two posts must be ready for the launch (P10-T6).
 
-- [ ] **C-T1 Series ".NET under Iranian constraints"**: outline + first two posts (e.g. build images abroad and pull from GHCR; `docker save | docker load` fallback; NuGet/Docker mirrors; Let's Encrypt on a `.ir` domain).
-- [ ] **C-T2 Series "Building this site"**: one post per finished phase, made from the ADRs and `learning.md`.
-- [ ] **C-T3 Case-study texts**: gym system (after permission, P5-T8), cinema reservation, microservices platform — Problem · Architecture · Key decisions · Results · What went wrong.
+- [ ] **C-T1 Series ".NET under Iranian constraints"**: outline + first two posts (images built abroad and pulled from GHCR; `docker save | docker load`; mirrors; Let's Encrypt on a `.ir` domain).
+- [ ] **C-T2 Series "Building this site"**: one post per finished phase — now a full-stack story (Next.js + .NET on one origin), made from the ADRs and `learning.md`.
+- [ ] **C-T3 Case-study texts**: gym system (P6-T9), cinema reservation, microservices platform — Problem · Architecture · Key decisions · Results · What went wrong.
