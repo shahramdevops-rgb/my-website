@@ -171,7 +171,7 @@ PersonalSite.Web/
 ├─ Infrastructure/               Routes (path constants), PageNames + MainNavigation (menu), HealthProbe (container healthcheck), SecurityHeadersMiddleware, SeoHelpers, TagHelpers (<persian-date>)
 ├─ Endpoints/                    minimal APIs: / (language redirect, or curl card), /sitemap.xml, /feed.xml, /robots.txt, /llms.txt, /health, /api/resume.json, /api/status, /mcp, /admin/api/markdown-preview, /resume/download
 ├─ Styles/app.css                Tailwind v4 input (tokens via @theme; compiled by the TailwindBuild MSBuild target)
-└─ wwwroot/                      css/app.css (generated, git-ignored), js/*.js, lib/alpine, lib/hljs, fonts/<name>-<version>/, img/
+└─ wwwroot/                      css/app.css (generated, git-ignored), js/app.js + js/components/*.js, lib/alpine-<version>/, lib/hljs, fonts/<name>-<version>/, img/
 ```
 
 ## 4. Data model
@@ -387,8 +387,18 @@ URLs use lowercase (`RouteOptions.LowercaseUrls = true`) and no trailing slash.
   *before first paint* from `localStorage`, defaulting to **dark**. Alpine `$store.theme` toggles it afterwards.
 - **RTL:** layout uses logical utilities only (`ms-*`, `me-*`, `ps-*`, `pe-*`, `start-*`, `end-*`, `text-start`),
   so English LTR later needs zero CSS changes.
-- **Alpine CSP build:** components are registered in `wwwroot/js/components/*.js` via `Alpine.data('name', …)`;
-  markup references them (`x-data="themeToggle"`). No inline JS expressions beyond property/method references.
+- **Alpine CSP build (P1-T7):** `@alpinejs/csp` 3.17.4, its ESM build vendored as
+  `wwwroot/lib/alpine-3.17.4/alpine-csp.esm.min.js` (+ `LICENSE.md`; npm `dist/module.esm.min.js`, sha256
+  `8f73b4b3…f38a99`). `_Layout` loads `wwwroot/js/app.js` as `<script type="module">` (deferred, fingerprinted via
+  `asp-append-version`); it imports Alpine and every component from `wwwroot/js/components/*.js` (each a
+  default-exported factory), registers them with `Alpine.data('name', …)`, then calls `Alpine.start()` once.
+  Imported files are not fingerprinted; static assets serves them with an ETag, so browsers revalidate them.
+  Markup references names only (`x-data="mobileMenu"`) and uses `x-on:` (Razor reads `@` as C#).
+  `ScriptsTests` checks that every import resolves and every `x-data` name is registered.
+- **CSP (P1-T7 baseline):** `SecurityHeadersMiddleware` sends `default-src 'self'; object-src 'none';
+  base-uri 'self'; form-action 'self'; frame-ancestors 'none'` on every response (Development adds `connect-src`
+  for the `dotnet watch` WebSocket). No `unsafe-inline`/`unsafe-eval`; the theme script gets a nonce (P1-T6);
+  strict audit in P12-T1.
 - **Motifs:** botanical SVGs are Razor partials (`Shared/Motifs/`) using `currentColor`, so they re-color with the theme.
   Animations are CSS-only and wrapped in `@media (prefers-reduced-motion: no-preference)`.
 

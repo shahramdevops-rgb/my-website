@@ -22,12 +22,13 @@ of ideas already considered and rejected, are in `roadmap.md`.
 ## 2. Current status
 
 - **Phase:** P0 — Foundation **complete** (`P0-T1`…`P0-T7`). CI (`.github/workflows/ci.yml`) runs restore, build, format check and tests on every push and PR. Code is on GitHub: `shahramdevops-rgb/my-website` (`origin`).
-- **Phase P1** in progress: `P1-T1` (Tailwind pipeline + tokens), `P1-T2` (self-hosted fonts + type scale), `P1-T3` (culture routing + resx), `P1-T4` (date/number formatting), `P1-T5` (layout, header, footer) done.
-- **Next task:** `P1-T6` (Theme toggle).
+- **Phase P1** in progress: `P1-T1` (Tailwind pipeline + tokens), `P1-T2` (self-hosted fonts + type scale), `P1-T3` (culture routing + resx), `P1-T4` (date/number formatting), `P1-T5` (layout, header, footer), `P1-T7` (Alpine CSP build + baseline CSP; done before P1-T6) done.
+- **Next task:** `P1-T6` (Theme toggle — adds a per-request nonce to the CSP for its inline head script).
 - **Roadmap revised (2026-10-17):** positioning + three pillars; English moved up (`P1-T11`, bilingual P2); new
   P2-T6 decisions page, P5-T7/T8 live status + gym case study, P9-T5 machine-readable résumé, P10 under the hood,
   P11 AI layer; newsletter → P13, GeoIP → P14; content track `C-T1…T3`. ADR-013…019 record the decisions.
-- **Mobile menu** is a no-JS `<details>` for now; `P1-T7` adds Alpine behaviour (Escape / outside click).
+- **JS:** `wwwroot/js/app.js` (ES module) imports Alpine CSP 3.17.4 + components and registers them with `Alpine.data`; markup uses `x-on:` (not `@`, which Razor reads as C#). Mobile menu = `<details>` + `mobileMenu` (Escape / outside click).
+- **CSP:** every response gets a baseline `Content-Security-Policy` (`SecurityHeadersMiddleware`, `default-src 'self'`, no inline scripts). Inline `<script>` will not run until P1-T6 adds nonces.
 - **Contact links** (`Site:Social:Email|GitHub|Telegram`) are not set yet — waiting for Mahdi's values; the footer hides unset ones.
 - **Localization:** every public page is auto-prefixed with `{culture:culture}` by `CultureRouteConvention` (don't write `/fa` in `@page`); views use the injected `T["Key"]` (`IStringLocalizer<SharedResource>`, strings in `Resources/SharedResource.fa.resx`).
 - **Dates/numbers in views:** `<persian-date value="…" />` (tag helper), `DateDisplay`, `NumberDisplay` (`Formatting/`). .NET never emits Persian digits itself — always go through these.

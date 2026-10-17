@@ -68,14 +68,16 @@
   Scope: `_Layout` (skip-link, landmarks, `@RenderSection("Head")`), `_Header` (logo/name, nav: خانه، درباره من، نمونه‌کارها، بلاگ، خدمات، رزومه، تماس; mobile menu with Alpine), `_Footer` (Email, GitHub, Telegram icons + links from config `SiteOptions.Social`, copyright with Persian year).
   Done when: layout works 360px → 1440px, keyboard navigable, all strings from resx.
 
-- [ ] **P1-T6 Theme toggle (dark default)**
-  Scope: nonce'd inline head script sets `data-theme` before paint (localStorage → default **dark**), Alpine store `theme` + `_ThemeToggle` button (sun/moon-leaf icon, `aria-pressed`), smooth color transition (motion-safe).
-  Done when: no flash of wrong theme on reload; preference persists; works with JS disabled (stays dark).
+> P1-T7 was done before P1-T6: the theme toggle needs Alpine.
+
+- [ ] **P1-T6 Theme toggle (dark default)** — requires P1-T7
+  Scope: nonce'd inline head script sets `data-theme` before paint (localStorage → default **dark**), Alpine store `theme` + `_ThemeToggle` button (sun/moon-leaf icon, `aria-pressed`), smooth color transition (motion-safe). The nonce is per request and added to the CSP's `script-src` (`SecurityHeadersMiddleware`).
+  Done when: no flash of wrong theme on reload; preference persists; works with JS disabled (stays dark); runs under the CSP (no `unsafe-inline`).
   Learn: FOUC, why the script must be inline & tiny.
 
-- [ ] **P1-T7 Alpine.js (CSP build) setup**
-  Scope: vendor `@alpinejs/csp` into `wwwroot/lib/alpine-3.x.y/`, `wwwroot/js/app.js` bootstraps components from `wwwroot/js/components/`, `defer` loading.
-  Done when: mobile menu + theme toggle run under a CSP without `unsafe-eval`.
+- [x] **P1-T7 Alpine.js (CSP build) setup**
+  Scope: vendor `@alpinejs/csp` into `wwwroot/lib/alpine-3.x.y/`, `wwwroot/js/app.js` bootstraps components from `wwwroot/js/components/`, `defer` loading (ES module). Baseline CSP header (`SecurityHeadersMiddleware`; hardened in P12-T1).
+  Done when: mobile menu runs under a CSP without `unsafe-eval` (theme toggle: P1-T6).
 
 - [ ] **P1-T8 Botanical motif library**
   Scope: Razor partials in `Shared/Motifs/`: `_LeafDivider`, `_VineCorner`, `_Sprig`, `_BloomCluster`, `_HeroBotanical` (larger line-art composition). `currentColor`-based, `aria-hidden`, subtle motion-safe sway animation for hero leaves. Original art only (hand-authored SVG paths).

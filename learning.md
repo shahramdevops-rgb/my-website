@@ -216,6 +216,19 @@ A Persian paragraph containing `ASP.NET Core 10` or code can scramble word order
 ### 4.7 Alpine.js and the CSP build
 Alpine adds small interactivity (`x-data`, `x-on:click`) without a build step. The normal build evaluates attribute strings with `new Function` which a strict Content-Security-Policy blocks. The CSP build doesn't — so we register components in JS files with `Alpine.data('themeToggle', …)` and reference them by name.
 
+How it is wired (P1-T7): one ES module entry point imports everything, registers it, then starts Alpine.
+```js
+// wwwroot/js/app.js — loaded with <script type="module">: deferred, never blocks rendering
+import Alpine from "../lib/alpine-3.17.4/alpine-csp.esm.min.js";
+import mobileMenu from "./components/mobile-menu.js";
+Alpine.data("mobileMenu", mobileMenu);
+Alpine.start(); // after registering: Alpine scans the page once
+```
+```html
+<details x-data="mobileMenu" x-on:keydown.escape.window="closeFromKeyboard">
+```
+Two gotchas: write `x-on:` rather than `@` in `.cshtml` (Razor treats `@` as C#), and a misspelt `x-data` name fails *silently* — `ScriptsTests` catches it. The `<details>` menu works without JS; Alpine only adds Escape/outside click (*progressive enhancement*).
+
 ### 4.8 Why self-host fonts and scripts
 CDNs and Google Fonts can be slow or blocked in Iran, leak visitor data to third parties, and complicate CSP. Files in `wwwroot` always work and move with the app.
 
@@ -243,6 +256,13 @@ Never trust the file name or `Content-Type` header — both are attacker-control
 
 ### 5.6 Hashing IPs
 We need IPs for abuse detection but storing raw IPs is personal data. `SHA-256(ip + secret salt)` lets us compare "same sender?" without keeping the IP.
+
+### 5.7 Content-Security-Policy (CSP)
+A response header that tells the browser where code may come from. Ours starts with `default-src 'self'`: scripts, styles, fonts and images only from our own origin. So even if an attacker slips `<script>alert(1)</script>` into a page, the browser refuses to run it — inline scripts aren't allowed. That's the second line of defence behind HTML encoding (5.1).
+```
+Content-Security-Policy: default-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'
+```
+`frame-ancestors 'none'` also stops other sites from framing ours (clickjacking). The one inline script we need (the theme script, P1-T6) will carry a **nonce**: a random value, new on every request, that appears both in the header and on the `<script nonce="…">` tag — an attacker can't guess it. Violations show up in the browser console as "Refused to execute…".
 
 ---
 

@@ -44,6 +44,8 @@ try
         app.UseExceptionHandler(Routes.Error);
     }
 
+    // After the exception handler: its re-executed error page passes through here again and gets the header too.
+    app.UseMiddleware<SecurityHeadersMiddleware>();
     app.UseSerilogRequestLogging();
     app.UseRouting();
     // After UseRouting: the culture comes from the {culture} route value, which routing has just matched.

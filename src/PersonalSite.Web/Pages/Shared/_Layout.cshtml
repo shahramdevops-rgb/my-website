@@ -17,6 +17,9 @@
        Styles/app.css exactly, or the font downloads twice — so a plain "/" path: "~/" would be rewritten to the
        fingerprinted file name (WithStaticAssets). Fonts always need crossorigin, even from our own origin. *@
     <link rel="preload" href="/fonts/vazirmatn-33.003/Vazirmatn-Variable.woff2" as="font" type="font/woff2" crossorigin />
+    @* A module script is deferred: it downloads in parallel and runs after the HTML is parsed, so it never blocks
+       rendering. The page works without it (progressive enhancement); JS only adds behaviour. *@
+    <script type="module" src="~/js/app.js" asp-append-version="true"></script>
     @* Per-page additions (SEO tags in P9, page-specific preloads). *@
     @await RenderSectionAsync("Head", required: false)
 </head>

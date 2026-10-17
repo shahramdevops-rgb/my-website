@@ -10,11 +10,12 @@
 
     @*
       Mobile: a native <details> disclosure — opens/closes and announces "expanded/collapsed" without any JS,
-      so it also works under a strict CSP. Alpine (P1-T7) adds closing on Escape / outside click.
+      so it also works under a strict CSP. Alpine (wwwroot/js/components/mobile-menu.js) adds closing on
+      Escape / outside click. x-on: instead of the @ shorthand, which Razor would read as C#.
       Only one of the two navs is ever displayed, so screen readers meet the menu once.
     *@
-    <details class="relative md:hidden">
-      <summary class="flex cursor-pointer list-none items-center gap-2 rounded-lg px-3 py-2 hover:bg-surface-2 [&::-webkit-details-marker]:hidden">
+    <details x-data="mobileMenu" x-on:click.outside="close" x-on:keydown.escape.window="closeFromKeyboard" class="relative md:hidden">
+      <summary x-ref="toggle" class="flex cursor-pointer list-none items-center gap-2 rounded-lg px-3 py-2 hover:bg-surface-2 [&::-webkit-details-marker]:hidden">
         <partial name="Icons/_Menu" />
         <span>@T["Nav.Menu"]</span>
       </summary>
