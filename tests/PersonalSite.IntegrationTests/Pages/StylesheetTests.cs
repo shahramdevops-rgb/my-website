@@ -13,7 +13,7 @@ public sealed partial class StylesheetTests(WebAppFactory factory)
         using var client = factory.CreateClient();
         var ct = TestContext.Current.CancellationToken;
 
-        var html = await client.GetStringAsync(new Uri("/", UriKind.Relative), ct);
+        var html = await client.GetStringAsync(new Uri("/fa", UriKind.Relative), ct);
         var match = StylesheetHref().Match(html);
         match.Success.ShouldBeTrue("layout should link /css/app.css");
 

@@ -1,7 +1,13 @@
+@using System.Globalization
+@{
+    // Set per request by RequestLocalization from the URL prefix (/fa → fa). lang helps screen readers and
+    // search engines; dir flips the whole layout (logical CSS utilities follow it), so English later is LTR for free.
+    var culture = CultureInfo.CurrentUICulture;
+}
 <!DOCTYPE html>
-@* Temporary layout. lang/dir become culture-driven in P1-T3; full layout arrives in P1-T5. *@
+@* Temporary layout; full layout arrives in P1-T5. *@
 @* data-theme: dark is the default; the theme toggle (P1-T6) switches it before first paint. *@
-<html lang="fa" dir="rtl" data-theme="dark">
+<html lang="@culture.Name" dir="@(culture.TextInfo.IsRightToLeft ? "rtl" : "ltr")" data-theme="dark">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />

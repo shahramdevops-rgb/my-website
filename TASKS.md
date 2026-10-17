@@ -54,7 +54,7 @@
   Scope: self-host Vazirmatn (variable woff2) and JetBrains Mono in `wwwroot/fonts`, `@font-face` with `font-display: swap`, preload main font, base type scale, Persian-friendly line-height, `code`/`pre` always `dir="ltr"`.
   Done when: no network requests leave the site's origin for fonts.
 
-- [ ] **P1-T3 Culture routing & localization plumbing**
+- [x] **P1-T3 Culture routing & localization plumbing**
   Scope: `SupportedCultures` option (`["fa"]`), `CultureRouteConstraint`, page route convention adding `{culture}` prefix to public pages, `RequestLocalization` with route provider, `ILanguageResolver` (cookie → Accept-Language → default) and `/` redirect, `SharedResource` + `SharedResource.fa.resx`, `AddViewLocalization`, `<html lang dir>` from current culture.
   Done when: `/` → 302 `/fa`; `/en/...` → 404 for now; integration tests cover both.
   Learn: request culture providers, resx, why every language gets a prefix.

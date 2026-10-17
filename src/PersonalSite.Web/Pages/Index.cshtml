@@ -1,11 +1,11 @@
 @page
 @model IndexModel
 @{
-    ViewData["Title"] = "PersonalSite";
+    ViewData["Title"] = T["Site.Name"];
 }
 
-@* Placeholder until P2-T1 (Home page). Real text will come from resource files (P1-T3). *@
+@* Placeholder until P2-T1 (Home page). *@
 <div class="m-6 rounded-2xl border bg-surface p-6">
-  <h1 class="text-2xl font-bold text-primary">PersonalSite</h1>
-  <p class="mt-2 text-muted">Coming soon.</p>
+  <h1 class="text-2xl font-bold text-primary">@T["Site.Name"]</h1>
+  <p class="mt-2 text-muted">@T["Home.ComingSoon"]</p>
 </div>

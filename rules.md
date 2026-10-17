@@ -94,7 +94,9 @@
 
 ## 10. Localization
 
-- Supported cultures are configured in one place (`LocalizationOptions` in `appsettings.json`), currently `["fa"]`.
+- Supported cultures are configured in one place (`CultureOptions`, section `Localization` in `appsettings.json`), currently `["fa"]`.
+- Never write the culture into `@page` templates — `CultureRouteConvention` adds `{culture}`. Pages that must stay unprefixed are listed in that convention.
+- In views, shared strings come from the injected `T["Key"]` (`IStringLocalizer<SharedResource>`, see `_ViewImports`).
 - Resource file per scope: `SharedResource.fa.resx` for shared UI; `Pages/X.fa.resx` only for page-specific long strings.
 - Dates via the `<persian-date>` tag helper / `DateDisplay` helper (culture-aware). Numbers via culture formatting; Persian digits are produced by culture, not by string replacement in views.
 - Never concatenate translated fragments; use format strings with placeholders: `"{0} دقیقه مطالعه"`.

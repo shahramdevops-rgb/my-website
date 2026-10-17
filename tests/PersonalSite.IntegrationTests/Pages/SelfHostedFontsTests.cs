@@ -39,7 +39,7 @@ public sealed partial class SelfHostedFontsTests(WebAppFactory factory)
 
     private static async Task<(Uri Css, Uri[] Fonts, Uri[] Preloads)> LoadAsync(HttpClient client, CancellationToken ct)
     {
-        var pageUri = new Uri(client.BaseAddress!, "/");
+        var pageUri = new Uri(client.BaseAddress!, "/fa");
         var html = await client.GetStringAsync(pageUri, ct);
 
         var cssMatch = StylesheetHref().Match(html);

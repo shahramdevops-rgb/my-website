@@ -23,6 +23,8 @@
     <ProjectReference Include="..\..\src\PersonalSite.Domain\PersonalSite.Domain.csproj" />
     <ProjectReference Include="..\..\src\PersonalSite.Application\PersonalSite.Application.csproj" />
     <ProjectReference Include="..\..\src\PersonalSite.Infrastructure\PersonalSite.Infrastructure.csproj" />
+    <!-- Web-layer logic without a running host (e.g. LanguageResolver). -->
+    <ProjectReference Include="..\..\src\PersonalSite.Web\PersonalSite.Web.csproj" />
   </ItemGroup>
 
 </Project>

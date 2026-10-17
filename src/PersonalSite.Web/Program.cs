@@ -46,8 +46,11 @@ try
 
     app.UseSerilogRequestLogging();
     app.UseRouting();
+    // After UseRouting: the culture comes from the {culture} route value, which routing has just matched.
+    app.UseRequestLocalization();
 
     app.MapHealthEndpoints();
+    app.MapLanguageRedirect();
     // Serves wwwroot (e.g. the compiled Tailwind CSS) with compression and long-lived caching.
     app.MapStaticAssets();
     app.MapRazorPages().WithStaticAssets();

@@ -1,7 +1,7 @@
 namespace PersonalSite.Web.Infrastructure;
 
 /// <summary>
-/// Fixed, non-localized paths. Culture-prefixed page routes (<c>/fa/...</c>) come with P1-T3.
+/// Fixed, non-localized paths. Public pages get their <c>/{culture}</c> prefix from CultureRouteConvention.
 /// </summary>
 public static class Routes
 {

@@ -141,7 +141,8 @@ PersonalSite.Infrastructure/
 PersonalSite.Web/
 ├─ Program.cs                    composition root: AddApplication → AddInfrastructure → AddWeb, middleware order
 ├─ DependencyInjection.cs        (AddWeb: Serilog, options, routing, ProblemDetails, health checks, Razor Pages)
-├─ Configuration/                Options classes bound from config (SiteOptions …), all with ValidateOnStart
+├─ Configuration/                Options classes bound from config (SiteOptions, CultureOptions …), all with ValidateOnStart
+├─ SharedResource.cs             marker type for shared UI strings (root namespace → Resources/SharedResource.fa.resx)
 ├─ Pages/                        public Razor Pages
 │  ├─ Index.cshtml               Home
 │  ├─ About.cshtml
@@ -154,10 +155,10 @@ PersonalSite.Web/
 │  ├─ Error.cshtml, NotFound.cshtml
 │  └─ Shared/ _Layout, _Header, _Footer, _ThemeToggle, _SeoHead, Components/ (_Button, _Card, _Tag…), Motifs/ (_LeafDivider, _Vine…)
 ├─ Areas/Admin/Pages/            Dashboard, Posts/*, Projects/*, Comments/*, Messages/*, Resume/*, Subscribers/*, Account/Login
-├─ Localization/                 SharedResource.cs (marker), CultureRouteConstraint, LanguageResolver
+├─ Localization/                 CultureRouteConstraint, CultureRouteConvention (adds {culture} prefix), LanguageResolver
 ├─ Resources/                    SharedResource.fa.resx (later SharedResource.en.resx), view resx files
 ├─ Infrastructure/               Routes (path constants), HealthProbe (container healthcheck), SecurityHeadersMiddleware, SeoHelpers, TagHelpers (e.g. <persian-date>)
-├─ Endpoints/                    minimal APIs: /sitemap.xml, /feed.xml, /robots.txt, /health, /admin/api/markdown-preview, /resume/download
+├─ Endpoints/                    minimal APIs: / (language redirect), /sitemap.xml, /feed.xml, /robots.txt, /health, /admin/api/markdown-preview, /resume/download
 ├─ Styles/app.css                Tailwind v4 input (tokens via @theme; compiled by the TailwindBuild MSBuild target)
 └─ wwwroot/                      css/app.css (generated, git-ignored), js/*.js, lib/alpine, lib/hljs, fonts/<name>-<version>/, img/
 ```
@@ -281,6 +282,15 @@ Today only step 1, 3, 4 exist and only `fa` is supported, so everything lands on
 All public routes are culture-prefixed: `@page "/{culture:culture}/blog/{slug}"` is avoided in favour of a
 **page route convention** that prefixes every public page with `{culture:culture}` automatically, so page
 files stay clean (`@page "{slug}"`).
+
+- `CultureRouteConvention` skips area pages (admin) and an explicit list of technical pages (today `/Error`,
+  which the exception handler re-executes without a culture).
+- `CultureRouteConstraint` (`{culture:culture}`) accepts only `CultureOptions.SupportedCultures` (config section
+  `Localization`), so `/en/...` is a 404 until English is enabled.
+- `RequestLocalization` uses **only** the route-data provider: the URL decides the page language; cookie and
+  `Accept-Language` matter only for the `/` redirect. Responses carry `Content-Language`.
+- `WebEncoderOptions` allows all Unicode ranges, so Persian text is emitted as letters, not `&#x...;` entities
+  (HTML-significant characters are still encoded).
 
 | URL | Page |
 |---|---|

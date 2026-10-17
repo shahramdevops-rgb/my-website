@@ -16,8 +16,9 @@ It is also a **learning project**: Mahdi wants to understand *why* each technica
 ## 2. Current status
 
 - **Phase:** P0 — Foundation **complete** (`P0-T1`…`P0-T7`). CI (`.github/workflows/ci.yml`) runs restore, build, format check and tests on every push and PR. Code is on GitHub: `shahramdevops-rgb/my-website` (`origin`).
-- **Phase P1** in progress: `P1-T1` (Tailwind pipeline + tokens), `P1-T2` (self-hosted fonts + type scale) done.
-- **Next task:** `P1-T3` (Culture routing & localization plumbing).
+- **Phase P1** in progress: `P1-T1` (Tailwind pipeline + tokens), `P1-T2` (self-hosted fonts + type scale), `P1-T3` (culture routing + resx) done.
+- **Next task:** `P1-T4` (Persian formatting helpers).
+- **Localization:** every public page is auto-prefixed with `{culture:culture}` by `CultureRouteConvention` (don't write `/fa` in `@page`); views use the injected `T["Key"]` (`IStringLocalizer<SharedResource>`, strings in `Resources/SharedResource.fa.resx`).
 - **Tailwind CLI** is required to build the Web project: run `./tools/get-tailwind.ps1` once (CI/Docker run the `.sh`). New markup folders must be added as `@source` in `Styles/app.css`.
 - **Dev DB** is published on host port **5433** (Mahdi has another project's PostgreSQL on 5432). For `dotnet watch` on the host, the connection string lives in **user-secrets** (`ConnectionStrings:Default`); in Docker, `compose.yaml` builds it from `.env`.
 - **Tooling note:** when Claude runs locally (VS Code extension) it can use `dotnet` and reach nuget.org; in cloud sandboxes it may not — then Mahdi runs the `dotnet` commands.

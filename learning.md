@@ -90,6 +90,30 @@ would make Docker restart a perfectly fine web container. `/health/ready` (**rea
 
 ---
 
+### 2.11 Localization: culture from the URL, text from resx
+Each request gets a *culture* (`CultureInfo`), which decides language, number/date formats and text direction.
+`RequestLocalization` middleware sets it; *request culture providers* say where it comes from. We use only the
+**route** provider, so `/fa/blog` is Persian no matter what the browser prefers — one URL = one language, which is
+what search engines and shared links need. The browser preference is used once, to pick where `/` redirects.
+
+UI text lives in `.resx` files, one per language, compiled into *satellite assemblies* (`bin/.../fa/PersonalSite.Web.resources.dll`):
+
+```cshtml
+<p>@T["Home.ComingSoon"]</p>   @* → به‌زودی… in /fa, later "Coming soon…" in /en *@
+```
+
+If a key is missing, the localizer prints the key itself (`Home.ComingSoon`) — visible, never a crash.
+
+### 2.12 Why every language gets a URL prefix (even the only one)
+If Persian lived at `/blog` and English at `/en/blog`, adding English would mean the "real" URLs are inconsistent
+and the default language could never change. With `/fa/blog` from day one, English is just another prefix;
+no existing link changes (ADR-006).
+
+### 2.13 HTML encoding of non-Latin text
+Razor encodes output to prevent XSS. By default its encoder only trusts Basic Latin, so `م` becomes `&#x645;` —
+correct in the browser but ~6× bigger. We allow all Unicode ranges; `<`, `>`, `&` and quotes are still always
+encoded, so safety is unchanged.
+
 ## Part 3 — Data
 
 ### 3.1 EF Core migrations
