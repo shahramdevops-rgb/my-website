@@ -99,6 +99,19 @@
   --text-5xl--line-height: 1.25;
 }
 
+/*
+  Theme switch fade: wwwroot/js/stores/theme.js adds .theme-transition to <html> for 300 ms while switching.
+  Outside any layer, so it beats utilities' own transitions for that moment. Skipped for reduced-motion users.
+*/
+@media (prefers-reduced-motion: no-preference) {
+  .theme-transition,
+  .theme-transition *,
+  .theme-transition *::before,
+  .theme-transition *::after {
+    transition: background-color 300ms ease, border-color 300ms ease, color 300ms ease, fill 300ms ease, stroke 300ms ease;
+  }
+}
+
 @layer base {
   :root {
     /* Native widgets (scrollbars, form controls) follow the theme too. */

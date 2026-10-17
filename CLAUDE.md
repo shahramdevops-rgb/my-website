@@ -22,13 +22,14 @@ of ideas already considered and rejected, are in `roadmap.md`.
 ## 2. Current status
 
 - **Phase:** P0 — Foundation **complete** (`P0-T1`…`P0-T7`). CI (`.github/workflows/ci.yml`) runs restore, build, format check and tests on every push and PR. Code is on GitHub: `shahramdevops-rgb/my-website` (`origin`).
-- **Phase P1** in progress: `P1-T1` (Tailwind pipeline + tokens), `P1-T2` (self-hosted fonts + type scale), `P1-T3` (culture routing + resx), `P1-T4` (date/number formatting), `P1-T5` (layout, header, footer), `P1-T7` (Alpine CSP build + baseline CSP; done before P1-T6) done.
-- **Next task:** `P1-T6` (Theme toggle — adds a per-request nonce to the CSP for its inline head script).
+- **Phase P1** in progress: `P1-T1` (Tailwind pipeline + tokens), `P1-T2` (self-hosted fonts + type scale), `P1-T3` (culture routing + resx), `P1-T4` (date/number formatting), `P1-T5` (layout, header, footer), `P1-T7` (Alpine CSP build + baseline CSP; done before P1-T6), `P1-T6` (theme toggle) done.
+- **Next task:** `P1-T8` (Botanical motif library).
 - **Roadmap revised (2026-10-17):** positioning + three pillars; English moved up (`P1-T11`, bilingual P2); new
   P2-T6 decisions page, P5-T7/T8 live status + gym case study, P9-T5 machine-readable résumé, P10 under the hood,
   P11 AI layer; newsletter → P13, GeoIP → P14; content track `C-T1…T3`. ADR-013…019 record the decisions.
 - **JS:** `wwwroot/js/app.js` (ES module) imports Alpine CSP 3.17.4 + components and registers them with `Alpine.data`; markup uses `x-on:` (not `@`, which Razor reads as C#). Mobile menu = `<details>` + `mobileMenu` (Escape / outside click).
-- **CSP:** every response gets a baseline `Content-Security-Policy` (`SecurityHeadersMiddleware`, `default-src 'self'`, no inline scripts). Inline `<script>` will not run until P1-T6 adds nonces.
+- **CSP:** every response gets a baseline `Content-Security-Policy` (`SecurityHeadersMiddleware`, `default-src 'self'`, no `unsafe-inline`). The only inline script is the pre-paint theme script, allowed by its SHA-256 (`Infrastructure/InlineScripts.cs`, ADR-020) — never hand-write `<script>` blocks.
+- **Theme:** `$store.theme` + `_ThemeToggle`; server always renders `data-theme="dark"`, the head script applies a saved `light`.
 - **Contact links** (`Site:Social:Email|GitHub|Telegram`) are not set yet — waiting for Mahdi's values; the footer hides unset ones.
 - **Localization:** every public page is auto-prefixed with `{culture:culture}` by `CultureRouteConvention` (don't write `/fa` in `@page`); views use the injected `T["Key"]` (`IStringLocalizer<SharedResource>`, strings in `Resources/SharedResource.fa.resx`).
 - **Dates/numbers in views:** `<persian-date value="…" />` (tag helper), `DateDisplay`, `NumberDisplay` (`Formatting/`). .NET never emits Persian digits itself — always go through these.
@@ -113,6 +114,7 @@ pgvector · MCP C# SDK.
 | 017 | One public name: Mahdi Azghandi (Shahram = alternateName) | Matches legal documents |
 | 018 | Honest public telemetry only | No faked numbers, no reconnaissance data |
 | 019 | Two audience paths, no persona toggle | Nothing hidden, one version of each page |
+| 020 | Inline scripts allowed by CSP hash, not nonce | Stays valid when pages are served from cache |
 
 **Layering:** `Web → Application → Domain`; `Infrastructure → Application`. Page models are thin and call
 Application services only — never `AppDbContext`.

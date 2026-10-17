@@ -128,7 +128,7 @@ bilingual), P4–P6 ≈ 3 weeks, P7–P9 ≈ 2 weeks, P10–P11 ≈ 3–4 weeks.
 **You'll learn:** embeddings, vector indexes, hybrid search, RAG retrieval, the MCP protocol, provider-agnostic AI abstractions.
 
 ## Phase 12 — Hardening & polish
-CSP with nonces (strict), security headers audit, admin 2FA (TOTP), dependency scanning (Dependabot), backup restore drill, error monitoring review, image optimization (responsive sizes, WebP), accessibility audit, print stylesheet for resume page.
+strict CSP (inline scripts by hash), security headers audit, admin 2FA (TOTP), dependency scanning (Dependabot), backup restore drill, error monitoring review, image optimization (responsive sizes, WebP), accessibility audit, print stylesheet for resume page.
 
 ## Phase 13 — Newsletter (signup only, sending disabled)
 `Subscriber` entity with double-opt-in design, signup form (footer + post page) behind `Newsletter.Signup`, admin list + CSV export, `INewsletterSender` + confirmation-email code paths behind `Newsletter.Sending` (off). Enabling later = pick SMTP provider + flip flag.

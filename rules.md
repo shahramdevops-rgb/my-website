@@ -80,7 +80,7 @@
 - Colors only via design tokens (`bg-surface`, `text-primary`) — no raw hex or default Tailwind palette in markup.
 - Every interactive element is keyboard-accessible with a visible focus ring; images have `alt`; decorative SVG motifs have `aria-hidden="true"`.
 - Animations only inside `motion-safe:` variants / `prefers-reduced-motion: no-preference`.
-- Alpine: one component per `wwwroot/js/components/*.js` (default-exported factory), registered in `wwwroot/js/app.js` with `Alpine.data()`; markup uses names only (CSP build) and `x-on:` instead of `@`. No inline `<script>` without the CSP nonce.
+- Alpine: one component per `wwwroot/js/components/*.js` (default-exported factory), registered in `wwwroot/js/app.js` with `Alpine.data()`; markup uses names only (CSP build) and `x-on:` instead of `@`. No inline `<script>` except constants in `InlineScripts` (allowed by CSP hash, ADR-020).
 - User-generated text (comments, names) is **always** HTML-encoded (Razor default). Never `@Html.Raw` except for `BodyHtml` produced by the sanitizing Markdown renderer.
 
 ## 9. Security checklist (every PR touching input/output)

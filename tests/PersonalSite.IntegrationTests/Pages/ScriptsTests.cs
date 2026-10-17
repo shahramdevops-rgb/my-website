@@ -1,10 +1,12 @@
 using System.Net;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.RegularExpressions;
 using PersonalSite.IntegrationTests.Infrastructure;
 
 namespace PersonalSite.IntegrationTests.Pages;
 
-/// <summary>Page JavaScript: self-hosted ES modules and Alpine components (P1-T7).</summary>
+/// <summary>Page JavaScript: self-hosted ES modules and Alpine components (P1-T7), the inline theme script (P1-T6).</summary>
 public sealed partial class ScriptsTests(WebAppFactory factory)
 {
     [Fact]
@@ -60,13 +62,35 @@ public sealed partial class ScriptsTests(WebAppFactory factory)
     }
 
     [Fact]
-    public async Task GetHome_Scripts_AreAllExternal()
+    public async Task GetHome_InlineScripts_AreAllowedByCspHash()
+    {
+        using var client = factory.CreateClient();
+        var ct = TestContext.Current.CancellationToken;
+        using var response = await client.GetAsync(new Uri("/fa", UriKind.Relative), ct);
+        var html = await response.Content.ReadAsStringAsync(ct);
+        var policy = response.Headers.GetValues("Content-Security-Policy").ShouldHaveSingleItem();
+
+        // The browser hashes the exact text between the tags; any other inline script would be blocked silently.
+        string[] inlineScripts = [.. InlineScript().Matches(html).Select(m => m.Groups["body"].Value)];
+        inlineScripts.ShouldNotBeEmpty("the theme script should be inline");
+        foreach (var script in inlineScripts)
+        {
+            var hash = Convert.ToBase64String(SHA256.HashData(Encoding.UTF8.GetBytes(script)));
+            policy.ShouldContain($"'sha256-{hash}'", customMessage: script);
+        }
+    }
+
+    [Fact]
+    public async Task GetHome_ThemeScript_RunsBeforeStylesheet()
     {
         using var client = factory.CreateClient();
         var html = await client.GetStringAsync(new Uri("/fa", UriKind.Relative), TestContext.Current.CancellationToken);
 
-        // The CSP blocks inline scripts; one in the markup would fail silently in the browser.
-        ScriptTag().Matches(html).ShouldAllBe(tag => tag.Value.Contains(" src=\""));
+        // It must set data-theme before the first paint, i.e. before the browser can render with the CSS.
+        var script = InlineScript().Match(html);
+        script.Success.ShouldBeTrue();
+        script.Index.ShouldBeLessThan(html.IndexOf("<link rel=\"stylesheet\"", StringComparison.Ordinal));
+        script.Value.ShouldContain("localStorage");
     }
 
     [GeneratedRegex(@"<script type=""module"" src=""(?<src>/js/app[^""]*)""")]
@@ -81,6 +105,6 @@ public sealed partial class ScriptsTests(WebAppFactory factory)
     [GeneratedRegex(@"Alpine\.data\(""(?<name>[^""]+)""")]
     private static partial Regex AlpineData();
 
-    [GeneratedRegex("<script[^>]*>")]
-    private static partial Regex ScriptTag();
+    [GeneratedRegex("<script>(?<body>.*?)</script>", RegexOptions.Singleline)]
+    private static partial Regex InlineScript();
 }

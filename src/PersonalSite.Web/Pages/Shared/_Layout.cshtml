@@ -1,15 +1,19 @@
 @using System.Globalization
+@using PersonalSite.Web.Infrastructure
 @{
     // Set per request by RequestLocalization from the URL prefix (/fa → fa). lang helps screen readers and
     // search engines; dir flips the whole layout (logical CSS utilities follow it), so English later is LTR for free.
     var culture = CultureInfo.CurrentUICulture;
 }
 <!DOCTYPE html>
-@* data-theme: dark is the default; the theme toggle (P1-T6) switches it before first paint. *@
+@* data-theme: dark is the default (also without JS); the head script below swaps in a saved "light" choice. *@
 <html lang="@culture.Name" dir="@(culture.TextInfo.IsRightToLeft ? "rtl" : "ltr")" data-theme="dark">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    @* Inline and before the stylesheet: it must run before the first paint, or a light-theme visitor sees a dark
+       flash (FOUC). Allowed by the CSP through its hash — keep nothing else between the tags (InlineScripts.cs). *@
+    <script>@InlineScripts.Theme</script>
     <title>@ViewData["Title"]</title>
     @* asp-append-version: the URL changes whenever the file's content changes, so browsers never keep a stale cached copy. *@
     <link rel="stylesheet" href="~/css/app.css" asp-append-version="true" />

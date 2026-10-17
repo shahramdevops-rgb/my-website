@@ -349,7 +349,7 @@ URLs use lowercase (`RouteOptions.LowercaseUrls = true`) and no trailing slash.
 | Public telemetry | Only numbers this site measures (ADR-018). Never public: CPU/RAM, container names, package versions, internal hostnames. |
 | Errors | `UseExceptionHandler("/Error")` + `UseStatusCodePagesWithReExecute("/NotFound")`; Application returns `Result<T>` for expected failures, exceptions only for bugs. |
 | Logging | Serilog, request logging middleware, correlation via `TraceIdentifier`. No PII (emails) in logs. |
-| Security | HTTPS/HSTS (prod), CSP with nonces, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, antiforgery (default in Razor Pages), rate limiting, Identity lockout, admin 2FA (TOTP) in hardening phase. |
+| Security | HTTPS/HSTS (prod), CSP (inline scripts by hash, ADR-020), `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, antiforgery (default in Razor Pages), rate limiting, Identity lockout, admin 2FA (TOTP) in hardening phase. |
 | Data Protection | Keys persisted to `/app/data/dp-keys` volume (`PersistKeysToFileSystem`) — otherwise every container restart logs the admin out and invalidates comment tokens. |
 | Caching | Output caching for public pages with tag-based eviction; `Cache-Control: immutable` for fingerprinted static assets (`asp-append-version`). |
 | Files | `IFileStorage` → `LocalFileStorage` (volume). Upload rules: allow-list of content types + magic-byte check, max size, random storage key, never serve from user-supplied names. Swappable for S3-compatible storage later. |
@@ -383,8 +383,13 @@ URLs use lowercase (`RouteOptions.LowercaseUrls = true`) and no trailing slash.
   `:focus-visible` draws a `sun` outline on every focusable element.
 - **Code is always LTR:** `code, kbd, samp, pre` get `direction: ltr; unicode-bidi: isolate` in the base layer, so it
   also holds inside rendered Markdown.
-- **Theme:** `data-theme="dark|light"` on `<html>`. A tiny inline (nonce'd) script in `<head>` sets it
-  *before first paint* from `localStorage`, defaulting to **dark**. Alpine `$store.theme` toggles it afterwards.
+- **Theme (P1-T6):** `data-theme="dark|light"` on `<html>`, server-rendered as `dark` (the no-JS state). A tiny
+  inline script in `<head>` (before the stylesheet; source in `Infrastructure/InlineScripts.cs`, allowed by its CSP
+  hash) applies a saved `localStorage["theme"]` *before first paint*. Alpine `$store.theme`
+  (`wwwroot/js/stores/theme.js`) switches and saves it; `_ThemeToggle` (`themeToggle` component, `aria-pressed` =
+  light on) is rendered `invisible` and revealed by Alpine, so no-JS visitors never see a dead button. The icon
+  (moon-leaf / sun) follows `data-theme` via the `dark:`/`light:` variants. Colors fade for 300 ms only while
+  switching (`.theme-transition` on `<html>`, motion-safe).
 - **RTL:** layout uses logical utilities only (`ms-*`, `me-*`, `ps-*`, `pe-*`, `start-*`, `end-*`, `text-start`),
   so English LTR later needs zero CSS changes.
 - **Alpine CSP build (P1-T7):** `@alpinejs/csp` 3.17.4, its ESM build vendored as
@@ -397,8 +402,9 @@ URLs use lowercase (`RouteOptions.LowercaseUrls = true`) and no trailing slash.
   `ScriptsTests` checks that every import resolves and every `x-data` name is registered.
 - **CSP (P1-T7 baseline):** `SecurityHeadersMiddleware` sends `default-src 'self'; object-src 'none';
   base-uri 'self'; form-action 'self'; frame-ancestors 'none'` on every response (Development adds `connect-src`
-  for the `dotnet watch` WebSocket). No `unsafe-inline`/`unsafe-eval`; the theme script gets a nonce (P1-T6);
-  strict audit in P12-T1.
+  for the `dotnet watch` WebSocket). No `unsafe-inline`/`unsafe-eval`. Our own inline scripts (`InlineScripts`)
+  are added to `script-src` by SHA-256 hash (ADR-020); `ScriptsTests` fails if an inline script's hash is missing.
+  Strict audit in P12-T1.
 - **Motifs:** botanical SVGs are Razor partials (`Shared/Motifs/`) using `currentColor`, so they re-color with the theme.
   Animations are CSS-only and wrapped in `@media (prefers-reduced-motion: no-preference)`.
 
@@ -490,3 +496,4 @@ Integration tests share one `WebAppFactory` (xUnit assembly fixture) that owns o
 - **ADR-017 One public identity: Mahdi Azghandi.** The legal name matches degrees, contracts and background checks. "Shahram Azghandi" is recorded as `alternateName` in JSON-LD, `shahramazghandi.ir` 301-redirects to the canonical domain, and About mentions it once. All UI text uses the primary name.
 - **ADR-018 Honest public telemetry.** Only numbers the site actually measures are shown (latency percentiles, error rate, cache hit ratio, deploy info, own projects' health). No CPU/RAM, container names or package versions (reconnaissance value for attackers, no value for visitors), and no availability percentage the site can't measure from inside itself.
 - **ADR-019 Two audiences via two paths, not a persona toggle.** Recruiters and clients get clear paths from Home (Resume/Decisions vs Services/Contact) and a request type on the contact form. A toggle would hide half the content, double the maintenance and confuse search engines.
+- **ADR-020 Inline scripts are allowed by CSP hash, not nonce.** The only inline script (the pre-paint theme script) is a constant in `InlineScripts`; its SHA-256 goes into `script-src` once at startup. A nonce must be new per response, which breaks as soon as HTML is served from a cache (output caching for the blog, P6) — a hash stays valid for every copy of the page. Cost: the script text must be byte-identical to what was hashed, so it is rendered from the same constant and guarded by a test.

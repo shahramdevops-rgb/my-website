@@ -5,8 +5,12 @@
 // reference components registered here by name (x-data="mobileMenu"), and their properties and methods.
 import Alpine from "../lib/alpine-3.17.4/alpine-csp.esm.min.js";
 import mobileMenu from "./components/mobile-menu.js";
+import themeToggle from "./components/theme-toggle.js";
+import theme from "./stores/theme.js";
 
+Alpine.store("theme", theme);
 Alpine.data("mobileMenu", mobileMenu);
+Alpine.data("themeToggle", themeToggle);
 
 // Register everything first, then start: Alpine scans the page once, so a component registered later would be missed.
 Alpine.start();

@@ -52,6 +52,16 @@ public sealed partial class LayoutTests(WebAppFactory factory)
     }
 
     [Fact]
+    public async Task GetHome_WithoutJs_IsDarkAndHidesThemeToggle()
+    {
+        var html = await GetHomeAsync();
+
+        // What a visitor without JS gets: the dark theme, and no toggle that couldn't do anything.
+        html.ShouldContain("data-theme=\"dark\"");
+        ThemeToggleTag().Match(html).Value.ShouldContain("invisible");
+    }
+
+    [Fact]
     public async Task GetHome_AllUiText_ComesFromResx()
     {
         var html = await GetHomeAsync();
@@ -63,9 +73,12 @@ public sealed partial class LayoutTests(WebAppFactory factory)
     [GeneratedRegex("""<a href="(?<href>[^"]*)" """)]
     private static partial Regex LinkHref();
 
+    [GeneratedRegex(@"<button[^>]*x-data=""themeToggle""[^>]*>")]
+    private static partial Regex ThemeToggleTag();
+
     [GeneratedRegex("© [۰-۹]{4} ")]
     private static partial Regex PersianYearCopyright();
 
-    [GeneratedRegex(@"\b(?:Site|Layout|Nav|Footer|Home|Error|Format|Time|Blog)\.[A-Z]\w*")]
+    [GeneratedRegex(@"\b(?:Site|Layout|Nav|Footer|Home|Error|Format|Time|Blog|Theme)\.[A-Z]\w*")]
     private static partial Regex ResxKey();
 }

@@ -97,4 +97,8 @@
   <data name="Blog.ReadingTime" xml:space="preserve">
     <value>{0} دقیقه مطالعه</value>
   </data>
+  <data name="Theme.Light" xml:space="preserve">
+    <value>تم روشن</value>
+    <comment>Theme toggle button (aria-pressed: on = light theme). Screen-reader text and tooltip.</comment>
+  </data>
 </root>

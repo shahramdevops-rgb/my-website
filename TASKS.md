@@ -70,8 +70,8 @@
 
 > P1-T7 was done before P1-T6: the theme toggle needs Alpine.
 
-- [ ] **P1-T6 Theme toggle (dark default)** — requires P1-T7
-  Scope: nonce'd inline head script sets `data-theme` before paint (localStorage → default **dark**), Alpine store `theme` + `_ThemeToggle` button (sun/moon-leaf icon, `aria-pressed`), smooth color transition (motion-safe). The nonce is per request and added to the CSP's `script-src` (`SecurityHeadersMiddleware`).
+- [x] **P1-T6 Theme toggle (dark default)** — requires P1-T7
+  Scope: inline head script sets `data-theme` before paint (localStorage → default **dark**), allowed by its CSP hash (ADR-020), Alpine store `theme` + `_ThemeToggle` button (sun/moon-leaf icon, `aria-pressed`), smooth color transition (motion-safe).
   Done when: no flash of wrong theme on reload; preference persists; works with JS disabled (stays dark); runs under the CSP (no `unsafe-inline`).
   Learn: FOUC, why the script must be inline & tiny.
 
@@ -382,7 +382,7 @@
 
 ## Phase 12 — Hardening & polish
 
-- [ ] **P12-T1 Strict CSP with nonces** + security headers audit (securityheaders.com A).
+- [ ] **P12-T1 Strict CSP** (inline scripts by hash, ADR-020) + security headers audit (securityheaders.com A).
 - [ ] **P12-T2 Admin 2FA (TOTP)** with recovery codes.
 - [ ] **P12-T3 Dependabot + `dotnet list package --vulnerable` in CI.**
 - [ ] **P12-T4 Accessibility audit** (keyboard pass, screen reader smoke test with NVDA, contrast re-check).

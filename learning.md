@@ -199,6 +199,12 @@ starts the download together with the CSS instead of after it. Its URL must be *
 ### 4.4 Dark mode without flash (FOUC)
 If the theme is applied by JavaScript *after* the page renders, you see a white flash. A tiny inline script in `<head>` reads `localStorage` and sets `data-theme` before the first paint.
 
+Why it must be **inline** and **tiny** (P1-T6): the browser runs a plain `<script>` in `<head>` *before* it renders anything, so it blocks the first paint. An external file would cost a network round trip inside that block; a `defer`/module script (like `app.js`) runs too late — after the first paint, which is exactly the flash. So the script is one line, does one thing, and can't fail loudly:
+```js
+try{var t=localStorage.getItem("theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}
+```
+Everything else (the button, saving the choice) lives in Alpine, which may load later without harm. Without JS the server's `data-theme="dark"` simply stays.
+
 ### 4.5 RTL & logical properties
 `margin-left` is wrong in RTL. Logical properties use *start/end*: `ms-4` (margin-inline-start) is left in English and right in Persian. Using only these means English support later needs zero CSS changes.
 
@@ -262,7 +268,7 @@ A response header that tells the browser where code may come from. Ours starts w
 ```
 Content-Security-Policy: default-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'
 ```
-`frame-ancestors 'none'` also stops other sites from framing ours (clickjacking). The one inline script we need (the theme script, P1-T6) will carry a **nonce**: a random value, new on every request, that appears both in the header and on the `<script nonce="…">` tag — an attacker can't guess it. Violations show up in the browser console as "Refused to execute…".
+`frame-ancestors 'none'` also stops other sites from framing ours (clickjacking). The one inline script we need (the theme script, P1-T6) is allowed by its **hash**: the header lists `'sha256-…'` of the script's exact text, and the browser runs an inline script only if its text hashes to a listed value — an attacker's script never matches. The alternative, a **nonce** (a random value per response, in the header and on `<script nonce>`), breaks when a cached page is served, so we use hashes (ADR-020). One extra space inside the `<script>` tag changes the hash and the script is blocked — hence the test. Violations show up in the browser console as "Refused to execute…".
 
 ---
 
