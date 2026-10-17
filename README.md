@@ -1,6 +1,6 @@
 # Personal Website
 
-Personal site of Adam — backend developer (C#/.NET): resume, portfolio, technical blog, services, contact.
+Personal site of Mahdi Azghandi — backend developer (C#/.NET): resume, portfolio, technical blog, services, contact.
 Content is Persian (RTL); the structure is ready for English.
 
 [![CI](https://github.com/shahramdevops-rgb/my-website/actions/workflows/ci.yml/badge.svg)](https://github.com/shahramdevops-rgb/my-website/actions/workflows/ci.yml)

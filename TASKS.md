@@ -97,7 +97,7 @@
 
 - [ ] **P2-T2 About page**
   Scope: localized prose partial `_AboutContent.fa.cshtml`, photo slot, skills/tech grid (data from `appsettings`/static list), timeline component.
-  Done when: page complete with real text (Adam to provide) or clearly marked placeholders.
+  Done when: page complete with real text (Mahdi to provide) or clearly marked placeholders.
 
 - [ ] **P2-T3 Services page**
   Scope: services list (e.g. API development, .NET backend, performance/DB optimization, code review/consulting) as cards with icons, "how I work" steps, CTA to contact.
@@ -129,7 +129,7 @@
 
 - [ ] **P3-T4 Server setup & deploy script**
   Scope: `deploy/README.md` (Ubuntu LTS setup: Docker install via mirror if needed, firewall 22/80/443, non-root deploy user, SSH keys, registry login), `deploy/scripts/deploy.sh` (pull → migrate → up -d → health check → prune), fallback `docker save | ssh docker load` instructions.
-  Done when: Adam deploys with one command and site loads over HTTPS (IP/temporary host).
+  Done when: Mahdi deploys with one command and site loads over HTTPS (IP/temporary host).
 
 - [ ] **P3-T5 Backups**
   Scope: `backup.sh` (`pg_dump -Fc` + tar of `uploads`, 14-day rotation), cron entry, `restore.sh`, documented off-server copy step.

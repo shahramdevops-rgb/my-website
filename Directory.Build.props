@@ -19,7 +19,7 @@
     <Deterministic>true</Deterministic>
     <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
 
-    <Authors>Adam</Authors>
+    <Authors>Mahdi Azghandi</Authors>
     <Product>PersonalSite</Product>
   </PropertyGroup>
 </Project>

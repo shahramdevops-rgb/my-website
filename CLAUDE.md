@@ -7,11 +7,11 @@ architecture decisions in short form, and where the full details live.
 
 ## 1. Project in one paragraph
 
-Personal website of **Adam**, a backend developer (C#/.NET). It combines an online resume, a portfolio (including a
+Personal website of **Mahdi Azghandi** (Mahdi), a backend developer (C#/.NET). It combines an online resume, a portfolio (including a
 live deployed project), a technical blog with moderated comments, a services page to attract freelance clients, a
 contact form and a newsletter signup (sending disabled for now). Audience: employers, potential clients, blog readers.
 Site content is **Persian (RTL)** today; the structure must allow adding **English** later without a big refactor.
-It is also a **learning project**: Adam wants to understand *why* each technical decision is made.
+It is also a **learning project**: Mahdi wants to understand *why* each technical decision is made.
 
 ## 2. Current status
 
@@ -19,17 +19,17 @@ It is also a **learning project**: Adam wants to understand *why* each technical
 - **Phase P1** in progress: `P1-T1` (Tailwind pipeline + tokens), `P1-T2` (self-hosted fonts + type scale) done.
 - **Next task:** `P1-T3` (Culture routing & localization plumbing).
 - **Tailwind CLI** is required to build the Web project: run `./tools/get-tailwind.ps1` once (CI/Docker run the `.sh`). New markup folders must be added as `@source` in `Styles/app.css`.
-- **Dev DB** is published on host port **5433** (Adam has another project's PostgreSQL on 5432). For `dotnet watch` on the host, the connection string lives in **user-secrets** (`ConnectionStrings:Default`); in Docker, `compose.yaml` builds it from `.env`.
-- **Tooling note:** when Claude runs locally (VS Code extension) it can use `dotnet` and reach nuget.org; in cloud sandboxes it may not — then Adam runs the `dotnet` commands.
+- **Dev DB** is published on host port **5433** (Mahdi has another project's PostgreSQL on 5432). For `dotnet watch` on the host, the connection string lives in **user-secrets** (`ConnectionStrings:Default`); in Docker, `compose.yaml` builds it from `.env`.
+- **Tooling note:** when Claude runs locally (VS Code extension) it can use `dotnet` and reach nuget.org; in cloud sandboxes it may not — then Mahdi runs the `dotnet` commands.
 - **Tests** run on Microsoft.Testing.Platform (`global.json` → `test.runner`); `dotnet test` from the repo root (Docker must be running: integration tests start PostgreSQL via Testcontainers).
 - Keep this section updated: after finishing a task, set "Next task" to the next unchecked item.
 
-## 3. Communication with Adam
+## 3. Communication with Mahdi
 
-- **Reply to Adam in Persian** (he writes in Persian). Keep technical terms in English where natural (`DbContext`, `middleware`).
+- **Reply to Mahdi in Persian** (he writes in Persian). Keep technical terms in English where natural (`DbContext`, `middleware`).
 - **Everything in the repo is English**: code, identifiers, comments, commit messages, docs.
 - **Site content (UI text) is Persian**, stored in `.resx` files — never hard-coded.
-- Adam is learning: explain *why*, briefly. Prefer one clear reason over a list of five.
+- Mahdi is learning: explain *why*, briefly. Prefer one clear reason over a list of five.
 - Ask before decisions that are hard to reverse (data model, URLs, public behaviour, new dependencies).
 
 ## 4. Document map
@@ -40,7 +40,7 @@ It is also a **learning project**: Adam wants to understand *why* each technical
 | `rules.md` | Mandatory coding conventions and checklists (full version of §8 below) |
 | `roadmap.md` | Phases and their order/rationale |
 | `TASKS.md` | Small executable tasks with acceptance criteria (IDs like `P6-T3`) |
-| `learning.md` | Plain-language explanations of concepts & decisions (for Adam) |
+| `learning.md` | Plain-language explanations of concepts & decisions (for Mahdi) |
 | `README.md` | How to run/build/deploy |
 
 ## 5. Scope — what the site contains
@@ -51,7 +51,7 @@ It is also a **learning project**: Adam wants to understand *why* each technical
 | 2 | About | Localized Razor prose view | P2 |
 | 3 | Projects / portfolio | DB + admin CRUD; "Live" badge + link for the deployed project | P5 |
 | 4 | Blog | Markdown written in **admin panel** (not DB-direct, not git files); tags, paging | P6 |
-| 5 | Comments | Name + email + text; **Pending until Adam approves**; honeypot + timing token + rate limit | P7 |
+| 5 | Comments | Name + email + text; **Pending until Mahdi approves**; honeypot + timing token + rate limit | P7 |
 | 6 | Contact form | Name, email, message → DB + admin inbox; email notify behind flag | P8 |
 | 7 | Resume page + PDF | PDF **uploaded from admin**; download button | P2 + P8 |
 | 8 | Contact links | Email, GitHub, Telegram only (**no LinkedIn, no phone** for now) | P1 |
@@ -114,7 +114,7 @@ Application services only — never `AppDbContext`.
 - **No external runtime dependencies**: no CDNs, Google Fonts, reCAPTCHA, hosted comment/email/analytics APIs, or Iran-specific services. Vendor assets into `wwwroot/lib`.
 - **Dark theme is the default**; everything must look right in both themes.
 - Public forms: honeypot + signed timing token + rate limit. Comments are `Pending` until approved.
-- Don't enable anything behind a feature flag unless Adam asks.
+- Don't enable anything behind a feature flag unless Mahdi asks.
 - Secrets never in git. New config → add to `.env.example` and an Options class with `ValidateOnStart`.
 - Every admin page/endpoint requires the `Admin` policy.
 
@@ -132,7 +132,7 @@ Application services only — never `AppDbContext`.
 
 ## 11. How to execute a task
 
-When Adam says **"Do task Px-Ty"** (or «تسک Px-Ty رو انجام بده»):
+When Mahdi says **"Do task Px-Ty"** (or «تسک Px-Ty رو انجام بده»):
 
 1. Read the task in `TASKS.md`, then the relevant sections of `architecture.md` and `rules.md`.
 2. If the task is ambiguous or conflicts with the docs, **ask before coding**. Don't silently expand scope.
@@ -150,7 +150,7 @@ no new hard-coded Persian strings · docs updated · task ticked.
 
 ## 12. Environment facts
 
-- Adam develops on **Windows** (repo at `C:\Users\shahram\source\repos\my-website`). Give PowerShell commands first,
+- Mahdi develops on **Windows** (repo at `C:\Users\shahram\source\repos\my-website`). Give PowerShell commands first,
   bash when relevant (server is Linux).
 - Production: an **Iranian VPS** (Linux, Docker). Docker Hub/NuGet/GitHub can be slow or blocked from there → images
   are built in GitHub Actions and pulled from GHCR (fallback: `docker save/load`). Never assume the server can `dotnet restore`.
@@ -180,4 +180,4 @@ docker compose up --build                   # full stack in containers
 ## 15. When unsure
 
 Prefer the simpler option that keeps the i18n and server-migration goals intact, explain the trade-off in 2–3
-sentences, and ask Adam if the choice is hard to reverse.
+sentences, and ask Mahdi if the choice is hard to reverse.
