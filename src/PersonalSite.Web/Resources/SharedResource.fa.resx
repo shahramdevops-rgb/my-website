@@ -25,4 +25,27 @@
   <data name="Error.Message" xml:space="preserve">
     <value>مشکلی پیش آمد. لطفاً کمی بعد دوباره تلاش کنید.</value>
   </data>
+  <data name="Format.Date" xml:space="preserve">
+    <value>d MMMM yyyy</value>
+    <comment>.NET custom date pattern; the culture supplies calendar and month names. Digits are localized afterwards.</comment>
+  </data>
+  <data name="Format.DateTime" xml:space="preserve">
+    <value>d MMMM yyyy، HH:mm</value>
+    <comment>.NET custom date pattern (24-hour time).</comment>
+  </data>
+  <data name="Time.JustNow" xml:space="preserve">
+    <value>همین الان</value>
+  </data>
+  <data name="Time.MinutesAgo" xml:space="preserve">
+    <value>{0} دقیقه پیش</value>
+  </data>
+  <data name="Time.HoursAgo" xml:space="preserve">
+    <value>{0} ساعت پیش</value>
+  </data>
+  <data name="Time.DaysAgo" xml:space="preserve">
+    <value>{0} روز پیش</value>
+  </data>
+  <data name="Blog.ReadingTime" xml:space="preserve">
+    <value>{0} دقیقه مطالعه</value>
+  </data>
 </root>

@@ -98,7 +98,7 @@
 - Never write the culture into `@page` templates — `CultureRouteConvention` adds `{culture}`. Pages that must stay unprefixed are listed in that convention.
 - In views, shared strings come from the injected `T["Key"]` (`IStringLocalizer<SharedResource>`, see `_ViewImports`).
 - Resource file per scope: `SharedResource.fa.resx` for shared UI; `Pages/X.fa.resx` only for page-specific long strings.
-- Dates via the `<persian-date>` tag helper / `DateDisplay` helper (culture-aware). Numbers via culture formatting; Persian digits are produced by culture, not by string replacement in views.
+- Dates via the `<persian-date>` tag helper / `DateDisplay` helper (culture-aware). Numbers via `NumberDisplay`; Persian digits come from the culture's `NativeDigits` (`NativeDigits.Apply`), never from string replacement in views. Date patterns and time phrases live in resx (`Format.*`, `Time.*`).
 - Never concatenate translated fragments; use format strings with placeholders: `"{0} دقیقه مطالعه"`.
 
 ## 11. Testing

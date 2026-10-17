@@ -59,7 +59,7 @@
   Done when: `/` → 302 `/fa`; `/en/...` → 404 for now; integration tests cover both.
   Learn: request culture providers, resx, why every language gets a prefix.
 
-- [ ] **P1-T4 Persian formatting helpers**
+- [x] **P1-T4 Persian formatting helpers**
   Scope: `<persian-date>` tag helper / `DateDisplay` (UTC → Tehran time → culture calendar, relative "۳ روز پیش" option), number formatting via culture, reading-time formatting helper.
   Done when: unit tests show a known UTC date renders as the correct Persian date in `fa` culture.
   Learn: calendars in .NET, time zones, ICU.

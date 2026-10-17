@@ -255,6 +255,25 @@ Only the root `/` decides where to send you: your saved choice (cookie) → coun
 ### 6.5 Persian calendar & ICU
 .NET uses the ICU library for culture data; the `fa-IR` culture formats dates in the Persian (Solar Hijri) calendar. Minimal Docker images may lack ICU → dates silently become Gregorian/invariant. That's why we use the `-extra` runtime image.
 
+What .NET gives you and what it doesn't (checked on .NET 10 + ICU):
+
+| | `fa` culture output | Note |
+|---|---|---|
+| Calendar | `1405/1/1` | Persian calendar by default ✓ |
+| Month names | `فروردین` | ✓ |
+| Digits | `1405` | **ASCII** — the Persian digits are only *listed* in `NumberFormat.NativeDigits` |
+| Separators | `1٬234٬567٫5` | Persian thousands/decimal marks ✓ |
+| Long date `D` | `1405 فروردین 1, شنبه` | odd → we use our own pattern `d MMMM yyyy` from resx |
+
+So `DateDisplay` = `ToString("d MMMM yyyy", culture)` + `NativeDigits.Apply` → `۱ فروردین ۱۴۰۵`.
+
+### 6.5.1 Time zones: store UTC, show Tehran
+The DB stores instants in UTC. Shown dates are converted to `Site:TimeZone` (`Asia/Tehran`, UTC+3:30) first —
+otherwise anything posted between 00:00 and 03:30 Tehran time would show *yesterday's* date:
+`2026-03-20 20:31 UTC` is already Nowruz (`۱ فروردین ۱۴۰۵`) in Tehran. Iran abolished daylight saving in 2022;
+IANA time zone data (tzdata/ICU) knows that, which is why we use the zone ID and never a fixed `+03:30` offset —
+historical dates (with DST) still convert correctly.
+
 ### 6.6 Latin slugs
 `/fa/blog/مقدمه-ای-بر-efcore` becomes `%D9%85%D9%82…` when copied into Telegram — long and ugly. Latin slugs (`/fa/blog/intro-to-efcore`) stay readable everywhere.
 

@@ -157,7 +157,8 @@ PersonalSite.Web/
 ├─ Areas/Admin/Pages/            Dashboard, Posts/*, Projects/*, Comments/*, Messages/*, Resume/*, Subscribers/*, Account/Login
 ├─ Localization/                 CultureRouteConstraint, CultureRouteConvention (adds {culture} prefix), LanguageResolver
 ├─ Resources/                    SharedResource.fa.resx (later SharedResource.en.resx), view resx files
-├─ Infrastructure/               Routes (path constants), HealthProbe (container healthcheck), SecurityHeadersMiddleware, SeoHelpers, TagHelpers (e.g. <persian-date>)
+├─ Formatting/                   DateDisplay (UTC → Site:TimeZone → culture calendar, relative text), NumberDisplay (numbers, reading time), NativeDigits
+├─ Infrastructure/               Routes (path constants), HealthProbe (container healthcheck), SecurityHeadersMiddleware, SeoHelpers, TagHelpers (<persian-date>)
 ├─ Endpoints/                    minimal APIs: / (language redirect), /sitemap.xml, /feed.xml, /robots.txt, /health, /admin/api/markdown-preview, /resume/download
 ├─ Styles/app.css                Tailwind v4 input (tokens via @theme; compiled by the TailwindBuild MSBuild target)
 └─ wwwroot/                      css/app.css (generated, git-ignored), js/*.js, lib/alpine, lib/hljs, fonts/<name>-<version>/, img/
