@@ -32,8 +32,6 @@ reveal something real about the back-end. Details and rejected ideas: `roadmap.m
 - **Next task:** `P2-T1` (rename `PersonalSite.Web` → `PersonalSite.Api` and remove the Razor UI).
 - **Accent color:** electric blue (`#4DB5FF` dark / `#0A63C9` light), picked by Claude at Mahdi's request; easy to change (`architecture.md §8.1`).
 - **Waiting on Mahdi:** contact links (`Site:Social:Email|GitHub|Telegram`).
-- **Branches:** local `main` is at P1-T4 (`origin/main` at P0-T7); P1-T5…T8 and the full-stack docs change sit on
-  stacked feature branches — merge them in order (and push) before P2-T1.
 - **Code today** is still the P1 Razor app (`src/PersonalSite.Web`, Tailwind CLI, Alpine, resx). Don't extend it;
   P2-T1 removes it. Its ideas that carry over are listed in `architecture.md §8.4`.
 - **Dev DB** is published on host port **5433** (Mahdi has another project's PostgreSQL on 5432). For `dotnet watch`
