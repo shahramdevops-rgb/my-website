@@ -96,7 +96,7 @@
 > Front-end tasks: verify the current stable versions at the start of the task and pin them exactly.
 > From here on every public page ships in **`fa` and `en`** (strings in both `messages/*.json`).
 
-- [ ] **P2-T1 API project: rename and retire the Razor UI**
+- [x] **P2-T1 API project: rename and retire the Razor UI**
   Scope: rename `PersonalSite.Web` → `PersonalSite.Api` (folder, csproj, namespaces, `.slnx`, Dockerfile, compose service `web` → `api`, CI, test references; keep the user-secrets id). Remove the P1 front-end: `Pages/`, `Styles/`, `wwwroot/` (move `wwwroot/fonts/*` with their licences to `frontend/src/fonts/`), `Localization/` (culture routing, `LanguageResolver`), `Resources/` + `SharedResource`, `Formatting/`, tag helpers, `InlineScripts`, Alpine, the Tailwind MSBuild target and `tools/*tailwind*`, the language-redirect endpoint. Delete the tests that cover removed code; keep the Persian date test vectors in a note for P2-T6 and the contrast test for P2-T8. `SecurityHeadersMiddleware` becomes the API variant (`default-src 'none'; frame-ancestors 'none'`). `.env.example` and README updated.
   Done when: build, tests and format are green; `/health` and `/health/ready` work; no `.cshtml`, `wwwroot` or Tailwind reference is left in `src/` (grep in PR).
   Learn: what an API-only ASP.NET Core app needs (and doesn't).
@@ -122,7 +122,7 @@
   Learn: reverse proxy routing, why one origin removes CORS.
 
 - [ ] **P2-T6 i18n (fa + en) & formatting**
-  Scope: next-intl with `app/[locale]` (`fa`, `en`; other values → 404), `messages/fa.json` + `messages/en.json` (English dot-notation keys), key-parity test, `<html lang dir>` per locale, `/` redirect in `proxy.ts` (cookie `lang` → `Accept-Language` → `fa`), `src/lib/format/`: dates (`fa`: Persian calendar, `Asia/Tehran`, Persian digits from `Intl`; `en`: Gregorian, Latin digits), relative time ("۳ روز پیش" / "3 days ago"), numbers, reading time — with tests that reuse P1's vectors.
+  Scope: next-intl with `app/[locale]` (`fa`, `en`; other values → 404), `messages/fa.json` + `messages/en.json` (English dot-notation keys), key-parity test, `<html lang dir>` per locale, `/` redirect in `proxy.ts` (cookie `lang` → `Accept-Language` → `fa`), `src/lib/format/`: dates (`fa`: Persian calendar, `Asia/Tehran`, Persian digits from `Intl`; `en`: Gregorian, Latin digits), relative time ("۳ روز پیش" / "3 days ago"), numbers, reading time — with tests that reuse P1's vectors (`tests/PersonalSite.UnitTests/Formatting/*Tests.cs` at commit `fe205aa`).
   Done when: `/` → 302 `/fa` (or `/en` for an English browser); `/de` → 404; a key missing in one file fails a test; formatter tests green.
   Learn: `Intl` APIs, locale routing in Next.js.
 
@@ -132,7 +132,7 @@
   Learn: nonces vs hashes, `strict-dynamic`.
 
 - [ ] **P2-T8 Design tokens, fonts & theme** (ADR-024)
-  Scope: Tailwind v4 (`@tailwindcss/postcss`), `styles/globals.css` with the token values of architecture §8.1 (electric-blue accent) for dark (default) and light, default palette removed (`--color-*: initial`), contrast test in Vitest (port of P1's `ColorContrastTests`: text ≥ 4.5:1, focus/non-text ≥ 3:1); fonts via `next/font/local` (Vazirmatn variable, JetBrains Mono; optional display face picked by Mahdi, OFL only, licence file kept); type scale with Persian line-heights; `code, pre` always LTR; theme: pre-paint script with the nonce (saved choice before first paint), toggle button (`aria-pressed`), color fade only when motion is allowed.
+  Scope: Tailwind v4 (`@tailwindcss/postcss`), `styles/globals.css` with the token values of architecture §8.1 (electric-blue accent) for dark (default) and light, default palette removed (`--color-*: initial`), contrast test in Vitest (port of P1's `ColorContrastTests`, `tests/PersonalSite.UnitTests/Design/` at commit `fe205aa`: text ≥ 4.5:1, focus/non-text ≥ 3:1); fonts via `next/font/local` (Vazirmatn variable, JetBrains Mono; optional display face picked by Mahdi, OFL only, licence file kept); type scale with Persian line-heights; `code, pre` always LTR; theme: pre-paint script with the nonce (saved choice before first paint), toggle button (`aria-pressed`), color fade only when motion is allowed.
   Done when: no theme flash on reload; contrast test green in both themes; no font request leaves the origin.
   Learn: CSS variables as a theme API, FOUC.
 

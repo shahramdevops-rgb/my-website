@@ -7,7 +7,8 @@ demos, technical blog, services, contact. Content in Persian (RTL) and English (
 
 > **Status:** Phase 0 (foundation) complete. Phase 1 built a Razor Pages front-end that is now **retired**: the site
 > is being rebuilt as a **Next.js front-end + ASP.NET Core API** behind one origin (ADR-021).
-> Next: Phase 2 (full-stack foundation); see [`TASKS.md`](TASKS.md). Until `P2-T5` the commands below still run the old Razor app.
+> Next: Phase 2 (full-stack foundation); see [`TASKS.md`](TASKS.md). Today the API runs alone (JSON + health); the
+> Next.js front-end arrives in P2-T3 and both sit behind Caddy from P2-T5.
 
 ## Documentation
 
@@ -40,20 +41,18 @@ demos, technical blog, services, contact. Content in Persian (RTL) and English (
 git clone <repo-url> my-website
 cd my-website
 Copy-Item .env.example .env        # then edit values
-./tools/get-tailwind.ps1           # once: pinned Tailwind CLI (the build needs it)
 
-# Option A — app on host, DB in Docker (best for debugging)
+# Option A — API on host, DB in Docker (best for debugging)
 docker compose up -d db
 # once: connection string for the host app (stored outside the repo; use the password from .env)
-dotnet user-secrets set "ConnectionStrings:Default" "Host=localhost;Port=5433;Database=site;Username=site;Password=<POSTGRES_PASSWORD>" --project src/PersonalSite.Web
-dotnet watch --project src/PersonalSite.Web
-./tools/tailwind-watch.ps1         # second terminal
+dotnet user-secrets set "ConnectionStrings:Default" "Host=localhost;Port=5433;Database=site;Username=site;Password=<POSTGRES_PASSWORD>" --project src/PersonalSite.Api
+dotnet watch --project src/PersonalSite.Api        # http://localhost:5080
 
 # Option B — everything in containers
-docker compose up --build
+docker compose up --build --remove-orphans         # http://localhost:8080 (--remove-orphans: drops the old `web` container once)
 ```
 
-App: http://localhost:8080 · Health: http://localhost:8080/health (`/health/ready` checks the DB) · Admin: http://localhost:8080/admin
+Health: `/health` (liveness) · `/health/ready` (checks the DB). Unknown paths answer `404` with a ProblemDetails JSON body.
 
 In Development the app applies pending EF Core migrations at startup; in production that is a separate deploy step.
 
@@ -66,8 +65,8 @@ PostgreSQL (dev): `localhost:5433` (host port 5433 avoids clashing with another 
 dotnet build
 dotnet test                                        # needs Docker running (Testcontainers)
 dotnet format --verify-no-changes
-dotnet ef migrations add <Name> -p src/PersonalSite.Infrastructure -s src/PersonalSite.Web
-dotnet ef migrations script -p src/PersonalSite.Infrastructure -s src/PersonalSite.Web   # review SQL
+dotnet ef migrations add <Name> -p src/PersonalSite.Infrastructure -s src/PersonalSite.Api
+dotnet ef migrations script -p src/PersonalSite.Infrastructure -s src/PersonalSite.Api   # review SQL
 ```
 
 ## Environment variables

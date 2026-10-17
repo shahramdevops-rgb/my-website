@@ -1,6 +1,6 @@
 using System.Net;
+using PersonalSite.Api.Infrastructure;
 using PersonalSite.IntegrationTests.Infrastructure;
-using PersonalSite.Web.Infrastructure;
 
 namespace PersonalSite.IntegrationTests.Health;
 

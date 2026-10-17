@@ -29,11 +29,12 @@ reveal something real about the back-end. Details and rejected ideas: `roadmap.m
 
 - **Done:** P0 — Foundation (solution, Docker, EF Core + PostgreSQL, tests, CI on GitHub `shahramdevops-rgb/my-website`).
   P1 — Razor front-end (T1–T8) — **retired** on 2026-10-18 by the full-stack decision (ADR-021…027); P1-T9…T11 cancelled.
-- **Next task:** `P2-T1` (rename `PersonalSite.Web` → `PersonalSite.Api` and remove the Razor UI).
+- **Done in P2:** `P2-T1` (`PersonalSite.Web` → `PersonalSite.Api`; Razor UI, Tailwind CLI, Alpine, resx removed; fonts moved to `frontend/src/fonts/`).
+- **Next task:** `P2-T2` (OpenAPI document + `GET /api/site`).
 - **Accent color:** electric blue (`#4DB5FF` dark / `#0A63C9` light), picked by Claude at Mahdi's request; easy to change (`architecture.md §8.1`).
 - **Waiting on Mahdi:** contact links (`Site:Social:Email|GitHub|Telegram`).
-- **Code today** is still the P1 Razor app (`src/PersonalSite.Web`, Tailwind CLI, Alpine, resx). Don't extend it;
-  P2-T1 removes it. Its ideas that carry over are listed in `architecture.md §8.4`.
+- **Code today:** an API-only ASP.NET Core app (`/health`, `/health/ready`; unknown paths → 404 ProblemDetails;
+  CSP `default-src 'none'`). `frontend/` holds only the fonts until P2-T3. P1's ideas that carry over: `architecture.md §8.4`.
 - **Dev DB** is published on host port **5433** (Mahdi has another project's PostgreSQL on 5432). For `dotnet watch`
   on the host, the connection string lives in **user-secrets** (`ConnectionStrings:Default`); in Docker, compose builds it from `.env`.
 - **Tooling note:** locally (VS Code extension) Claude can use `dotnet`, `node`/`pnpm` and reach nuget.org/npm; in
@@ -226,8 +227,8 @@ Accessibility: WCAG AA contrast, keyboard navigable, visible focus. The botanica
 
 ```powershell
 docker compose up -d db                       # start PostgreSQL only
-dotnet watch --project src/PersonalSite.Web   # API with hot reload (PersonalSite.Api after P2-T1)
-dotnet ef migrations add <Name> -p src/PersonalSite.Infrastructure -s src/PersonalSite.Web
+dotnet watch --project src/PersonalSite.Api   # API with hot reload (http://localhost:5080)
+dotnet ef migrations add <Name> -p src/PersonalSite.Infrastructure -s src/PersonalSite.Api
 dotnet test
 docker compose up --build                     # full stack in containers
 

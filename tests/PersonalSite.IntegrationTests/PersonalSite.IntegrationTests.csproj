@@ -22,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\PersonalSite.Web\PersonalSite.Web.csproj" />
+    <ProjectReference Include="..\..\src\PersonalSite.Api\PersonalSite.Api.csproj" />
   </ItemGroup>
 
 </Project>

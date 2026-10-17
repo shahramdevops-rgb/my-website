@@ -1,15 +1,15 @@
 # Shared service definitions for every environment.
 #   Dev:  docker compose up --build            (auto-merges compose.override.yaml)
-#   Prod: docker compose -f compose.yaml -f compose.prod.yaml up -d   (P3-T1)
+#   Prod: docker compose -f compose.yaml -f compose.prod.yaml up -d   (P4-T1)
 # Values like ${POSTGRES_PASSWORD} come from the git-ignored .env file (template: .env.example).
 name: personalsite
 
 services:
-  web:
+  api:
     build:
       context: .
       dockerfile: Dockerfile
-    image: personalsite-web:dev
+    image: personalsite-api:dev
     environment:
       # Built from the same .env values as the db service; "db" is the service name on the compose network.
       ConnectionStrings__Default: Host=db;Port=5432;Database=${POSTGRES_DB:-site};Username=${POSTGRES_USER:-site};Password=${POSTGRES_PASSWORD}

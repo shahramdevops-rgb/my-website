@@ -1,5 +1,5 @@
 # CI: every push and pull request must build, be formatted, and pass all tests (incl. Testcontainers).
-# Image build + push to GHCR is a separate workflow (release.yml, P3).
+# Image build + push to GHCR is a separate workflow (release.yml, P4).
 name: CI
 
 on:
@@ -45,10 +45,6 @@ jobs:
           # All package versions live in Directory.Packages.props, so it is the cache key.
           key: nuget-${{ runner.os }}-${{ hashFiles('Directory.Packages.props', '**/*.csproj') }}
           restore-keys: nuget-${{ runner.os }}-
-
-      # The Web project's build compiles Tailwind CSS and fails without the CLI.
-      - name: Get Tailwind CLI
-        run: sh tools/get-tailwind.sh
 
       - name: Restore
         run: dotnet restore

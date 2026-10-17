@@ -4,9 +4,8 @@
 > Decisions are recorded in the **Decision Log** at the bottom (ADR-style, one paragraph each).
 >
 > **2026-10-18 — full-stack split (ADR-021…027).** The site is now two applications: a **Next.js (React +
-> TypeScript) front-end** and an **ASP.NET Core API**. Phase 1 built a Razor Pages front-end; it is retired in
-> `P2-T1` (summary in §8.4). Sections below describe the target; anything still in the code from P1 is marked
-> *retired*.
+> TypeScript) front-end** and an **ASP.NET Core API**. Phase 1 built a Razor Pages front-end; `P2-T1` removed it
+> (summary in §8.4). Sections below describe the target; what is not built yet is tied to its task.
 
 ---
 
@@ -435,7 +434,7 @@ shown (no layout shift), and the poster stays for reduced-motion users or if Web
 P1 built a server-rendered Razor front-end: Tailwind standalone CLI pipeline, botanical tokens and SVG motifs,
 self-hosted fonts, culture-prefixed routing (`CultureRouteConvention`), resx, Persian formatting helpers
 (`DateDisplay`, `<persian-date>`), Alpine.js CSP build, CSP with hashed inline scripts (ADR-020) and a theme toggle.
-P2-T1 removes it from `PersonalSite.Api`; the ideas carry over (tokens + contrast test, self-hosted fonts, locale
+P2-T1 removed it (the project became `PersonalSite.Api`; fonts moved to `frontend/src/fonts/`); the ideas carry over (tokens + contrast test, self-hosted fonts, locale
 prefixes, dark default, reduced motion). The code stays in git history (commits up to `eddf10e`).
 
 ## 9. Environments & deployment

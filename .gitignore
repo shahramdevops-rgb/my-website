@@ -31,12 +31,7 @@ appsettings.*.local.json
 *.pfx
 *.key
 
-# ---------- Generated front-end assets ----------
-src/PersonalSite.Web/wwwroot/css/app.css
-tools/bin/
-tools/tailwindcss*
-!tools/*.ps1
-!tools/*.sh
+# ---------- Front-end (Node) ----------
 node_modules/
 
 # ---------- Runtime data (lives in Docker volumes) ----------

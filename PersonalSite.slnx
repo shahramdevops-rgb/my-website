@@ -9,7 +9,7 @@
     <Project Path="src/PersonalSite.Domain/PersonalSite.Domain.csproj" />
     <Project Path="src/PersonalSite.Application/PersonalSite.Application.csproj" />
     <Project Path="src/PersonalSite.Infrastructure/PersonalSite.Infrastructure.csproj" />
-    <Project Path="src/PersonalSite.Web/PersonalSite.Web.csproj" />
+    <Project Path="src/PersonalSite.Api/PersonalSite.Api.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/PersonalSite.UnitTests/PersonalSite.UnitTests.csproj" />

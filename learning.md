@@ -114,6 +114,16 @@ Razor encodes output to prevent XSS. By default its encoder only trusts Basic La
 correct in the browser but ~6× bigger. We allow all Unicode ranges; `<`, `>`, `&` and quotes are still always
 encoded, so safety is unchanged.
 
+### 2.14 An API-only ASP.NET Core app (P2-T1)
+When the HTML moved to Next.js, the .NET app lost everything that only exists for pages: Razor, static files, view localization, antiforgery for forms, the HTML encoder settings (2.1, 2.11–2.13 describe that retired setup). What an API still needs is small:
+```csharp
+services.AddProblemDetails();        // one JSON error format for every failure
+app.UseExceptionHandler();           // unhandled exception → 500 ProblemDetails (no stack trace)
+app.UseStatusCodePages();            // empty 404/405 → ProblemDetails body too
+// CSP "default-src 'none'": a JSON response never needs to load anything
+```
+Why ProblemDetails (RFC 9457): the front-end gets the same shape — `{"type","title","status",…}` — for "not found", "validation failed" and "server error", so one piece of client code can handle them all.
+
 ## Part 3 — Data
 
 ### 3.1 EF Core migrations
