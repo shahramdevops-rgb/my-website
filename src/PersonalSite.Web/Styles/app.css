@@ -112,6 +112,32 @@
   }
 }
 
+/*
+  Botanical motifs (Pages/Shared/Motifs): leaves in _HeroBotanical sway a little. CSS only, so it needs no JS and no
+  inline style (CSP). Each group sets its own pivot with the SVG transform-origin attribute. Only rotation: a
+  transform never moves other boxes, so there is no layout shift. Reduced-motion users see still leaves.
+  Two speeds, one in reverse, so neighbouring leaves never move in step.
+*/
+@keyframes motif-sway {
+  from {
+    transform: rotate(-2deg);
+  }
+
+  to {
+    transform: rotate(2deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .motif-sway {
+    animation: motif-sway 7s ease-in-out infinite alternate;
+  }
+
+  .motif-sway-slow {
+    animation: motif-sway 10s ease-in-out -4s infinite alternate-reverse;
+  }
+}
+
 @layer base {
   :root {
     /* Native widgets (scrollbars, form controls) follow the theme too. */

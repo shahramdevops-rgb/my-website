@@ -16,7 +16,7 @@ public sealed partial class ColorContrastTests
     private static readonly string[] _themes = ["dark", "light"];
     private static readonly string[] _backgrounds = ["bg", "surface", "surface-2"];
 
-    private static readonly Lazy<string> _css = new(() => File.ReadAllText(StylesheetPath()));
+    private static readonly Lazy<string> _css = new(() => File.ReadAllText(RepositoryPaths.Web("Styles", "app.css")));
 
     public static TheoryData<string, string, string> TextPairs()
     {
@@ -114,18 +114,6 @@ public sealed partial class ColorContrastTests
         }
 
         return (0.2126 * Channel(hex, 1)) + (0.7152 * Channel(hex, 3)) + (0.0722 * Channel(hex, 5));
-    }
-
-    private static string StylesheetPath()
-    {
-        var directory = new DirectoryInfo(AppContext.BaseDirectory);
-        while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "PersonalSite.slnx")))
-        {
-            directory = directory.Parent;
-        }
-
-        directory.ShouldNotBeNull("Repository root (PersonalSite.slnx) not found");
-        return Path.Combine(directory.FullName, "src", "PersonalSite.Web", "Styles", "app.css");
     }
 
     [GeneratedRegex(@"--color-(?<name>[a-z0-9-]+):\s*(?<hex>#[0-9a-fA-F]{6});")]

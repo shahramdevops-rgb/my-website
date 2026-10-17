@@ -238,6 +238,18 @@ Two gotchas: write `x-on:` rather than `@` in `.cshtml` (Razor treats `@` as C#)
 ### 4.8 Why self-host fonts and scripts
 CDNs and Google Fonts can be slow or blocked in Iran, leak visitor data to third parties, and complicate CSP. Files in `wwwroot` always work and move with the app.
 
+### 4.9 SVG motifs: `currentColor`, intrinsic size, CSS-only motion
+The botanical art (`Shared/Motifs/`, P1-T8) is inline SVG in Razor partials, so it costs no extra request. Three ideas make it fit the site:
+```html
+<div class="w-20 text-primary">                    <!-- the wrapper picks size and token color -->
+  <svg class="block h-auto w-full" viewBox="0 0 120 120" width="120" height="120"
+       stroke="currentColor" aria-hidden="true" focusable="false">
+    <g class="motif-sway" transform-origin="157 348">…</g>
+```
+- **`currentColor`** = "whatever `color` I inherit". The SVG paints with the wrapper's `text-primary`, which reads a CSS variable, so switching the theme re-colors the art with no extra markup.
+- **No layout shift:** `width`/`height` equal to the viewBox tell the browser the shape's aspect ratio before it lays out the page, so nothing jumps; `w-full h-auto` then scales it.
+- **Motion:** a CSS `@keyframes` rotation, only inside `@media (prefers-reduced-motion: no-preference)`. A `transform` never moves other boxes (no layout shift), and the SVG `transform-origin` attribute sets the pivot where each leaf meets the stem. No `style="…"` and no `id`s: the CSP forbids inline styles, and ids would clash when a motif appears twice. `MotifTests` checks all of this.
+
 ---
 
 ## Part 5 — Security

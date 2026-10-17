@@ -79,7 +79,7 @@
   Scope: vendor `@alpinejs/csp` into `wwwroot/lib/alpine-3.x.y/`, `wwwroot/js/app.js` bootstraps components from `wwwroot/js/components/`, `defer` loading (ES module). Baseline CSP header (`SecurityHeadersMiddleware`; hardened in P12-T1).
   Done when: mobile menu runs under a CSP without `unsafe-eval` (theme toggle: P1-T6).
 
-- [ ] **P1-T8 Botanical motif library**
+- [x] **P1-T8 Botanical motif library**
   Scope: Razor partials in `Shared/Motifs/`: `_LeafDivider`, `_VineCorner`, `_Sprig`, `_BloomCluster`, `_HeroBotanical` (larger line-art composition). `currentColor`-based, `aria-hidden`, subtle motion-safe sway animation for hero leaves. Original art only (hand-authored SVG paths).
   Done when: motifs recolor with theme; zero layout shift.
 

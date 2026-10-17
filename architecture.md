@@ -163,7 +163,7 @@ PersonalSite.Web/
 │  ├─ Blog/Index, Blog/Post, Blog/Tag
 │  ├─ Newsletter/Subscribe (+ Confirm, Unsubscribe placeholders)
 │  ├─ Error.cshtml, NotFound.cshtml
-│  └─ Shared/ _Layout, _Header, _NavLinks, _Footer, _ThemeToggle, _SeoHead, Icons/ (_Mail, _GitHub, _Telegram, _Menu), Components/ (_Button, _Card, _Tag…), Motifs/ (_LeafDivider, _Vine…)
+│  └─ Shared/ _Layout, _Header, _NavLinks, _Footer, _ThemeToggle, _SeoHead, Icons/ (_Mail, _GitHub, _Telegram, _Menu), Components/ (_Button, _Card, _Tag…), Motifs/ (_LeafDivider, _VineCorner, _Sprig, _BloomCluster, _HeroBotanical)
 ├─ Areas/Admin/Pages/            Dashboard, Posts/*, Projects/*, Comments/*, Messages/*, Resume/*, Subscribers/*, Account/Login
 ├─ Localization/                 CultureRouteConstraint, CultureRouteConvention (adds {culture} prefix), LanguageResolver
 ├─ Resources/                    SharedResource.fa.resx (later SharedResource.en.resx), view resx files
@@ -405,8 +405,12 @@ URLs use lowercase (`RouteOptions.LowercaseUrls = true`) and no trailing slash.
   for the `dotnet watch` WebSocket). No `unsafe-inline`/`unsafe-eval`. Our own inline scripts (`InlineScripts`)
   are added to `script-src` by SHA-256 hash (ADR-020); `ScriptsTests` fails if an inline script's hash is missing.
   Strict audit in P12-T1.
-- **Motifs:** botanical SVGs are Razor partials (`Shared/Motifs/`) using `currentColor`, so they re-color with the theme.
-  Animations are CSS-only and wrapped in `@media (prefers-reduced-motion: no-preference)`.
+- **Motifs (P1-T8):** botanical SVGs are Razor partials (`Shared/Motifs/`) with one root `<svg>` that fills its wrapper
+  (`block h-auto w-full`); the wrapper sets size and color (`<div class="w-20 text-primary">`). Paint is `currentColor`
+  only (accents via `text-bloom`/`text-sun` on inner groups), so they re-color with the theme. `width`/`height` equal to
+  the viewBox give the aspect ratio up front (no layout shift); no `style` attributes (CSP) and no `id`s (a motif may
+  appear twice). Hero leaves sway via `.motif-sway`/`.motif-sway-slow` (CSS rotation, pivot = SVG `transform-origin`
+  attribute), defined only inside `@media (prefers-reduced-motion: no-preference)`. `MotifTests` (unit) enforces this.
 
 ### 8.1 Design tokens (initial)
 

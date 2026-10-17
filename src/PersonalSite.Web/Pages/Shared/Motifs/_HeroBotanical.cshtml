@@ -1,0 +1,67 @@
+@*
+  Hero illustration: a young plant with two side branches, a hanging bud and a blossom at the top, plus a few
+  fireflies. Leaves and branches sway gently (.motif-sway in Styles/app.css; still for reduced-motion users).
+  Each swaying group pivots where it meets the stem: the SVG transform-origin attribute, in viewBox units.
+  The wrapper sets size and color: <div class="w-full max-w-xs text-primary">.
+*@
+<svg class="block h-auto w-full" viewBox="0 0 320 400" width="320" height="400" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+  <path d="M118 396H202M100 396H108M212 396H220" opacity=".4"/>
+  <path d="M160 396C150 330 172 270 158 210S170 108 189 57"/>
+  <path d="M158 212C170 206 180 210 179 219C178 225 170 225 170 219C170 215 175 214 177 217M159 137C148 134 140 140 142 148C144 153 151 152 150 147" stroke-width="1.25" opacity=".6"/>
+
+  <g class="motif-sway" transform-origin="157 348">
+    <path d="M157 348C140 330 124 324 112 328C122 342 138 350 157 348Z" fill="currentColor" fill-opacity=".1"/>
+    <path d="M155 347Q134 334 114 329" stroke-width="1" opacity=".6"/>
+  </g>
+  <g class="motif-sway-slow" transform-origin="161 301">
+    <path d="M161 301C176 285 196 280 210 284C200 298 182 305 161 301Z" fill="currentColor" fill-opacity=".1"/>
+    <path d="M163 300Q188 289 208 285" stroke-width="1" opacity=".6"/>
+  </g>
+  <g class="motif-sway" transform-origin="165 116">
+    <path d="M165 116C151 102 139 96 127 98C135 110 149 118 165 116Z" fill="currentColor" fill-opacity=".1"/>
+    <path d="M163 115Q145 104 129 99" stroke-width="1" opacity=".6"/>
+  </g>
+
+  @* Left branch with a hanging bud. *@
+  <g class="motif-sway-slow" transform-origin="162 256">
+    <path d="M162 256C138 238 108 230 76 238M100 235C97 241 97 246 99 251"/>
+    <g fill="currentColor" fill-opacity=".1">
+      <path d="M135 241C128 248 125 256 126 266C134 260 137 250 135 241Z"/>
+      <path d="M113 236C105 226 101 218 102 208C111 214 115 224 113 236Z"/>
+      <path d="M76 238C66 232 56 236 48 248C60 252 70 248 76 238Z"/>
+    </g>
+    <path d="M74 239Q62 241 51 247" stroke-width="1" opacity=".6"/>
+    <path class="text-bloom" d="M99 251C96 254 96 258 99 261C102 258 102 254 99 251Z"/>
+  </g>
+
+  @* Right branch. *@
+  <g class="motif-sway" transform-origin="155 160">
+    <path d="M155 160C176 140 206 134 238 142"/>
+    <g fill="currentColor" fill-opacity=".1">
+      <path d="M184 143C183 130 187 120 195 112C199 124 194 136 184 143Z"/>
+      <path d="M210 139C218 146 221 154 220 164C212 158 207 148 210 139Z"/>
+      <path d="M238 142C248 134 258 132 268 136C260 146 248 148 238 142Z"/>
+    </g>
+    <path d="M240 141Q254 137 266 136.5" stroke-width="1" opacity=".6"/>
+  </g>
+
+  @* Blossom at the top. *@
+  <g class="motif-sway-slow" transform-origin="189 57">
+    <g class="text-bloom" fill="currentColor" fill-opacity=".12">
+      <ellipse cx="190" cy="40" rx="4" ry="6.5"/>
+      <ellipse cx="197.61" cy="45.53" rx="4" ry="6.5" transform="rotate(72 197.61 45.53)"/>
+      <ellipse cx="194.7" cy="54.47" rx="4" ry="6.5" transform="rotate(144 194.7 54.47)"/>
+      <ellipse cx="185.3" cy="54.47" rx="4" ry="6.5" transform="rotate(216 185.3 54.47)"/>
+      <ellipse cx="182.39" cy="45.53" rx="4" ry="6.5" transform="rotate(288 182.39 45.53)"/>
+    </g>
+    <circle class="text-sun" cx="190" cy="48" r="2.2" fill="currentColor" stroke="none"/>
+  </g>
+
+  @* Fireflies. *@
+  <g class="text-sun" fill="currentColor" stroke="none" opacity=".8">
+    <circle cx="96" cy="170" r="1.6"/>
+    <circle cx="244" cy="228" r="1.4"/>
+    <circle cx="70" cy="300" r="1.2"/>
+    <circle cx="232" cy="80" r="1.2"/>
+  </g>
+</svg>
