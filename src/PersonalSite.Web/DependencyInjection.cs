@@ -48,6 +48,7 @@ public static class DependencyInjection
             .ValidateDataAnnotations()
             .Validate(options => options.BaseUrl is { IsAbsoluteUri: true }, "Site:BaseUrl must be an absolute URL.")
             .Validate(options => TimeZoneInfo.TryFindSystemTimeZoneById(options.TimeZone, out _), "Site:TimeZone is not a known time zone.")
+            .Validate(options => options.Social.IsValid(), "Site:Social: Email must be an email address, GitHub/Telegram absolute https URLs.")
             .ValidateOnStart();
 
         services.AddRouting(options =>

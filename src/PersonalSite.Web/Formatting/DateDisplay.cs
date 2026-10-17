@@ -24,6 +24,9 @@ public sealed class DateDisplay(TimeProvider timeProvider, IOptions<SiteOptions>
     /// <summary>fa: <c>۱ فروردین ۱۴۰۵</c>.</summary>
     public string FormatDate(DateTimeOffset value) => Format(value, localizer["Format.Date"]);
 
+    /// <summary>The current year in the site time zone and culture calendar, e.g. fa: <c>۱۴۰۵</c> (footer copyright).</summary>
+    public string FormatCurrentYear() => Format(timeProvider.GetUtcNow(), "yyyy");
+
     /// <summary>fa: <c>۱ فروردین ۱۴۰۵، ۰۰:۰۱</c>.</summary>
     public string FormatDateTime(DateTimeOffset value) => Format(value, localizer["Format.DateTime"]);
 

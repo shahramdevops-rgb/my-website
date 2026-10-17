@@ -5,7 +5,6 @@
     var culture = CultureInfo.CurrentUICulture;
 }
 <!DOCTYPE html>
-@* Temporary layout; full layout arrives in P1-T5. *@
 @* data-theme: dark is the default; the theme toggle (P1-T6) switches it before first paint. *@
 <html lang="@culture.Name" dir="@(culture.TextInfo.IsRightToLeft ? "rtl" : "ltr")" data-theme="dark">
 <head>
@@ -18,10 +17,21 @@
        Styles/app.css exactly, or the font downloads twice — so a plain "/" path: "~/" would be rewritten to the
        fingerprinted file name (WithStaticAssets). Fonts always need crossorigin, even from our own origin. *@
     <link rel="preload" href="/fonts/vazirmatn-33.003/Vazirmatn-Variable.woff2" as="font" type="font/woff2" crossorigin />
+    @* Per-page additions (SEO tags in P9, page-specific preloads). *@
+    @await RenderSectionAsync("Head", required: false)
 </head>
-<body>
-    <main>
+@* Column layout: the footer stays at the bottom even on short pages. *@
+<body class="flex min-h-dvh flex-col">
+    @* First focusable element: keyboard users can jump past the menu. Visible only when focused. *@
+    <a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:start-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-surface focus:px-4 focus:py-2">@T["Layout.SkipToContent"]</a>
+
+    <partial name="_Header" />
+
+    @* tabindex="-1": lets the skip link move keyboard focus here, without making <main> a Tab stop. *@
+    <main id="main" tabindex="-1" class="flex-1">
         @RenderBody()
     </main>
+
+    <partial name="_Footer" />
 </body>
 </html>

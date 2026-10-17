@@ -42,6 +42,10 @@ public sealed class WebAppFactory : WebApplicationFactory<Program>, IAsyncLifeti
             {
                 [$"ConnectionStrings:{AppDbContext.ConnectionStringName}"] = _postgres.ConnectionString,
                 ["Serilog:MinimumLevel:Default"] = "Warning",
+                // Sample contact links, so the footer renders all of them.
+                ["Site:Social:Email"] = "hello@example.test",
+                ["Site:Social:GitHub"] = "https://github.com/example",
+                ["Site:Social:Telegram"] = "https://t.me/example",
             }));
     }
 }

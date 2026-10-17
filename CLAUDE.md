@@ -16,8 +16,10 @@ It is also a **learning project**: Mahdi wants to understand *why* each technica
 ## 2. Current status
 
 - **Phase:** P0 — Foundation **complete** (`P0-T1`…`P0-T7`). CI (`.github/workflows/ci.yml`) runs restore, build, format check and tests on every push and PR. Code is on GitHub: `shahramdevops-rgb/my-website` (`origin`).
-- **Phase P1** in progress: `P1-T1` (Tailwind pipeline + tokens), `P1-T2` (self-hosted fonts + type scale), `P1-T3` (culture routing + resx), `P1-T4` (date/number formatting) done.
-- **Next task:** `P1-T5` (Base layout, header, footer).
+- **Phase P1** in progress: `P1-T1` (Tailwind pipeline + tokens), `P1-T2` (self-hosted fonts + type scale), `P1-T3` (culture routing + resx), `P1-T4` (date/number formatting), `P1-T5` (layout, header, footer) done.
+- **Next task:** `P1-T6` (Theme toggle).
+- **Mobile menu** is a no-JS `<details>` for now; `P1-T7` adds Alpine behaviour (Escape / outside click).
+- **Contact links** (`Site:Social:Email|GitHub|Telegram`) are not set yet — waiting for Mahdi's values; the footer hides unset ones.
 - **Localization:** every public page is auto-prefixed with `{culture:culture}` by `CultureRouteConvention` (don't write `/fa` in `@page`); views use the injected `T["Key"]` (`IStringLocalizer<SharedResource>`, strings in `Resources/SharedResource.fa.resx`).
 - **Dates/numbers in views:** `<persian-date value="…" />` (tag helper), `DateDisplay`, `NumberDisplay` (`Formatting/`). .NET never emits Persian digits itself — always go through these.
 - **Tailwind CLI** is required to build the Web project: run `./tools/get-tailwind.ps1` once (CI/Docker run the `.sh`). New markup folders must be added as `@source` in `Styles/app.css`.

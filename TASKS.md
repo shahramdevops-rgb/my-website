@@ -64,7 +64,7 @@
   Done when: unit tests show a known UTC date renders as the correct Persian date in `fa` culture.
   Learn: calendars in .NET, time zones, ICU.
 
-- [ ] **P1-T5 Base layout, header, footer**
+- [x] **P1-T5 Base layout, header, footer**
   Scope: `_Layout` (skip-link, landmarks, `@RenderSection("Head")`), `_Header` (logo/name, nav: خانه، درباره من، نمونه‌کارها، بلاگ، خدمات، رزومه، تماس; mobile menu with Alpine), `_Footer` (Email, GitHub, Telegram icons + links from config `SiteOptions.Social`, copyright with Persian year).
   Done when: layout works 360px → 1440px, keyboard navigable, all strings from resx.
 

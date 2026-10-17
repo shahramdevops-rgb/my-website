@@ -202,6 +202,14 @@ If the theme is applied by JavaScript *after* the page renders, you see a white 
 ### 4.5 RTL & logical properties
 `margin-left` is wrong in RTL. Logical properties use *start/end*: `ms-4` (margin-inline-start) is left in English and right in Persian. Using only these means English support later needs zero CSS changes.
 
+### 4.5.1 Accessible layout basics
+- **Landmarks** (`header`, `nav`, `main`, `footer`) let screen-reader users jump between regions like headings.
+- **Skip link:** the first Tab shows "پرش به محتوای اصلی"; Enter moves focus to `<main tabindex="-1">`, skipping the menu.
+- **`:focus-visible`** draws a ring only for keyboard focus, so mouse users don't see rings on every click.
+- **`<details>`/`<summary>`** is a built-in disclosure widget: it opens/closes and announces expanded/collapsed
+  without JavaScript — a good base that JS (Alpine) can enhance later (*progressive enhancement*).
+- **Icon-only links** need text for screen readers: `<svg aria-hidden="true">` + `<span class="sr-only">گیت‌هاب</span>`.
+
 ### 4.6 Bidirectional text
 A Persian paragraph containing `ASP.NET Core 10` or code can scramble word order. We set `dir="auto"` on paragraphs and force left-to-right on code: in CSS, `code, pre { direction: ltr; unicode-bidi: isolate; }` — `isolate` makes the code a sealed box the surrounding RTL text cannot reorder (same effect as `dir="ltr"`, but it also applies to Markdown output we don't write by hand).
 

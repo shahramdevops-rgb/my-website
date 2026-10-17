@@ -14,7 +14,56 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="Site.Name" xml:space="preserve">
-    <value>مهدی ازغندی</value>
+    <value>مهدی ازقندی</value>
+  </data>
+  <data name="Layout.SkipToContent" xml:space="preserve">
+    <value>پرش به محتوای اصلی</value>
+  </data>
+  <data name="Nav.Label" xml:space="preserve">
+    <value>منوی اصلی</value>
+    <comment>aria-label of the main navigation landmark.</comment>
+  </data>
+  <data name="Nav.Menu" xml:space="preserve">
+    <value>منو</value>
+    <comment>Mobile menu button.</comment>
+  </data>
+  <data name="Nav.Home" xml:space="preserve">
+    <value>خانه</value>
+  </data>
+  <data name="Nav.About" xml:space="preserve">
+    <value>درباره من</value>
+  </data>
+  <data name="Nav.Projects" xml:space="preserve">
+    <value>نمونه‌کارها</value>
+  </data>
+  <data name="Nav.Blog" xml:space="preserve">
+    <value>بلاگ</value>
+  </data>
+  <data name="Nav.Services" xml:space="preserve">
+    <value>خدمات</value>
+  </data>
+  <data name="Nav.Resume" xml:space="preserve">
+    <value>رزومه</value>
+  </data>
+  <data name="Nav.Contact" xml:space="preserve">
+    <value>تماس</value>
+  </data>
+  <data name="Footer.Contact" xml:space="preserve">
+    <value>راه‌های ارتباطی</value>
+    <comment>aria-label of the footer link list.</comment>
+  </data>
+  <data name="Footer.Email" xml:space="preserve">
+    <value>ایمیل</value>
+  </data>
+  <data name="Footer.GitHub" xml:space="preserve">
+    <value>گیت‌هاب</value>
+  </data>
+  <data name="Footer.Telegram" xml:space="preserve">
+    <value>تلگرام</value>
+  </data>
+  <data name="Footer.Copyright" xml:space="preserve">
+    <value>© {0} {1}</value>
+    <comment>{0} = current year (culture calendar), {1} = Site.Name.</comment>
   </data>
   <data name="Home.ComingSoon" xml:space="preserve">
     <value>به‌زودی…</value>

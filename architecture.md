@@ -153,12 +153,12 @@ PersonalSite.Web/
 │  ├─ Blog/Index, Blog/Post, Blog/Tag
 │  ├─ Newsletter/Subscribe (+ Confirm, Unsubscribe placeholders)
 │  ├─ Error.cshtml, NotFound.cshtml
-│  └─ Shared/ _Layout, _Header, _Footer, _ThemeToggle, _SeoHead, Components/ (_Button, _Card, _Tag…), Motifs/ (_LeafDivider, _Vine…)
+│  └─ Shared/ _Layout, _Header, _NavLinks, _Footer, _ThemeToggle, _SeoHead, Icons/ (_Mail, _GitHub, _Telegram, _Menu), Components/ (_Button, _Card, _Tag…), Motifs/ (_LeafDivider, _Vine…)
 ├─ Areas/Admin/Pages/            Dashboard, Posts/*, Projects/*, Comments/*, Messages/*, Resume/*, Subscribers/*, Account/Login
 ├─ Localization/                 CultureRouteConstraint, CultureRouteConvention (adds {culture} prefix), LanguageResolver
 ├─ Resources/                    SharedResource.fa.resx (later SharedResource.en.resx), view resx files
 ├─ Formatting/                   DateDisplay (UTC → Site:TimeZone → culture calendar, relative text), NumberDisplay (numbers, reading time), NativeDigits
-├─ Infrastructure/               Routes (path constants), HealthProbe (container healthcheck), SecurityHeadersMiddleware, SeoHelpers, TagHelpers (<persian-date>)
+├─ Infrastructure/               Routes (path constants), PageNames + MainNavigation (menu), HealthProbe (container healthcheck), SecurityHeadersMiddleware, SeoHelpers, TagHelpers (<persian-date>)
 ├─ Endpoints/                    minimal APIs: / (language redirect), /sitemap.xml, /feed.xml, /robots.txt, /health, /admin/api/markdown-preview, /resume/download
 ├─ Styles/app.css                Tailwind v4 input (tokens via @theme; compiled by the TailwindBuild MSBuild target)
 └─ wwwroot/                      css/app.css (generated, git-ignored), js/*.js, lib/alpine, lib/hljs, fonts/<name>-<version>/, img/
@@ -346,6 +346,11 @@ URLs use lowercase (`RouteOptions.LowercaseUrls = true`) and no trailing slash.
   variable woff2). `@font-face` uses `font-display: swap`; `_Layout` preloads Vazirmatn with a plain `/fonts/…`
   href — `~/` would be rewritten to the fingerprinted name and the font would download twice
   (`SelfHostedFontsTests` guards this). Persian line-heights: 1.85 for body text, tighter for large headings.
+- **Layout (P1-T5):** skip link → `header` (name + `nav`) → `main#main` → `footer`. The menu is
+  `MainNavigation.Items` rendered by `_NavLinks`; an item whose page doesn't exist yet (`Url.Page` returns null)
+  shows as plain text and becomes a link once the page is added. Mobile menu = native `<details>` (works without
+  JS and under CSP). Footer links come from `Site:Social` (optional, validated) and are hidden when unset.
+  `:focus-visible` draws a `sun` outline on every focusable element.
 - **Code is always LTR:** `code, kbd, samp, pre` get `direction: ltr; unicode-bidi: isolate` in the base layer, so it
   also holds inside rendered Markdown.
 - **Theme:** `data-theme="dark|light"` on `<html>`. A tiny inline (nonce'd) script in `<head>` sets it

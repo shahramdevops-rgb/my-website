@@ -1,0 +1,26 @@
+@using PersonalSite.Web.Infrastructure
+<header class="border-b">
+  <div class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
+    <a asp-page="@PageNames.Home" class="rounded-lg text-lg font-bold text-primary">@T["Site.Name"]</a>
+
+    @* Desktop (md and up): the menu inline. *@
+    <nav aria-label="@T["Nav.Label"]" class="hidden md:block">
+      <partial name="_NavLinks" model="false" />
+    </nav>
+
+    @*
+      Mobile: a native <details> disclosure — opens/closes and announces "expanded/collapsed" without any JS,
+      so it also works under a strict CSP. Alpine (P1-T7) adds closing on Escape / outside click.
+      Only one of the two navs is ever displayed, so screen readers meet the menu once.
+    *@
+    <details class="relative md:hidden">
+      <summary class="flex cursor-pointer list-none items-center gap-2 rounded-lg px-3 py-2 hover:bg-surface-2 [&::-webkit-details-marker]:hidden">
+        <partial name="Icons/_Menu" />
+        <span>@T["Nav.Menu"]</span>
+      </summary>
+      <nav aria-label="@T["Nav.Label"]" class="absolute end-0 top-full z-20 mt-2 w-56 rounded-2xl border bg-surface p-2 shadow-lg">
+        <partial name="_NavLinks" model="true" />
+      </nav>
+    </details>
+  </div>
+</header>

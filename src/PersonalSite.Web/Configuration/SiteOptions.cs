@@ -23,4 +23,25 @@ public sealed class SiteOptions
     /// </summary>
     [Required]
     public string TimeZone { get; set; } = "Asia/Tehran";
+
+    /// <summary>Contact links shown in the footer (and later on the contact page). Unset ones are simply not shown.</summary>
+    public SocialLinks Social { get; set; } = new();
+
+    /// <summary>Only Email, GitHub and Telegram — no LinkedIn or phone for now (CLAUDE.md §5).</summary>
+    public sealed class SocialLinks
+    {
+        /// <summary>e.g. <c>hello@mahdiazghandi.ir</c>.</summary>
+        public string? Email { get; set; }
+
+        /// <summary>Profile URL, e.g. <c>https://github.com/name</c>.</summary>
+        public Uri? GitHub { get; set; }
+
+        /// <summary>Profile URL, e.g. <c>https://t.me/name</c>.</summary>
+        public Uri? Telegram { get; set; }
+
+        internal bool IsValid() =>
+            (Email is null || new EmailAddressAttribute().IsValid(Email))
+            && GitHub is null or { IsAbsoluteUri: true, Scheme: "https" }
+            && Telegram is null or { IsAbsoluteUri: true, Scheme: "https" };
+    }
 }
