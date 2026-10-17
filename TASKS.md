@@ -131,8 +131,8 @@
   Done when: no `unsafe-eval`, no `unsafe-inline` for scripts; zero CSP violations in e2e.
   Learn: nonces vs hashes, `strict-dynamic`.
 
-- [ ] **P2-T8 Design tokens, fonts & theme** (ADR-024) — needs Mahdi's accent color
-  Scope: Tailwind v4 (`@tailwindcss/postcss`), `styles/globals.css` with the tokens of architecture §8.1 for dark (default) and light, default palette removed (`--color-*: initial`), contrast test in Vitest (port of P1's `ColorContrastTests`: text ≥ 4.5:1, focus/non-text ≥ 3:1); fonts via `next/font/local` (Vazirmatn variable, JetBrains Mono; optional display face picked by Mahdi, OFL only, licence file kept); type scale with Persian line-heights; `code, pre` always LTR; theme: pre-paint script with the nonce (saved choice before first paint), toggle button (`aria-pressed`), color fade only when motion is allowed.
+- [ ] **P2-T8 Design tokens, fonts & theme** (ADR-024)
+  Scope: Tailwind v4 (`@tailwindcss/postcss`), `styles/globals.css` with the token values of architecture §8.1 (electric-blue accent) for dark (default) and light, default palette removed (`--color-*: initial`), contrast test in Vitest (port of P1's `ColorContrastTests`: text ≥ 4.5:1, focus/non-text ≥ 3:1); fonts via `next/font/local` (Vazirmatn variable, JetBrains Mono; optional display face picked by Mahdi, OFL only, licence file kept); type scale with Persian line-heights; `code, pre` always LTR; theme: pre-paint script with the nonce (saved choice before first paint), toggle button (`aria-pressed`), color fade only when motion is allowed.
   Done when: no theme flash on reload; contrast test green in both themes; no font request leaves the origin.
   Learn: CSS variables as a theme API, FOUC.
 

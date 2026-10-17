@@ -30,7 +30,8 @@ reveal something real about the back-end. Details and rejected ideas: `roadmap.m
 - **Done:** P0 — Foundation (solution, Docker, EF Core + PostgreSQL, tests, CI on GitHub `shahramdevops-rgb/my-website`).
   P1 — Razor front-end (T1–T8) — **retired** on 2026-10-18 by the full-stack decision (ADR-021…027); P1-T9…T11 cancelled.
 - **Next task:** `P2-T1` (rename `PersonalSite.Web` → `PersonalSite.Api` and remove the Razor UI).
-- **Waiting on Mahdi:** the accent color (needed by `P2-T8`), contact links (`Site:Social:Email|GitHub|Telegram`).
+- **Accent color:** electric blue (`#4DB5FF` dark / `#0A63C9` light), picked by Claude at Mahdi's request; easy to change (`architecture.md §8.1`).
+- **Waiting on Mahdi:** contact links (`Site:Social:Email|GitHub|Telegram`).
 - **Branches:** local `main` is at P1-T4 (`origin/main` at P0-T7); P1-T5…T8 and the full-stack docs change sit on
   stacked feature branches — merge them in order (and push) before P2-T1.
 - **Code today** is still the P1 Razor app (`src/PersonalSite.Web`, Tailwind CLI, Alpine, resx). Don't extend it;
@@ -126,7 +127,7 @@ Planned for P12 (approve per task): Microsoft.Extensions.AI · ONNX Runtime · p
 | 021 | **Next.js front-end + ASP.NET Core API, one origin** | Real full-stack shape; cookie auth without CORS |
 | 022 | **Positioning: full-stack (.NET + React/TS)** | Sell both halves; showpieces reveal the back-end |
 | 023 | **Now Iran (`.ir`, fa-first) → later abroad (`.com`, en-first)** | Move = config + runbook |
-| 024 | **Design: dark Bento grid, single accent, strong type** | Botanical retired; Mahdi picks the accent |
+| 024 | **Design: dark Bento grid, single accent, strong type** | Botanical retired; accent = electric blue |
 | 025 | **CSP nonce per request; data cached, HTML dynamic** | Next.js inline scripts vary per page |
 | 026 | **Typed API contract from OpenAPI** | Contract drift breaks the build, not production |
 | 027 | **Live demos on real endpoints with sandbox data** | Show the back-end working, not a video |
@@ -216,7 +217,7 @@ if the contract changed · docs updated · task ticked.
 ## 13. Design direction (ADR-024)
 
 **Dark Bento grid**: near-black background, hairline-bordered cards, a soft **cursor spotlight** on the cards,
-**one accent color chosen by Mahdi**, large confident Persian/English typography (Vazirmatn + JetBrains Mono,
+**one accent color** (electric blue, §8.1), large confident Persian/English typography (Vazirmatn + JetBrains Mono,
 optional display face). Signature features (`architecture.md §8.2`): Bento + spotlight, **3D mechanical keyboard
 hero** (keys = tech stack → projects), **live demos**, **X-Ray mode** (UI peels back to real code + this request's
 queries/timings), **fluid fa ↔ en** switch (View Transitions), **scrollytelling request journey** with the real

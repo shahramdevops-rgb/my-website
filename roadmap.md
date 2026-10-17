@@ -76,8 +76,8 @@ motifs — built in Razor Pages, then retired by ADR-021. What carries over is l
 tokens and the layout shell ready for every page.
 **Deliverables:** `PersonalSite.Web` → `PersonalSite.Api` (Razor removed), OpenAPI document + generated TS client,
 Next.js app (TypeScript strict, pnpm, ESLint/Prettier, Vitest, Playwright), Docker + Caddy dev routing for both apps,
-next-intl with `fa` + `en` and the `/` redirect, Persian/English formatters, CSP with nonce, tokens with Mahdi's
-accent + contrast test, self-hosted fonts, theme toggle, layout shell (header, footer, language switcher with View
+next-intl with `fa` + `en` and the `/` redirect, Persian/English formatters, CSP with nonce, tokens (electric-blue
+accent) + contrast test, self-hosted fonts, theme toggle, layout shell (header, footer, language switcher with View
 Transitions, error pages), UI kit with Bento card + spotlight and a dev style guide.
 **Exit criteria:** `http://localhost:8080/fa` and `/en` serve the Next.js shell, `/api/site` answers through the same
 origin; CI runs both apps; style guide shows every component in both themes and both directions.

@@ -391,19 +391,27 @@ with a shared secret (`Revalidate__Secret`).
 
 ### 8.1 Design tokens
 
-Token *names* stay stable; *values* are set in P2-T8 when Mahdi picks the accent color (ADR-024).
+Accent: **electric blue** — reads as "engineering", glows well as a spotlight on near-black, and stays clear of the
+status colors. Picked by Claude on Mahdi's request (2026-10-18); changing it later = two values here + `globals.css`.
+Neutrals are slightly cool so the blue feels at home.
 
-| Token | Use |
-|---|---|
-| `--color-bg` | page background (near-black in dark) |
-| `--color-surface`, `--color-surface-2` | Bento cards, hover/inputs |
-| `--color-border` | hairline card borders (the grid's structure) |
-| `--color-text`, `--color-muted` | body and secondary text |
-| `--color-accent`, `--color-accent-soft` | the single accent (links, buttons, spotlight glow, focus ring) — Mahdi's choice |
-| `--color-success`, `--color-danger` | live status 🟢/🔴, demo outcomes |
+| Token | Dark (default) | Light | Use |
+|---|---|---|---|
+| `--color-bg` | `#0A0B0E` | `#F6F7F9` | page background |
+| `--color-surface` | `#111318` | `#FFFFFF` | Bento cards |
+| `--color-surface-2` | `#181B22` | `#ECEFF4` | hover, inputs |
+| `--color-border` | `#262A33` | `#D9DEE6` | hairline card borders (the grid's structure) |
+| `--color-text` | `#E8EAEF` | `#111419` | body text |
+| `--color-muted` | `#9AA2B1` | `#566070` | secondary text |
+| `--color-accent` | `#4DB5FF` | `#0A63C9` | links, buttons, spotlight glow, focus ring |
+| `--color-accent-soft` | `#0F2638` | `#DCEBFC` | tag/badge backgrounds |
+| `--color-success` | `#3DD68C` | `#137A45` | live 🟢, demo success |
+| `--color-danger` | `#FF6B6B` | `#C42B2B` | down 🔴, demo conflict |
 
 All text/background pairs must meet WCAG AA (≥ 4.5:1); the focus ring and other non-text UI ≥ 3:1. A Vitest test
-reads `globals.css` and enforces it (port of P1's `ColorContrastTests`).
+reads `globals.css` and enforces it (port of P1's `ColorContrastTests`). Checked for these values: the weakest
+pairs are light `success` on `surface-2` (4.67), light `accent` on `accent-soft` (4.76) and light `accent` on
+`surface-2` (5.00); everything in dark is ≥ 6.2.
 
 ### 8.2 Signature features (ADR-024)
 
@@ -503,7 +511,7 @@ API in a `Testing` environment (production-like: no user-secrets, no auto-migrat
 - **ADR-021 Two applications: Next.js front-end + ASP.NET Core API, one origin.** Mahdi's positioning is now full-stack (ADR-022), and React/TypeScript must be shown in real, production-shaped code — the separated SPA/SSR front-end + Web API split is what full-stack roles use. Caddy serves both under one domain (`/api/*` → API, rest → Next.js), so the Identity cookie works without CORS or tokens in JavaScript. Cost accepted: two runtimes in production, a Node toolchain, and P1's Razor UI rebuilt in React. Rejected alternative: Razor Pages + React islands (smaller change, but less representative of full-stack work).
 - **ADR-022 Positioning: full-stack engineer (.NET + React/TypeScript).** The site sells both halves: back-end depth (concurrency, data, deployment under constraints) made visible by a front-end worth looking at. Every showpiece must reveal something real about the back-end.
 - **ADR-023 Hosting now in Iran, later abroad with `.com` and English-first.** The site launches on the Iranian VPS with the `.ir` domains and Persian as default. When Mahdi targets foreign clients, it moves to a foreign server with a `.com` domain and English as the default language. Everything that would change (hostnames, base URL, default locale) is configuration, and all state lives in volumes, so the move is a runbook (P15), not a rewrite.
-- **ADR-024 Design direction: dark Bento grid, single accent, strong typography.** The botanical direction (P1) is retired. The new look: near-black background, hairline-bordered Bento cards with a cursor spotlight, one accent color chosen by Mahdi, large confident Persian/English typography, and the signature features in §8.2. Dark is the default; the light theme must still work.
+- **ADR-024 Design direction: dark Bento grid, single accent, strong typography.** The botanical direction (P1) is retired. The new look: near-black background, hairline-bordered Bento cards with a cursor spotlight, one accent color (electric blue, §8.1; Mahdi may change it), large confident Persian/English typography, and the signature features in §8.2. Dark is the default; the light theme must still work.
 - **ADR-025 CSP with a per-request nonce; HTML rendered per request.** Next.js needs inline scripts that differ per page, so scripts are allowed by a nonce created in `proxy.ts` (`script-src 'nonce-…' 'strict-dynamic'`, no `unsafe-eval`). A nonce makes every HTML response unique, so pages render per request and caching happens at the data layer (tagged fetches) instead. Styles allow `'unsafe-inline'`: React, Motion and `next/image` set `style` attributes, and style injection is far less dangerous than script injection — scripts stay strict.
 - **ADR-026 Typed API contract from OpenAPI.** The API generates `openapi/v1.json` at build time; the front-end generates TypeScript types and a typed client from it. A renamed field breaks the front-end build instead of production. CI fails if the committed document or the generated types are stale.
 - **ADR-027 Live demos run against real endpoints with sandboxed data.** A demo that only animates is a video; the point is to show the back-end working. Demos call `/api/demos/*`, which use real services and a real database in a separate `demo` schema with fake data, rate-limited and reset regularly. The gym demo uses invented members only (client permission given for the case study). Labelled "Live demo — sandbox data".
