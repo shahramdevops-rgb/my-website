@@ -159,7 +159,7 @@ PersonalSite.Web/
 ├─ Infrastructure/               Routes (path constants), HealthProbe (container healthcheck), SecurityHeadersMiddleware, SeoHelpers, TagHelpers (e.g. <persian-date>)
 ├─ Endpoints/                    minimal APIs: /sitemap.xml, /feed.xml, /robots.txt, /health, /admin/api/markdown-preview, /resume/download
 ├─ Styles/app.css                Tailwind v4 input (tokens via @theme; compiled by the TailwindBuild MSBuild target)
-└─ wwwroot/                      css/app.css (generated, git-ignored), js/*.js, lib/alpine, lib/hljs, fonts/, img/
+└─ wwwroot/                      css/app.css (generated, git-ignored), js/*.js, lib/alpine, lib/hljs, fonts/<name>-<version>/, img/
 ```
 
 ## 4. Data model
@@ -329,7 +329,14 @@ URLs use lowercase (`RouteOptions.LowercaseUrls = true`) and no trailing slash.
 - **Scanned sources:** `source(none)` + explicit `@source` lines (today `../Pages`). New markup folders
   (`Areas/`, `wwwroot/js/`) must be added there, or their classes are silently missing.
 - **Palette lock-down:** `--color-*: initial` removes Tailwind's default colors, so only token utilities exist
-  (`bg-surface`, `text-primary`, `border-border`…).
+  (`bg-surface`, `text-primary`, `border-border`…). Same for `--font-*` and `--text-*` (our own type scale).
+- **Fonts:** vendored in `wwwroot/fonts/<name>-<version>/` with their `OFL.txt` — Vazirmatn 33.003 (one variable
+  woff2, weights 100–900, has Latin glyphs) and JetBrains Mono 2.304 (static Regular + Bold woff2; no official
+  variable woff2). `@font-face` uses `font-display: swap`; `_Layout` preloads Vazirmatn with a plain `/fonts/…`
+  href — `~/` would be rewritten to the fingerprinted name and the font would download twice
+  (`SelfHostedFontsTests` guards this). Persian line-heights: 1.85 for body text, tighter for large headings.
+- **Code is always LTR:** `code, kbd, samp, pre` get `direction: ltr; unicode-bidi: isolate` in the base layer, so it
+  also holds inside rendered Markdown.
 - **Theme:** `data-theme="dark|light"` on `<html>`. A tiny inline (nonce'd) script in `<head>` sets it
   *before first paint* from `localStorage`, defaulting to **dark**. Alpine `$store.theme` toggles it afterwards.
 - **RTL:** layout uses logical utilities only (`ms-*`, `me-*`, `ps-*`, `pe-*`, `start-*`, `end-*`, `text-start`),

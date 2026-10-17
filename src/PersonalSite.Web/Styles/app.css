@@ -16,6 +16,37 @@
 @custom-variant light (&:where([data-theme="light"], [data-theme="light"] *));
 
 /*
+  Self-hosted fonts (ADR-007): no request leaves the site. Paths are relative to the compiled /css/app.css.
+  The version is part of the folder name, so an upgrade gets a new URL and never hits a stale cache.
+  font-display: swap shows the fallback font at once and swaps when the file arrives (no invisible text).
+  The Vazirmatn file is also preloaded in _Layout — keep both URLs identical or it downloads twice.
+*/
+@font-face {
+  font-family: "Vazirmatn";
+  src: url("../fonts/vazirmatn-33.003/Vazirmatn-Variable.woff2") format("woff2");
+  /* One variable file covers every weight from 100 to 900. */
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("../fonts/jetbrains-mono-2.304/JetBrainsMono-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("../fonts/jetbrains-mono-2.304/JetBrainsMono-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/*
   Design tokens (architecture.md §8.1). Values here are the DARK theme; the light theme overrides the same
   variables below. Utilities read the variable at runtime (bg-surface → var(--color-surface)), so switching
   data-theme re-colors the page without a second set of classes.
@@ -36,6 +67,36 @@
   --color-bloom: #e8a0b4;
   --color-sun: #e9b44c;
   --color-border: #24392e;
+
+  /* Fonts: Vazirmatn has Latin glyphs too, so mixed Persian/English text uses one face.
+     Tahoma is the best-looking Persian system font on Windows if Vazirmatn has not loaded yet. */
+  --font-*: initial;
+  --font-sans: "Vazirmatn", ui-sans-serif, system-ui, Tahoma, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+
+  /*
+    Type scale. Persian script has tall letters and dots above/below the line, so line-heights are taller
+    than Tailwind's defaults (1.5 for body text); big headings need less, or their lines drift apart.
+  */
+  --text-*: initial;
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1.7;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.75;
+  --text-base: 1rem;
+  --text-base--line-height: 1.85;
+  --text-lg: 1.125rem;
+  --text-lg--line-height: 1.8;
+  --text-xl: 1.25rem;
+  --text-xl--line-height: 1.7;
+  --text-2xl: 1.5rem;
+  --text-2xl--line-height: 1.55;
+  --text-3xl: 1.875rem;
+  --text-3xl--line-height: 1.45;
+  --text-4xl: 2.25rem;
+  --text-4xl--line-height: 1.35;
+  --text-5xl: 3rem;
+  --text-5xl--line-height: 1.25;
 }
 
 @layer base {
@@ -62,6 +123,58 @@
   body {
     background-color: var(--color-bg);
     color: var(--color-text);
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
+  }
+
+  /* Default heading sizes (preflight resets them to body size); pages can still override with utilities. */
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-weight: 700;
+    text-wrap: balance;
+  }
+
+  h1 {
+    font-size: var(--text-4xl);
+    line-height: var(--text-4xl--line-height);
+  }
+
+  h2 {
+    font-size: var(--text-3xl);
+    line-height: var(--text-3xl--line-height);
+  }
+
+  h3 {
+    font-size: var(--text-2xl);
+    line-height: var(--text-2xl--line-height);
+  }
+
+  h4 {
+    font-size: var(--text-xl);
+    line-height: var(--text-xl--line-height);
+    font-weight: 600;
+  }
+
+  /*
+    Code is always left-to-right, even inside a Persian paragraph — the CSS equivalent of dir="ltr", so it also
+    applies to rendered Markdown. "isolate" stops the surrounding RTL text from reordering it.
+    The mono face looks larger than Vazirmatn at the same size, hence 0.9em.
+  */
+  code,
+  kbd,
+  samp,
+  pre {
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+    direction: ltr;
+    unicode-bidi: isolate;
+  }
+
+  pre {
+    overflow-x: auto;
+    line-height: 1.6;
   }
 
   /* Tailwind's preflight resets border colors to currentColor; dividers should use the token. */

@@ -160,6 +160,18 @@ MSBuild skips a target when its outputs are newer than its inputs. Switching Deb
 file, so Tailwind would not re-run and Release would keep unminified CSS. The CLI arguments are written to
 `obj/tailwind.args` only when they change; listing that file as an input makes the switch trigger a rebuild.
 
+### 4.3.3 Web fonts: `font-display: swap` and preload
+A web font arrives *after* the CSS that mentions it. `font-display: swap` shows the text immediately in a fallback
+font (Tahoma) and swaps when Vazirmatn is ready — no invisible text. `<link rel="preload" as="font" crossorigin>`
+starts the download together with the CSS instead of after it. Its URL must be *byte-identical* to the
+`@font-face` URL, otherwise the browser treats them as two files:
+
+```html
+<link rel="preload" href="/fonts/vazirmatn-33.003/Vazirmatn-Variable.woff2" as="font" type="font/woff2" crossorigin />
+```
+
+(`~/fonts/...` would be rewritten by `WithStaticAssets()` to `Vazirmatn-Variable.<hash>.woff2` — a different URL.)
+
 ### 4.4 Dark mode without flash (FOUC)
 If the theme is applied by JavaScript *after* the page renders, you see a white flash. A tiny inline script in `<head>` reads `localStorage` and sets `data-theme` before the first paint.
 
@@ -167,7 +179,7 @@ If the theme is applied by JavaScript *after* the page renders, you see a white 
 `margin-left` is wrong in RTL. Logical properties use *start/end*: `ms-4` (margin-inline-start) is left in English and right in Persian. Using only these means English support later needs zero CSS changes.
 
 ### 4.6 Bidirectional text
-A Persian paragraph containing `ASP.NET Core 10` or code can scramble word order. We set `dir="auto"` on paragraphs and force `dir="ltr"` on code blocks.
+A Persian paragraph containing `ASP.NET Core 10` or code can scramble word order. We set `dir="auto"` on paragraphs and force left-to-right on code: in CSS, `code, pre { direction: ltr; unicode-bidi: isolate; }` — `isolate` makes the code a sealed box the surrounding RTL text cannot reorder (same effect as `dir="ltr"`, but it also applies to Markdown output we don't write by hand).
 
 ### 4.7 Alpine.js and the CSP build
 Alpine adds small interactivity (`x-data`, `x-on:click`) without a build step. The normal build evaluates attribute strings with `new Function` which a strict Content-Security-Policy blocks. The CSP build doesn't — so we register components in JS files with `Alpine.data('themeToggle', …)` and reference them by name.

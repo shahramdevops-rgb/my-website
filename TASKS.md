@@ -50,7 +50,7 @@
   Done when: utilities like `bg-surface text-primary` work; both themes' contrast pairs verified ≥ 4.5:1 (list results in PR).
   Learn: utility-first CSS, CSS variables, Tailwind v4 `@theme`.
 
-- [ ] **P1-T2 Fonts & base typography**
+- [x] **P1-T2 Fonts & base typography**
   Scope: self-host Vazirmatn (variable woff2) and JetBrains Mono in `wwwroot/fonts`, `@font-face` with `font-display: swap`, preload main font, base type scale, Persian-friendly line-height, `code`/`pre` always `dir="ltr"`.
   Done when: no network requests leave the site's origin for fonts.
 
