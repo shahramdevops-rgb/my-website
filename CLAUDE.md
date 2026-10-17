@@ -7,17 +7,26 @@ architecture decisions in short form, and where the full details live.
 
 ## 1. Project in one paragraph
 
-Personal website of **Mahdi Azghandi** (Mahdi), a backend developer (C#/.NET). It combines an online resume, a portfolio (including a
+Personal website of **Mahdi Azghandi** (Mahdi; also known as Shahram — `alternateName` only, ADR-017), a backend developer (C#/.NET). It combines an online resume, a portfolio (including a
 live deployed project), a technical blog with moderated comments, a services page to attract freelance clients, a
-contact form and a newsletter signup (sending disabled for now). Audience: employers, potential clients, blog readers.
-Site content is **Persian (RTL)** today; the structure must allow adding **English** later without a big refactor.
+contact form and a newsletter signup (sending disabled for now). Audience: employers (often European), potential clients, blog readers.
+Site content is **Persian (RTL) and English (LTR)**: English is enabled in `P1-T11` and every page from P2 on ships in both.
 It is also a **learning project**: Mahdi wants to understand *why* each technical decision is made.
+
+**Positioning (filter for every feature):** *a C#/.NET backend engineer who builds real systems under hard constraints
+and engineers AI into them — and this site is the proof.* Three pillars: **show, don't tell** (under-the-hood
+telemetry, case studies, public decisions), **readable by machines & AI** (structured résumé, `curl`, MCP, semantic
+search with a local model), **become a reference** (content on .NET under Iranian constraints). Details, and the list
+of ideas already considered and rejected, are in `roadmap.md`.
 
 ## 2. Current status
 
 - **Phase:** P0 — Foundation **complete** (`P0-T1`…`P0-T7`). CI (`.github/workflows/ci.yml`) runs restore, build, format check and tests on every push and PR. Code is on GitHub: `shahramdevops-rgb/my-website` (`origin`).
 - **Phase P1** in progress: `P1-T1` (Tailwind pipeline + tokens), `P1-T2` (self-hosted fonts + type scale), `P1-T3` (culture routing + resx), `P1-T4` (date/number formatting), `P1-T5` (layout, header, footer) done.
 - **Next task:** `P1-T6` (Theme toggle).
+- **Roadmap revised (2026-10-17):** positioning + three pillars; English moved up (`P1-T11`, bilingual P2); new
+  P2-T6 decisions page, P5-T7/T8 live status + gym case study, P9-T5 machine-readable résumé, P10 under the hood,
+  P11 AI layer; newsletter → P13, GeoIP → P14; content track `C-T1…T3`. ADR-013…019 record the decisions.
 - **Mobile menu** is a no-JS `<details>` for now; `P1-T7` adds Alpine behaviour (Escape / outside click).
 - **Contact links** (`Site:Social:Email|GitHub|Telegram`) are not set yet — waiting for Mahdi's values; the footer hides unset ones.
 - **Localization:** every public page is auto-prefixed with `{culture:culture}` by `CultureRouteConvention` (don't write `/fa` in `@page`); views use the injected `T["Key"]` (`IStringLocalizer<SharedResource>`, strings in `Resources/SharedResource.fa.resx`).
@@ -32,7 +41,7 @@ It is also a **learning project**: Mahdi wants to understand *why* each technica
 
 - **Reply to Mahdi in Persian** (he writes in Persian). Keep technical terms in English where natural (`DbContext`, `middleware`).
 - **Everything in the repo is English**: code, identifiers, comments, commit messages, docs.
-- **Site content (UI text) is Persian**, stored in `.resx` files — never hard-coded.
+- **Site content (UI text) is Persian and English**, stored in `.resx` files — never hard-coded. Claude drafts English text; Mahdi edits it.
 - Mahdi is learning: explain *why*, briefly. Prefer one clear reason over a list of five.
 - Ask before decisions that are hard to reverse (data model, URLs, public behaviour, new dependencies).
 
@@ -51,21 +60,25 @@ It is also a **learning project**: Mahdi wants to understand *why* each technica
 
 | # | Feature | Notes | Phase |
 |---|---|---|---|
-| 1 | Home | Hero + short intro + featured projects + services teaser + latest posts | P2 (+ wiring P5/P6) |
-| 2 | About | Localized Razor prose view | P2 |
-| 3 | Projects / portfolio | DB + admin CRUD; "Live" badge + link for the deployed project | P5 |
-| 4 | Blog | Markdown written in **admin panel** (not DB-direct, not git files); tags, paging | P6 |
+| 1 | Home | Value proposition + **two paths** (hiring / project) + featured projects + services teaser + latest posts; status line in P10 | P2 (+ wiring P5/P6/P10) |
+| 2 | About | "From circuits to cloud" story (EE → backend), localized prose view | P2 |
+| 3 | Projects / portfolio | DB + admin CRUD; **case studies**; "Live" badge + live health status; gym system is the flagship (client permission needed) | P5 |
+| 4 | Blog | Markdown written in **admin panel** (not DB-direct, not git files); tags, paging, growth stages (digital garden), translations | P6 |
 | 5 | Comments | Name + email + text; **Pending until Mahdi approves**; honeypot + timing token + rate limit | P7 |
-| 6 | Contact form | Name, email, message → DB + admin inbox; email notify behind flag | P8 |
-| 7 | Resume page + PDF | PDF **uploaded from admin**; download button | P2 + P8 |
+| 6 | Contact form | Name, email, message, **request type** → DB + admin inbox; email notify behind flag | P8 |
+| 7 | Resume page + PDF | Rendered from **structured résumé JSON** (ADR-013); PDF **uploaded from admin**; download button | P2 + P8 |
 | 8 | Contact links | Email, GitHub, Telegram only (**no LinkedIn, no phone** for now) | P1 |
-| 9 | Newsletter | Model + signup UI now; **sending disabled** behind `Newsletter.Sending` | P11 |
+| 9 | Newsletter | Model + signup UI now; **sending disabled** behind `Newsletter.Sending` | P13 |
 | – | Services page | Freelance services, CTA to contact | P2 |
+| – | Engineering decisions page | ADR cards: challenge → decision → why | P2 |
 | – | Admin panel | ASP.NET Identity, single admin, no public registration | P4 |
-| – | Analytics | Umami, self-hosted | P10 |
-| – | English + geo-based default language | Designed-in now, built later | P13 |
+| – | Machine-readable résumé | `/api/resume.json`, `curl` card, `llms.txt` | P9 |
+| – | Under the hood + analytics | Honest live metrics, `Server-Timing`, architecture page, cinema simulation; Umami | P10 |
+| – | AI layer | Local-model semantic search, related posts, Ctrl+K, MCP server, admin-only assistant | P11 |
+| – | English | `en` culture + switcher, every page bilingual from P2 | P1 → P9 |
+| – | Geo-based default language | GeoIP on `/` only | P14 |
 
-**Out of scope for now:** public user accounts, LinkedIn/phone, payments, newsletter sending, search.
+**Out of scope for now:** public user accounts, LinkedIn/phone, payments, newsletter sending, public AI chat (backlog).
 
 ## 6. Stack (short)
 
@@ -73,7 +86,8 @@ ASP.NET Core 10 (LTS) Razor Pages · light Clean Architecture (Domain / Applicat
 PostgreSQL 17 + EF Core 10 (snake_case) · ASP.NET Identity (single admin) · Tailwind v4 standalone CLI ·
 Alpine.js CSP build · Markdig + HtmlSanitizer · FluentValidation · Microsoft.FeatureManagement · Serilog ·
 Docker Compose (dev & prod) + Caddy · Umami (self-hosted) · xUnit v3 + Shouldly + NSubstitute + Testcontainers ·
-GitHub Actions → GHCR.
+GitHub Actions → GHCR. Planned for P11 (approve per task): Microsoft.Extensions.AI · ONNX Runtime (local embeddings) ·
+pgvector · MCP C# SDK.
 
 ## 7. Architecture decisions (summary — full ADRs in `architecture.md §11`)
 
@@ -91,6 +105,13 @@ GitHub Actions → GHCR.
 | 010 | Moderated comments, no third-party service / CAPTCHA | reCAPTCHA unreliable in Iran; privacy |
 | 011 | Newsletter behind feature flags | Ship model/UI now, send later without migration |
 | 012 | About/Services/Resume prose in localized views | Rarely changes; no admin UI needed |
+| 013 | Structured résumé JSON per culture, many renderings | Page, JSON, `curl`, `llms.txt`, MCP never disagree |
+| 014 | AI optional and local-first, behind `Ai.*` flags | Works on the Iranian server; shows engineered AI |
+| 015 | Admin-only AI assistant via AvalAI (exception to §9) | No public abuse surface; provider swap = config |
+| 016 | Bilingual from P2 | European employers; cheaper than translating later |
+| 017 | One public name: Mahdi Azghandi (Shahram = alternateName) | Matches legal documents |
+| 018 | Honest public telemetry only | No faked numbers, no reconnaissance data |
+| 019 | Two audience paths, no persona toggle | Nothing hidden, one version of each page |
 
 **Layering:** `Web → Application → Domain`; `Infrastructure → Application`. Page models are thin and call
 Application services only — never `AppDbContext`.
@@ -115,7 +136,8 @@ Application services only — never `AppDbContext`.
 
 ## 9. Non-negotiables
 
-- **No external runtime dependencies**: no CDNs, Google Fonts, reCAPTCHA, hosted comment/email/analytics APIs, or Iran-specific services. Vendor assets into `wwwroot/lib`.
+- **No external runtime dependencies**: no CDNs, Google Fonts, reCAPTCHA, hosted comment/email/analytics/AI APIs, or Iran-specific services. Vendor assets into `wwwroot/lib`. Only exception: the admin-only AI assistant (ADR-015) — public features never depend on it.
+- **Honest telemetry**: never show a number the site doesn't measure, and never expose CPU/RAM, container names or package versions publicly (ADR-018).
 - **Dark theme is the default**; everything must look right in both themes.
 - Public forms: honeypot + signed timing token + rate limit. Comments are `Pending` until approved.
 - Don't enable anything behind a feature flag unless Mahdi asks.
@@ -126,11 +148,12 @@ Application services only — never `AppDbContext`.
 
 | Kind | Names |
 |---|---|
-| Feature flags | `Newsletter.Signup` (on), `Newsletter.Sending` (off), `Notifications.Email` (off), `Comments.Enabled` (on), `Analytics.Umami` (on in prod) |
+| Feature flags | `Newsletter.Signup` (on), `Newsletter.Sending` (off), `Notifications.Email` (off), `Comments.Enabled` (on), `Analytics.Umami` (on in prod), `Ai.SemanticSearch`, `Ai.Mcp` (on once built), `Ai.AdminAssistant` (off), `Ai.Chat` (off, backlog) |
 | Auth policy | `Admin` |
-| Rate-limit policies | `public-forms`, `login` |
+| Rate-limit policies | `public-forms`, `login`, `public-api` (JSON/MCP/search/curl) |
 | Cache tags | `blog`, `post:{id}`, `projects` |
-| Cultures | `fa` (now), `en` (P13) |
+| Cultures | `fa` (now), `en` (P1-T11) |
+| Public name | `Mahdi Azghandi`; alternate `Shahram Azghandi` (JSON-LD only + one About line) |
 | Volumes | `pgdata`, `uploads`, `dpkeys`, `caddy_data` |
 | Domains | `mahdiazghandi.ir` (canonical), `shahramazghandi.ir` (301 → canonical) |
 
@@ -149,8 +172,8 @@ When Mahdi says **"Do task Px-Ty"** (or «تسک Px-Ty رو انجام بده»)
 8. Suggest a Conventional Commit message. Commit only if asked.
 
 ### Definition of Done
-Build green · tests green · formatting clean · works in dark **and** light · works RTL at 360px and 1440px ·
-no new hard-coded Persian strings · docs updated · task ticked.
+Build green · tests green · formatting clean · works in dark **and** light · works RTL (`fa`) and, from P1-T11,
+LTR (`en`) at 360px and 1440px · no new hard-coded UI strings (every key in both resx files) · docs updated · task ticked.
 
 ## 12. Environment facts
 

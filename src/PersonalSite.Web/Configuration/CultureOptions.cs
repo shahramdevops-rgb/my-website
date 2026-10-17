@@ -5,7 +5,7 @@ namespace PersonalSite.Web.Configuration;
 
 /// <summary>
 /// Site languages, bound from the <c>Localization</c> configuration section (rules.md §10). The culture name is
-/// also the URL prefix: <c>fa</c> → <c>/fa/...</c>. Adding English (P13) = adding <c>"en"</c> here plus its resx.
+/// also the URL prefix: <c>fa</c> → <c>/fa/...</c>. Adding English (P1-T11) = adding <c>"en"</c> here plus its resx.
 /// Not named LocalizationOptions: that name is taken by the framework (Microsoft.Extensions.Localization).
 /// </summary>
 public sealed class CultureOptions

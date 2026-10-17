@@ -35,6 +35,10 @@ Everything runs from one `docker compose` stack. There are **no** runtime calls 
 (no CDN, no Google Fonts, no external comment service, no hosted email API required). This is what makes
 the site both reliable on an Iranian server *and* trivial to move to an international one later.
 
+The only outbound HTTP calls are: health checks of Mahdi's **own** deployed projects (P5-T7), and — admin-only,
+behind a flag — the AI assistant's provider (ADR-015). Both have timeouts and are never on a public request path.
+The AI layer for visitors (search, related posts, MCP) runs **in-process** with a local model (ADR-014).
+
 ## 2. Tech stack (pinned majors)
 
 | Concern | Choice | Notes |
@@ -55,6 +59,8 @@ the site both reliable on an Iranian server *and* trivial to move to an internat
 | Tests | xUnit v3, Shouldly, NSubstitute, Testcontainers (PostgreSQL), WebApplicationFactory | Run on Microsoft.Testing.Platform (opt-in in `global.json`) |
 | Reverse proxy | Caddy 2 | Automatic HTTPS (Let's Encrypt) for the site domains |
 | Analytics | Umami (self-hosted) | Cookieless |
+| Metrics | `System.Diagnostics.Metrics` + in-memory aggregation (P10) | No Prometheus/Grafana stack needed for one app |
+| AI (planned, P11) | Microsoft.Extensions.AI abstractions; ONNX Runtime local embedding model; pgvector; MCP C# SDK | Each added only after Mahdi approves it in its task |
 | CI | GitHub Actions | Builds images **outside Iran**, pushes to GHCR |
 
 ## 3. Solution layout (light Clean Architecture)
@@ -120,7 +126,9 @@ PersonalSite.Application/
 ├─ Projects/          ProjectService, ProjectAdminService, DTOs, Validators
 ├─ Contact/           ContactService
 ├─ Newsletter/        NewsletterService (signup only; sending behind flag)
-├─ Resume/            ResumeService
+├─ Resume/            ResumeService, ResumeProfile (structured résumé, ADR-013)
+├─ Search/            SearchService, RelatedPostsService (P11; IEmbeddingGenerator abstraction)
+├─ Assistant/         AdminAssistantService (P11; IChatClient abstraction, admin only)
 └─ Features/          FeatureFlags.cs  (string constants for flag names)
 
 PersonalSite.Infrastructure/
@@ -136,6 +144,8 @@ PersonalSite.Infrastructure/
 ├─ Files/LocalFileStorage.cs     (writes to /app/data/uploads volume)
 ├─ Email/SmtpEmailSender.cs, LoggingEmailSender.cs
 ├─ Markdown/MarkdigRenderer.cs   (Markdig pipeline + HtmlSanitizer)
+├─ Monitoring/                   ProjectHealthMonitor (P5), RequestMetrics + DbQueryCounter interceptor (P10)
+├─ Ai/                           OnnxEmbeddingGenerator, OpenAI-compatible chat client setup (P11)
 └─ DependencyInjection.cs        (AddInfrastructure)
 
 PersonalSite.Web/
@@ -159,7 +169,7 @@ PersonalSite.Web/
 ├─ Resources/                    SharedResource.fa.resx (later SharedResource.en.resx), view resx files
 ├─ Formatting/                   DateDisplay (UTC → Site:TimeZone → culture calendar, relative text), NumberDisplay (numbers, reading time), NativeDigits
 ├─ Infrastructure/               Routes (path constants), PageNames + MainNavigation (menu), HealthProbe (container healthcheck), SecurityHeadersMiddleware, SeoHelpers, TagHelpers (<persian-date>)
-├─ Endpoints/                    minimal APIs: / (language redirect), /sitemap.xml, /feed.xml, /robots.txt, /health, /admin/api/markdown-preview, /resume/download
+├─ Endpoints/                    minimal APIs: / (language redirect, or curl card), /sitemap.xml, /feed.xml, /robots.txt, /llms.txt, /health, /api/resume.json, /api/status, /mcp, /admin/api/markdown-preview, /resume/download
 ├─ Styles/app.css                Tailwind v4 input (tokens via @theme; compiled by the TailwindBuild MSBuild target)
 └─ wwwroot/                      css/app.css (generated, git-ignored), js/*.js, lib/alpine, lib/hljs, fonts/<name>-<version>/, img/
 ```
@@ -184,6 +194,7 @@ converted to Persian calendar / Tehran time **only in the view layer**. Primary 
 │ body_html        │  rendered + sanitized cache (what the public sees)
 │ cover_image_id FK│──► media_files
 │ status           │  Draft | Published | Archived
+│ growth_stage     │  Seedling | Budding | Evergreen (digital garden; default Seedling)
 │ published_at     │  nullable; set on first publish
 │ reading_minutes  │
 │ seo_title        │  nullable, falls back to title
@@ -211,13 +222,19 @@ projects
 ─────────
 id, language, translation_group
 slug  UNIQUE(language, slug)
-title, summary, body_markdown, body_html
+title, summary, body_markdown, body_html  (body = case study: Problem · Architecture · Decisions · Results · What went wrong)
 status: Live | InProgress | Archived
 live_url, source_url (nullable)            contact_messages
-tech_stack (text[])                        ────────────────
-cover_image_id FK → media_files            id, name, email, message, status: New|Read|Archived
-is_featured, sort_order                    ip_hash, created_at
-started_on, finished_on (date, nullable)
+health_url (nullable, https; P5-T7)        ────────────────
+tech_stack (text[])                        id, name, email, message
+cover_image_id FK → media_files            type: Hiring | Project | Other
+is_featured, sort_order                    status: New | Read | Archived
+started_on, finished_on (date, nullable)   ip_hash, created_at
+
+content_embeddings (P11)
+────────────────────────
+id, owner_type (Post | Project), owner_id, language, chunk_index, chunk_text
+embedding vector(n)  HNSW index (pgvector)
 
 media_files                                resume_documents
 ───────────                                ────────────────
@@ -237,7 +254,8 @@ created_at, confirmed_at, unsubscribed_at
 ```
 
 ### 4.1 Multilingual content model
-- Every *content* entity (Post, Project, Tag, ResumeDocument) has a `language` column (`fa` now).
+- Every *content* entity (Post, Project, Tag, ResumeDocument) has a `language` column (`fa`, and `en` from P1-T11).
+- The structured résumé is not in the DB: one JSON file per culture in git (ADR-013).
 - Translations of the same item share a `translation_group` (UUID). A Persian post and its future English
   version are two rows with the same `translation_group` → used to emit `<link rel="alternate" hreflang>`.
 - Slugs are unique **per language**. This means adding English = inserting rows, not migrating schema.
@@ -276,7 +294,11 @@ slugs become long percent-encoded URLs when shared (e.g. in Telegram). See learn
 3. `Accept-Language` header, filtered by supported cultures
 4. Default: `fa`
 
-Today only step 1, 3, 4 exist and only `fa` is supported, so everything lands on `/fa`. Adding step 2 is one class.
+Today only step 1, 3, 4 exist and only `fa` is supported, so everything lands on `/fa`. From P1-T11 `en` is
+supported too (English browsers land on `/en`). Adding step 2 (P14-T1) is one class.
+
+Exception: a request to `/` from a terminal client (`curl`/`Wget`/`HTTPie` user agent, no `text/html` in `Accept`)
+gets the plain-text résumé card instead of the redirect (P9-T5; response carries `Vary: User-Agent, Accept`).
 
 ## 6. Routing
 
@@ -287,7 +309,7 @@ files stay clean (`@page "{slug}"`).
 - `CultureRouteConvention` skips area pages (admin) and an explicit list of technical pages (today `/Error`,
   which the exception handler re-executes without a culture).
 - `CultureRouteConstraint` (`{culture:culture}`) accepts only `CultureOptions.SupportedCultures` (config section
-  `Localization`), so `/en/...` is a 404 until English is enabled.
+  `Localization`), so `/en/...` is a 404 until English is enabled (P1-T11).
 - `RequestLocalization` uses **only** the route-data provider: the URL decides the page language; cookie and
   `Accept-Language` matter only for the `/` redirect. Responses carry `Content-Language`.
 - `WebEncoderOptions` allows all Unicode ranges, so Persian text is emitted as letters, not `&#x...;` entities
@@ -303,9 +325,15 @@ files stay clean (`@page "{slug}"`).
 | `/fa/blog`, `/fa/blog/{slug}`, `/fa/blog/tag/{slug}` | Blog |
 | `/fa/resume` | Resume page |
 | `/fa/resume/download` | Current PDF for language (tracked download) |
-| `/fa/contact` | Contact form |
+| `/fa/contact` | Contact form (`?type=hiring|project` preselects the request type) |
+| `/fa/decisions` | Engineering decisions (ADR cards) |
+| `/fa/under-the-hood` | Live metrics + architecture (P10) |
+| `/fa/search` | Semantic search (P11, flag `Ai.SemanticSearch`) |
 | `/fa/newsletter` | Subscribe (flag `Newsletter.Signup`) |
 | `/feed.xml`, `/fa/feed.xml` | RSS/Atom |
+| `/api/resume.json`, `/llms.txt` | Machine-readable résumé (P9) |
+| `/api/status` | Public status JSON (P10) |
+| `/mcp` | MCP server, read-only (P11, flag `Ai.Mcp`) |
 | `/sitemap.xml`, `/robots.txt`, `/health` | infra |
 | `/admin/...` | Admin area (no culture prefix; admin UI is Persian-only via resx) |
 
@@ -316,7 +344,9 @@ URLs use lowercase (`RouteOptions.LowercaseUrls = true`) and no trailing slash.
 | Concern | Approach |
 |---|---|
 | Configuration | `appsettings.json` → `appsettings.{Env}.json` → env vars (`Section__Key`). Strongly-typed via Options pattern + `ValidateOnStart()`. Secrets only in env/.env (never committed). |
-| Feature flags | `FeatureManagement` section: `Newsletter.Signup` (true), `Newsletter.Sending` (false), `Notifications.Email` (false), `Comments.Enabled` (true), `Analytics.Umami` (true in prod). |
+| Feature flags | `FeatureManagement` section: `Newsletter.Signup` (true), `Newsletter.Sending` (false), `Notifications.Email` (false), `Comments.Enabled` (true), `Analytics.Umami` (true in prod), `Ai.SemanticSearch` (true once built), `Ai.Mcp` (true once built), `Ai.AdminAssistant` (false until Mahdi enables), `Ai.Chat` (false, backlog). |
+| Outbound HTTP | Only to Mahdi's own projects (health checks) and the admin AI provider; typed `HttpClient`s with timeouts; never awaited while rendering a public page. |
+| Public telemetry | Only numbers this site measures (ADR-018). Never public: CPU/RAM, container names, package versions, internal hostnames. |
 | Errors | `UseExceptionHandler("/Error")` + `UseStatusCodePagesWithReExecute("/NotFound")`; Application returns `Result<T>` for expected failures, exceptions only for bugs. |
 | Logging | Serilog, request logging middleware, correlation via `TraceIdentifier`. No PII (emails) in logs. |
 | Security | HTTPS/HSTS (prod), CSP with nonces, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, antiforgery (default in Razor Pages), rate limiting, Identity lockout, admin 2FA (TOTP) in hardening phase. |
@@ -442,4 +472,11 @@ Integration tests share one `WebAppFactory` (xUnit assembly fixture) that owns o
 - **ADR-009 Single PostgreSQL instance, separate DB for Umami.** One thing to back up and monitor; isolation via separate database + user.
 - **ADR-010 Comments moderated, no third-party service.** Disqus-style services are heavy, track users, and may be blocked. Honeypot + timing token + rate limit stops most bots without CAPTCHAs (Google reCAPTCHA is unreliable in Iran).
 - **ADR-011 Newsletter behind feature flags.** Data model and signup ship now; sending is off until an email provider is chosen. Double opt-in is designed in so no data migration is needed later.
-- **ADR-012 About/Services/Resume prose via localized Razor views, not DB (for now).** These change rarely; view localization (`About.fa.cshtml` partials) keeps them in git with no admin UI to build. Blog/Projects (frequent edits) are DB + admin. Can be moved to DB later without URL changes.
+- **ADR-012 About/Services/Resume prose via localized Razor views, not DB (for now).** These change rarely; view localization (`About.fa.cshtml` partials) keeps them in git with no admin UI to build. Blog/Projects (frequent edits) are DB + admin. Can be moved to DB later without URL changes. *Amended by ADR-013 for the résumé data.*
+- **ADR-013 Structured résumé as one source, many renderings.** The résumé (experience, education, skills, links) is a typed `ResumeProfile` loaded from one JSON file per culture in git and validated at startup. The Resume page, About skills grid, `/api/resume.json`, the `curl` card, `llms.txt` and the MCP `get_resume` tool all render the same data, so they can never disagree. Prose around it (About story, Services) stays in localized views.
+- **ADR-014 AI is an optional, local-first layer.** Visitor-facing AI (semantic search, related posts, MCP) uses a small embedding model running in-process via ONNX Runtime and pgvector in the existing PostgreSQL — no external API, so it works on the Iranian server and costs nothing per request. Every AI feature sits behind an `Ai.*` flag and Microsoft.Extensions.AI abstractions (`IEmbeddingGenerator`, `IChatClient`); with all flags off the site is complete. The point is to show *engineered* AI, not a thin wrapper.
+- **ADR-015 Admin-only AI assistant via an OpenAI-compatible Iranian gateway (AvalAI).** A deliberate, narrow exception to "no Iran-specific services": major AI APIs don't serve Iran, and only Mahdi uses this feature, so there is no public abuse surface and an outage only disables a helper button. Guard rails: flag `Ai.AdminAssistant` (off by default), daily token budget, prepaid credit, never auto-publishes. Behind `IChatClient`, switching providers (e.g. after moving abroad) is a config change. Public features must never depend on it.
+- **ADR-016 Bilingual from P2 (English moved up from P13).** European employers are a main audience. The i18n plumbing already exists, so every page is written in `fa` and `en` as it is built — cheaper than translating everything later. Only GeoIP language selection stays late (P14).
+- **ADR-017 One public identity: Mahdi Azghandi.** The legal name matches degrees, contracts and background checks. "Shahram Azghandi" is recorded as `alternateName` in JSON-LD, `shahramazghandi.ir` 301-redirects to the canonical domain, and About mentions it once. All UI text uses the primary name.
+- **ADR-018 Honest public telemetry.** Only numbers the site actually measures are shown (latency percentiles, error rate, cache hit ratio, deploy info, own projects' health). No CPU/RAM, container names or package versions (reconnaissance value for attackers, no value for visitors), and no availability percentage the site can't measure from inside itself.
+- **ADR-019 Two audiences via two paths, not a persona toggle.** Recruiters and clients get clear paths from Home (Resume/Decisions vs Services/Contact) and a request type on the contact form. A toggle would hide half the content, double the maintenance and confuse search engines.

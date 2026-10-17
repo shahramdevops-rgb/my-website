@@ -12,11 +12,11 @@ public interface ILanguageResolver
 
 /// <summary>
 /// Order (architecture.md §5.4): the <c>lang</c> cookie (explicit choice) → <c>Accept-Language</c> (browser
-/// setting) → the default. A GeoIP step slots in between the first two in P13.
+/// setting) → the default. A GeoIP step slots in between the first two in P14.
 /// </summary>
 public sealed class LanguageResolver(IOptions<CultureOptions> options) : ILanguageResolver
 {
-    /// <summary>Set by the language switcher (P13).</summary>
+    /// <summary>Set by the language switcher (P1-T11).</summary>
     public const string CookieName = "lang";
 
     public string Resolve(HttpRequest request)
