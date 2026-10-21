@@ -31,15 +31,22 @@ reveal something real about the back-end. Details and rejected ideas: `roadmap.m
   P1 — Razor front-end (T1–T8) — **retired** on 2026-10-18 by the full-stack decision (ADR-021…027); P1-T9…T11 cancelled.
 - **Done in P2:** `P2-T1` (`PersonalSite.Web` → `PersonalSite.Api`; Razor UI, Tailwind CLI, Alpine, resx removed; fonts moved to `frontend/src/fonts/`).
   `P2-T2` (build-time `openapi/v1.json`, CI stale check; `GET /api/site`; FeatureManagement with all §10 flags).
-- **Next task:** `P2-T3` (Next.js app scaffold).
+  `P2-T3` (`frontend/` scaffold: Next 16.4, React 19.3, TS 6.0, pnpm 10, ESLint 9 + Prettier, Vitest, Playwright; CI `frontend` job).
+- **Next task:** `P2-T4` (typed API client).
 - **Accent color:** electric blue (`#4DB5FF` dark / `#0A63C9` light), picked by Claude at Mahdi's request; easy to change (`architecture.md §8.1`).
 - **Waiting on Mahdi:** contact links (`Site:Social:Email|GitHub|Telegram`).
 - **Code today:** an API-only ASP.NET Core app (`/health`, `/health/ready`, `GET /api/site`; unknown paths → 404
-  ProblemDetails; CSP `default-src 'none'`). Every build rewrites `openapi/v1.json` — commit it with contract changes. `frontend/` holds only the fonts until P2-T3. P1's ideas that carry over: `architecture.md §8.4`.
+  ProblemDetails; CSP `default-src 'none'`). Every build rewrites `openapi/v1.json` — commit it with contract changes.
+  `frontend/` is a bare Next.js app: one placeholder page (fixed `lang="fa"`) until P2-T4/T6; fonts in `src/fonts/`.
+  P1's ideas that carry over: `architecture.md §8.4`.
 - **Dev DB** is published on host port **5433** (Mahdi has another project's PostgreSQL on 5432). For `dotnet watch`
   on the host, the connection string lives in **user-secrets** (`ConnectionStrings:Default`); in Docker, compose builds it from `.env`.
-- **Tooling note:** locally (VS Code extension) Claude can use `dotnet`, `node`/`pnpm` and reach nuget.org/npm; in
-  cloud sandboxes it may not — then Mahdi runs those commands.
+- **Tooling note:** locally (VS Code extension) Claude can use `dotnet`, `node` and reach nuget.org/npm; in
+  cloud sandboxes it may not — then Mahdi runs those commands. pnpm isn't on PATH until Mahdi runs `corepack enable`
+  (needs an admin shell on Windows); until then use `corepack pnpm <cmd>` from `frontend/`.
+- **Front-end versions held back on purpose:** TypeScript 6.0 (typescript-eslint supports `<6.1`, not TS 7) and
+  ESLint 9 (eslint-plugin-react/import/jsx-a11y don't support ESLint 10 yet). Revisit when their peer ranges allow.
+  Next 16 ships its own docs in `frontend/node_modules/next/dist/docs/` — check them for exact-version APIs.
 - **Tests** run on Microsoft.Testing.Platform (`global.json` → `test.runner`); `dotnet test` from the repo root
   (Docker must be running: integration tests start PostgreSQL via Testcontainers). Front-end: `pnpm test`, `pnpm e2e` (from P2-T3).
 - Keep this section updated: after finishing a task, set "Next task" to the next unchecked item.

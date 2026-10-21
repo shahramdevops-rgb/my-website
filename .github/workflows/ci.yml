@@ -1,4 +1,5 @@
-# CI: every push and pull request must build, be formatted, and pass all tests (incl. Testcontainers).
+# CI: every push and pull request must build, be formatted, and pass all tests — two jobs in parallel:
+# the .NET API (incl. Testcontainers) and the Next.js front-end.
 # Image build + push to GHCR is a separate workflow (release.yml, P4).
 name: CI
 
@@ -67,3 +68,47 @@ jobs:
 
       - name: Test
         run: dotnet test --no-build --configuration Release
+
+  frontend:
+    name: Front-end
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+    env:
+      # Next.js sends anonymous usage data by default; this project sends nothing it doesn't have to.
+      NEXT_TELEMETRY_DISABLED: 1
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          # The exact pnpm version comes from "packageManager" in this file (same as Corepack locally).
+          package_json_file: frontend/package.json
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: frontend/.nvmrc
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      # --frozen-lockfile: install exactly what pnpm-lock.yaml says, and fail if package.json disagrees with it.
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint & format check
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Test
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build

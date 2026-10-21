@@ -106,7 +106,7 @@
   Done when: `openapi/v1.json` describes `/api/site`; CI catches a stale document.
   Learn: OpenAPI, code-first contracts.
 
-- [ ] **P2-T3 Next.js app scaffold**
+- [x] **P2-T3 Next.js app scaffold**
   Scope: `frontend/` — Next.js 16 App Router, React 19, TypeScript (`strict`, `noUncheckedIndexedAccess`), `src/` dir, pnpm 10 (`packageManager` field, Corepack), Node 24 LTS (`.nvmrc`, `engines`), `output: 'standalone'`; ESLint (Next config) + Prettier; Vitest + Testing Library (one component test); Playwright (one smoke test); scripts `dev`, `build`, `start`, `lint`, `typecheck`, `test`, `e2e`, `format`; `.gitignore`/`.dockerignore`. CI: a `frontend` job (frozen-lockfile install → lint → typecheck → test → build) next to the .NET job.
   Done when: `pnpm dev` serves a page; both CI jobs green.
   Learn: App Router basics; server vs client components.

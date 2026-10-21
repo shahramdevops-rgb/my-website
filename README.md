@@ -30,7 +30,8 @@ demos, technical blog, services, contact. Content in Persian (RTL) and English (
 ## Prerequisites (Windows dev machine)
 
 - .NET 10 SDK
-- Node.js 24 LTS + pnpm (via `corepack enable`) — from P2-T3
+- Node.js 24 LTS + pnpm via Corepack: run `corepack enable` once in an **admin** PowerShell (it writes the `pnpm`
+  shim next to `node.exe`). The exact pnpm version comes from `frontend/package.json` (`packageManager`).
 - Docker Desktop (WSL 2 backend)
 - Git
 - Editor: Visual Studio 2026 / VS Code / Rider
@@ -67,6 +68,13 @@ dotnet test                                        # needs Docker running (Testc
 dotnet format --verify-no-changes
 dotnet ef migrations add <Name> -p src/PersonalSite.Infrastructure -s src/PersonalSite.Api
 dotnet ef migrations script -p src/PersonalSite.Infrastructure -s src/PersonalSite.Api   # review SQL
+
+# front-end, in frontend/
+pnpm install                                       # exact versions from pnpm-lock.yaml
+pnpm dev                                           # http://localhost:3000
+pnpm lint; pnpm typecheck; pnpm test; pnpm build
+pnpm exec playwright install chromium              # once, for the e2e tests
+pnpm e2e                                           # builds, starts on :3100, runs Playwright
 ```
 
 ## Environment variables

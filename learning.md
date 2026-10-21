@@ -293,6 +293,15 @@ export default async function ProjectsPage() {
 // components/bento/Spotlight.tsx starts with "use client" — it needs pointer events.
 ```
 
+### 4.12 App Router basics: folders are URLs (P2-T3)
+In `src/app/`, a folder is a URL segment and a few reserved file names give it meaning:
+```
+src/app/layout.tsx      → wraps every page (<html>, <body>); stays mounted while you navigate
+src/app/page.tsx        → the page for "/"
+src/app/about/page.tsx  → the page for "/about"            (P2-T6 adds the [locale] folder: "/fa/about")
+```
+Both files are Server Components by default (4.11): `page.tsx` just returns JSX, and Next renders it to HTML on the server. Tooling around it, in `frontend/package.json`: `pnpm lint` (ESLint finds bugs + Prettier checks layout), `pnpm typecheck` (`next typegen` writes route types, then `tsc` checks everything), `pnpm test` (Vitest: components in a simulated DOM, milliseconds), `pnpm e2e` (Playwright: a real Chromium against a production build, seconds). Why the lockfile matters: `pnpm-lock.yaml` records the exact version of every package, even indirect ones; CI's `pnpm install --frozen-lockfile` refuses to change it, so CI tests exactly what you tested.
+
 ---
 
 ## Part 5 — Security
