@@ -302,6 +302,20 @@ src/app/about/page.tsx  → the page for "/about"            (P2-T6 adds the [lo
 ```
 Both files are Server Components by default (4.11): `page.tsx` just returns JSX, and Next renders it to HTML on the server. Tooling around it, in `frontend/package.json`: `pnpm lint` (ESLint finds bugs + Prettier checks layout), `pnpm typecheck` (`next typegen` writes route types, then `tsc` checks everything), `pnpm test` (Vitest: components in a simulated DOM, milliseconds), `pnpm e2e` (Playwright: a real Chromium against a production build, seconds). Why the lockfile matters: `pnpm-lock.yaml` records the exact version of every package, even indirect ones; CI's `pnpm install --frozen-lockfile` refuses to change it, so CI tests exactly what you tested.
 
+
+### 4.13 One contract, two languages (P2-T4)
+The C# DTO is the single source of truth; TypeScript never re-types it by hand:
+```
+SiteNameDto(string Fa, string En)  ──dotnet build──►  openapi/v1.json  ──pnpm gen:api──►  schema.d.ts
+                                                                                            { fa: string; en: string }
+```
+`openapi-fetch` reads those types, so a call is checked end to end — the path, the parameters and the response:
+```ts
+const { data } = await createServerApi().GET("/api/site"); // "/api/sites" would not compile
+data?.name.fa;                                             // typed as string
+```
+Try it: rename `Fa` to `Persian` in C#, run both generators, and `pnpm typecheck` fails at every place that reads `name.fa` — before anything is deployed. CI runs both generators and fails if the committed files differ, so nobody can skip the step. Two clients exist because the two sides reach the API differently: the server calls `API_INTERNAL_URL` directly (container to container), the browser calls its own origin (`/api/...`), which Caddy routes to the API.
+
 ---
 
 ## Part 5 — Security

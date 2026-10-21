@@ -1,6 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const port = 3100;
+const mockApiPort = 3101;
 const baseURL = `http://localhost:${port}`;
 
 export default defineConfig({
@@ -13,13 +14,23 @@ export default defineConfig({
     trace: "retain-on-failure",
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
-  // Tests run against a production build, the same code visitors get (not the dev server).
-  // `next start` warns that it "does not work" with output: "standalone"; it still serves the build fine.
-  // Production runs .next/standalone/server.js in the Docker image instead (P2-T5).
-  webServer: {
-    command: `next build && next start --port ${port}`,
-    url: baseURL,
-    reuseExistingServer: !process.env.CI,
-    timeout: 180_000,
-  },
+  webServer: [
+    {
+      // Fake API with fixed answers (see the file), instead of the .NET API + PostgreSQL.
+      command: "node e2e/mock-api.ts",
+      url: `http://localhost:${mockApiPort}/api/site`,
+      env: { MOCK_API_PORT: String(mockApiPort) },
+      reuseExistingServer: !process.env.CI,
+    },
+    {
+      // Tests run against a production build, the same code visitors get (not the dev server).
+      // `next start` warns that it "does not work" with output: "standalone"; it still serves the build fine.
+      // Production runs .next/standalone/server.js in the Docker image instead (P2-T5).
+      command: `next build && next start --port ${port}`,
+      url: baseURL,
+      env: { API_INTERNAL_URL: `http://localhost:${mockApiPort}` },
+      reuseExistingServer: !process.env.CI,
+      timeout: 180_000,
+    },
+  ],
 });

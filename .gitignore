@@ -27,6 +27,8 @@ coverage*/
 .env
 .env.*
 !.env.example
+# Next.js dev defaults (no secrets): committed so `pnpm dev` works after a clone.
+!frontend/.env.development
 appsettings.*.local.json
 *.pfx
 *.key

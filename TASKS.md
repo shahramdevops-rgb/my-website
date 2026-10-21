@@ -111,7 +111,7 @@
   Done when: `pnpm dev` serves a page; both CI jobs green.
   Learn: App Router basics; server vs client components.
 
-- [ ] **P2-T4 Typed API client**
+- [x] **P2-T4 Typed API client**
   Scope: `openapi-typescript` → `src/lib/api/schema.d.ts` (`pnpm gen:api` from `../openapi/v1.json`), `openapi-fetch` client factory (server: `API_INTERNAL_URL`; browser: same-origin `/api`), forwarding of the incoming cookie for server calls (helper, used from P5), env validation in `src/lib/env.ts` (fails startup on missing values); the placeholder home page shows the site name from `/api/site`. CI fails when generated types are stale.
   Done when: renaming a field of the `/api/site` DTO breaks `pnpm typecheck` (shown in the PR).
   Learn: one contract, two languages.

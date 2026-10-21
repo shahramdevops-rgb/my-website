@@ -101,6 +101,17 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
 
+      # The TS types come from openapi/v1.json (whose match with the C# code the .NET job checks). Stale types
+      # would let the front-end compile against a contract the API no longer has.
+      - name: Check API types are current
+        run: |
+          pnpm gen:api
+          if [ -n "$(git status --porcelain -- src/lib/api/schema.d.ts)" ]; then
+            echo "::error file=frontend/src/lib/api/schema.d.ts::API types are stale. Run 'pnpm gen:api' and commit the result."
+            git --no-pager diff -- src/lib/api/schema.d.ts
+            exit 1
+          fi
+
       - name: Lint & format check
         run: pnpm lint
 

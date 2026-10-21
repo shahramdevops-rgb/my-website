@@ -1,9 +1,15 @@
-// Placeholder home page. P2-T4 replaces the hard-coded name with the one from GET /api/site,
-// P2-T6 moves the text into messages/{fa,en}.json.
-export default function HomePage() {
+import { connection } from "next/server";
+import { getSiteInfo } from "@/lib/site/get-site-info";
+
+// Placeholder home page: the [locale] segment and messages/{fa,en}.json arrive in P2-T6.
+export default async function HomePage() {
+  // Render on each request, never at build time: the API isn't running during `next build`.
+  await connection();
+  const site = await getSiteInfo();
+
   return (
     <main>
-      <h1>مهدی ازقندی</h1>
+      <h1>{site.name.fa}</h1>
     </main>
   );
 }

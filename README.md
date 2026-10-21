@@ -73,6 +73,7 @@ dotnet ef migrations script -p src/PersonalSite.Infrastructure -s src/PersonalSi
 pnpm install                                       # exact versions from pnpm-lock.yaml
 pnpm dev                                           # http://localhost:3000
 pnpm lint; pnpm typecheck; pnpm test; pnpm build
+pnpm gen:api                                       # after `dotnet build` changed openapi/v1.json: regenerate TS types
 pnpm exec playwright install chromium              # once, for the e2e tests
 pnpm e2e                                           # builds, starts on :3100, runs Playwright
 ```
