@@ -116,7 +116,7 @@
   Done when: renaming a field of the `/api/site` DTO breaks `pnpm typecheck` (shown in the PR).
   Learn: one contract, two languages.
 
-- [ ] **P2-T5 One origin: Docker + Caddy for development**
+- [x] **P2-T5 One origin: Docker + Caddy for development**
   Scope: `frontend/Dockerfile` (multi-stage, standalone output, non-root, healthcheck); compose services `frontend`, `api`, `db`, `caddy` (dev Caddyfile routing per architecture §1/§6: `/api/*`, `/media/*`, `/health*`, `/llms.txt`, `/mcp` → api, `/internal/*` → 404, rest → frontend); dev ports: Caddy `127.0.0.1:8080`, db `127.0.0.1:5433`. Host workflow: Next `rewrites` send `/api/*` to `http://localhost:5080` in development only. README "Getting started" rewritten for both workflows.
   Done when: `docker compose up --build` → `http://localhost:8080/` is Next.js and `http://localhost:8080/api/site` is the API; host workflow works on `:3000`.
   Learn: reverse proxy routing, why one origin removes CORS.

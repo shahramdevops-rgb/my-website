@@ -5,6 +5,29 @@
 name: personalsite
 
 services:
+  # The only way in: one origin for both apps (routing in deploy/Caddyfile.dev; prod Caddyfile in P4).
+  caddy:
+    image: caddy:2.11-alpine
+    volumes:
+      - caddy_data:/data
+    depends_on:
+      frontend:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+    image: personalsite-frontend:dev
+    environment:
+      # Server-side calls go straight to the API container over the compose network, not through Caddy.
+      API_INTERNAL_URL: http://api:8080
+    depends_on:
+      api:
+        condition: service_healthy
+    # Healthcheck is defined in frontend/Dockerfile (HEALTHCHECK).
+
   api:
     build:
       context: .
@@ -37,3 +60,5 @@ volumes:
   # Named volume: lives outside the container, survives `docker compose down`.
   # Only `docker compose down -v` deletes it.
   pgdata:
+  # Caddy's certificates and state (used for real in production).
+  caddy_data:

@@ -34,7 +34,8 @@ reveal something real about the back-end. Details and rejected ideas: `roadmap.m
   `P2-T3` (`frontend/` scaffold: Next 16.4, React 19.3, TS 6.0, pnpm 10, ESLint 9 + Prettier, Vitest, Playwright; CI `frontend` job).
   `P2-T4` (`pnpm gen:api` → `src/lib/api/schema.d.ts`, server/browser `openapi-fetch` clients, `src/lib/env.ts`
   checked at start by `instrumentation-node.ts` (exit 1), home page shows the name from `/api/site`; e2e uses `e2e/mock-api.ts`).
-- **Next task:** `P2-T5` (one origin: Docker + Caddy for development).
+  `P2-T5` (`frontend/Dockerfile`, compose `caddy` + `frontend`, `deploy/Caddyfile.dev`, dev `/api` rewrite on :3000).
+- **Next task:** `P2-T6` (i18n fa + en & formatting).
 - **Accent color:** electric blue (`#4DB5FF` dark / `#0A63C9` light), picked by Claude at Mahdi's request; easy to change (`architecture.md §8.1`).
 - **Waiting on Mahdi:** contact links (`Site:Social:Email|GitHub|Telegram`).
 - **Code today:** an API-only ASP.NET Core app (`/health`, `/health/ready`, `GET /api/site`; unknown paths → 404

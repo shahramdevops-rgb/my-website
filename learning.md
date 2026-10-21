@@ -450,3 +450,12 @@ CI = a clean machine re-checks every push: restore → build → format check �
 dotnet build -c Release; dotnet format --verify-no-changes; dotnet test -c Release
 ```
 Two small habits in the file: `permissions: contents: read` (least privilege for the token) and `concurrency` (a newer push cancels the older run).
+
+### 7.12 Reverse proxy routing (Caddy) (P2-T5)
+A reverse proxy is the one door the browser knocks on; it looks at each request and forwards it to the right app behind it. Ours decides by **path** (`deploy/Caddyfile.dev`):
+```
+@api path /api/* /health*  …  →  reverse_proxy api:8080       (ASP.NET Core)
+@internal path /internal/*    →  respond 404                  (front-end internals stay private)
+everything else               →  reverse_proxy frontend:3000  (Next.js)
+```
+`api` and `frontend` are compose **service names**: Docker's internal DNS resolves them on the compose network, and only Caddy publishes a port to your machine. Two kinds of traffic, two routes: the *browser* always goes through Caddy (`localhost:8080/api/site`); the *Next.js server* calls `http://api:8080` directly, container to container — no detour through the proxy. On the host (`pnpm dev`) there is no Caddy, so a development-only `rewrites` rule in `next.config.ts` plays its part for `/api/*`. Why one origin removes CORS: see 4.10.

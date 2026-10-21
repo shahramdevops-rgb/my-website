@@ -5,6 +5,15 @@ const nextConfig: NextConfig = {
   output: "standalone",
   // No "X-Powered-By: Next.js": the public never sees which stack versions we run (ADR-018).
   poweredByHeader: false,
+
+  // Host workflow only (`pnpm dev` on :3000, API on :5080): pass /api/* on to the API, so the browser sees one
+  // origin just like behind Caddy. In Docker and production Caddy does this and the list stays empty.
+  async rewrites() {
+    const apiUrl = process.env.API_INTERNAL_URL;
+    if (process.env.NODE_ENV !== "development" || !apiUrl) return [];
+
+    return [{ source: "/api/:path*", destination: `${apiUrl}/api/:path*` }];
+  },
 };
 
 export default nextConfig;

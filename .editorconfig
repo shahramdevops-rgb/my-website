@@ -15,6 +15,10 @@ indent_size = 2
 [*.{cshtml,html,css,js,mjs,cjs,ts,tsx,mts}]
 indent_size = 2
 
+[Caddyfile*]
+# Caddy's own formatter (`caddy fmt`) uses tabs.
+indent_style = tab
+
 [*.md]
 trim_trailing_whitespace = false
 

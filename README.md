@@ -36,29 +36,57 @@ demos, technical blog, services, contact. Content in Persian (RTL) and English (
 - Git
 - Editor: Visual Studio 2026 / VS Code / Rider
 
-## Getting started (available after Phase 0)
+## Getting started
+
+The browser always sees **one origin**: pages come from Next.js, `/api/*` from the ASP.NET Core API. Pick one of two
+ways to run it.
 
 ```powershell
 git clone <repo-url> my-website
 cd my-website
-Copy-Item .env.example .env        # then edit values
-
-# Option A — API on host, DB in Docker (best for debugging)
-docker compose up -d db
-# once: connection string for the host app (stored outside the repo; use the password from .env)
-dotnet user-secrets set "ConnectionStrings:Default" "Host=localhost;Port=5433;Database=site;Username=site;Password=<POSTGRES_PASSWORD>" --project src/PersonalSite.Api
-dotnet watch --project src/PersonalSite.Api        # http://localhost:5080
-
-# Option B — everything in containers
-docker compose up --build --remove-orphans         # http://localhost:8080 (--remove-orphans: drops the old `web` container once)
+Copy-Item .env.example .env        # then edit values (at least POSTGRES_PASSWORD)
 ```
 
-Health: `/health` (liveness) · `/health/ready` (checks the DB). Unknown paths answer `404` with a ProblemDetails JSON body.
+### Option A — everything in containers (closest to production)
 
-In Development the app applies pending EF Core migrations at startup; in production that is a separate deploy step.
+```powershell
+docker compose up --build          # http://localhost:8080
+```
 
-PostgreSQL (dev): `localhost:5433` (host port 5433 avoids clashing with another local PostgreSQL).
-`docker compose down` keeps the database (named volume `pgdata`); `docker compose down -v` **deletes** it.
+Caddy (`deploy/Caddyfile.dev`) is the only published port and splits the traffic by path:
+
+| Path | Goes to |
+|---|---|
+| `/api/*`, `/health*`, `/media/*`, `/llms.txt`, `/mcp` | `api` (ASP.NET Core) |
+| `/internal/*` | 404 (front-end internals, reachable only inside Docker) |
+| everything else | `frontend` (Next.js) |
+
+The front-end's server calls the API directly at `http://api:8080` (compose network), not through Caddy.
+
+### Option B — apps on the host, only the database in Docker (best for debugging, hot reload)
+
+```powershell
+docker compose up -d db
+# once: connection string for the host API (stored outside the repo; use the password from .env)
+dotnet user-secrets set "ConnectionStrings:Default" "Host=localhost;Port=5433;Database=site;Username=site;Password=<POSTGRES_PASSWORD>" --project src/PersonalSite.Api
+dotnet watch --project src/PersonalSite.Api        # API on http://localhost:5080
+
+# second terminal
+cd frontend
+pnpm install
+pnpm dev                                           # site on http://localhost:3000
+```
+
+In this mode Next.js itself forwards `/api/*` to `:5080` (a `rewrites` rule active only in development; settings in
+`frontend/.env.development`), so `http://localhost:3000/api/site` works like `:8080/api/site` does behind Caddy.
+
+### Good to know
+
+- Health: `/health` (liveness) · `/health/ready` (checks the DB). Unknown API paths answer `404` with a ProblemDetails JSON body.
+- In Development the API applies pending EF Core migrations at startup; in production that is a separate deploy step.
+- The front-end refuses to start without `API_INTERNAL_URL` (validated in `frontend/src/lib/env.ts`).
+- PostgreSQL (dev): `localhost:5433` (host port 5433 avoids clashing with another local PostgreSQL).
+- `docker compose down` keeps the database (named volume `pgdata`); `docker compose down -v` **deletes** it.
 
 ## Common commands
 

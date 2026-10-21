@@ -1,0 +1,28 @@
+# Development reverse proxy: one origin (http://localhost:8080) in front of both apps (architecture.md §1, §6).
+# Production gets its own deploy/Caddyfile (HTTPS, domains, redirects) in P4.
+{
+	# Plain HTTP only: no certificates for localhost. The admin API is not needed.
+	auto_https off
+	admin off
+}
+
+:80 {
+	encode zstd gzip
+
+	# Machine and API paths → ASP.NET Core.
+	@api path /api/* /media/* /health /health/* /llms.txt /mcp /mcp/*
+	handle @api {
+		reverse_proxy api:8080
+	}
+
+	# The front-end's internal routes (healthcheck; revalidation hook from P7) are for the docker network only.
+	@internal path /internal /internal/*
+	handle @internal {
+		respond 404
+	}
+
+	# Everything else → Next.js (pages, /_next/static assets).
+	handle {
+		reverse_proxy frontend:3000
+	}
+}
