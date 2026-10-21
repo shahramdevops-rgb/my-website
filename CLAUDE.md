@@ -30,11 +30,12 @@ reveal something real about the back-end. Details and rejected ideas: `roadmap.m
 - **Done:** P0 — Foundation (solution, Docker, EF Core + PostgreSQL, tests, CI on GitHub `shahramdevops-rgb/my-website`).
   P1 — Razor front-end (T1–T8) — **retired** on 2026-10-18 by the full-stack decision (ADR-021…027); P1-T9…T11 cancelled.
 - **Done in P2:** `P2-T1` (`PersonalSite.Web` → `PersonalSite.Api`; Razor UI, Tailwind CLI, Alpine, resx removed; fonts moved to `frontend/src/fonts/`).
-- **Next task:** `P2-T2` (OpenAPI document + `GET /api/site`).
+  `P2-T2` (build-time `openapi/v1.json`, CI stale check; `GET /api/site`; FeatureManagement with all §10 flags).
+- **Next task:** `P2-T3` (Next.js app scaffold).
 - **Accent color:** electric blue (`#4DB5FF` dark / `#0A63C9` light), picked by Claude at Mahdi's request; easy to change (`architecture.md §8.1`).
 - **Waiting on Mahdi:** contact links (`Site:Social:Email|GitHub|Telegram`).
-- **Code today:** an API-only ASP.NET Core app (`/health`, `/health/ready`; unknown paths → 404 ProblemDetails;
-  CSP `default-src 'none'`). `frontend/` holds only the fonts until P2-T3. P1's ideas that carry over: `architecture.md §8.4`.
+- **Code today:** an API-only ASP.NET Core app (`/health`, `/health/ready`, `GET /api/site`; unknown paths → 404
+  ProblemDetails; CSP `default-src 'none'`). Every build rewrites `openapi/v1.json` — commit it with contract changes. `frontend/` holds only the fonts until P2-T3. P1's ideas that carry over: `architecture.md §8.4`.
 - **Dev DB** is published on host port **5433** (Mahdi has another project's PostgreSQL on 5432). For `dotnet watch`
   on the host, the connection string lives in **user-secrets** (`ConnectionStrings:Default`); in Docker, compose builds it from `.env`.
 - **Tooling note:** locally (VS Code extension) Claude can use `dotnet`, `node`/`pnpm` and reach nuget.org/npm; in
@@ -175,7 +176,7 @@ InMemory; Vitest + Playwright for the front-end.
 | Cache tags | `blog`, `post:{id}`, `projects`, `project:{id}` |
 | Locales | `fa` (default now), `en` |
 | Compose services | `frontend`, `api`, `db`, `caddy` (+ `umami` in P11) |
-| Public name | `Mahdi Azghandi`; alternate `Shahram Azghandi` (JSON-LD only + one About line) |
+| Public name | `Mahdi Azghandi` (fa: `مهدی ازقندی`); alternate `Shahram Azghandi` (JSON-LD only + one About line) |
 | Volumes | `pgdata`, `uploads`, `dpkeys`, `caddy_data` |
 | Domains | now `mahdiazghandi.ir` (canonical), `shahramazghandi.ir` (301 → canonical); later a `.com` (ADR-023) |
 

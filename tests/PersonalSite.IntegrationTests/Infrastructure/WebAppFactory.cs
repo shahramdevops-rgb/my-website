@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
+using PersonalSite.Application.Features;
 using PersonalSite.Infrastructure.Persistence;
 
 namespace PersonalSite.IntegrationTests.Infrastructure;
@@ -15,6 +16,14 @@ public sealed class WebAppFactory : WebApplicationFactory<Program>, IAsyncLifeti
     // Not "Development": tests should behave like production (no user-secrets, no developer exception page,
     // no auto-migrate at startup), so this fixture migrates the database itself.
     public const string TestEnvironment = "Testing";
+
+    // Known values for tests that check configuration reaches the API. The flags are the opposite of the
+    // appsettings.json defaults, so a passing test proves the value came from configuration.
+    public const string SocialEmail = "test@example.com";
+    public const string SocialGitHub = "https://github.com/example";
+    public const string SocialTelegram = "https://t.me/example";
+    public const bool NewsletterSignupEnabled = false;
+    public const bool SemanticSearchEnabled = true;
 
     private readonly PostgresFixture _postgres = new();
 
@@ -42,6 +51,11 @@ public sealed class WebAppFactory : WebApplicationFactory<Program>, IAsyncLifeti
             {
                 [$"ConnectionStrings:{AppDbContext.ConnectionStringName}"] = _postgres.ConnectionString,
                 ["Serilog:MinimumLevel:Default"] = "Warning",
+                ["Site:Social:Email"] = SocialEmail,
+                ["Site:Social:GitHub"] = SocialGitHub,
+                ["Site:Social:Telegram"] = SocialTelegram,
+                [$"FeatureManagement:{FeatureFlags.NewsletterSignup}"] = NewsletterSignupEnabled.ToString(),
+                [$"FeatureManagement:{FeatureFlags.AiSemanticSearch}"] = SemanticSearchEnabled.ToString(),
             }));
     }
 }

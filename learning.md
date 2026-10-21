@@ -124,6 +124,15 @@ app.UseStatusCodePages();            // empty 404/405 → ProblemDetails body to
 ```
 Why ProblemDetails (RFC 9457): the front-end gets the same shape — `{"type","title","status",…}` — for "not found", "validation failed" and "server error", so one piece of client code can handle them all.
 
+### 2.15 OpenAPI: a code-first contract (P2-T2)
+OpenAPI is a JSON description of an HTTP API: every path, its parameters, and the exact shape of each response. **Code-first** means we never write that JSON by hand — ASP.NET Core reads it off the endpoints:
+```csharp
+// Ok<SiteInfoDto> in the signature → "200 returns a SiteInfoDto" in the document, with its schema.
+static async Task<Ok<SiteInfoDto>> GetSiteAsync(SiteInfoService site, CancellationToken ct) =>
+    TypedResults.Ok(await site.GetAsync(ct));
+```
+`Microsoft.Extensions.ApiDescription.Server` runs the app once after each build and writes `openapi/v1.json`. The file is committed, so a contract change shows up as a diff in the PR, and CI rebuilds it and fails if it differs from the committed one. In P2-T4 the front-end turns the same file into TypeScript types: rename a C# property and `pnpm typecheck` fails — the mistake is caught in the build, not by a visitor. (Why `TypedResults` and not `Results`: `Results.Ok(x)` returns `IResult`, which says nothing about the type, so the document would have no schema.)
+
 ## Part 3 — Data
 
 ### 3.1 EF Core migrations

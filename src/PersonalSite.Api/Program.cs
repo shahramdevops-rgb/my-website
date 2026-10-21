@@ -1,4 +1,6 @@
 using System.Globalization;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 using PersonalSite.Api;
 using PersonalSite.Api.Endpoints;
 using PersonalSite.Api.Infrastructure;
@@ -28,9 +30,15 @@ try
         .AddInfrastructure()
         .AddApi();
 
+    if (OpenApiGeneration.IsRunning)
+    {
+        // The build has no connection string or secrets: skip ValidateOnStart, nothing connects anyway.
+        builder.Services.RemoveAll<IStartupValidator>();
+    }
+
     var app = builder.Build();
 
-    if (app.Environment.IsDevelopment())
+    if (app.Environment.IsDevelopment() && !OpenApiGeneration.IsRunning)
     {
         // Dev convenience: the local DB always matches the code. Production migrates as a deploy step instead.
         await app.Services.MigrateDatabaseAsync(CancellationToken.None);
@@ -50,6 +58,7 @@ try
     app.UseSerilogRequestLogging();
 
     app.MapHealthEndpoints();
+    app.MapApiEndpoints();
 
     await app.RunAsync();
     return 0;

@@ -14,8 +14,9 @@ COPY src/PersonalSite.Api/PersonalSite.Api.csproj                       src/Pers
 RUN dotnet restore src/PersonalSite.Api/PersonalSite.Api.csproj
 
 COPY src/ src/
+# OpenApiGenerateDocuments=false: the contract (openapi/v1.json) is generated and checked in CI, not in the image.
 RUN dotnet publish src/PersonalSite.Api/PersonalSite.Api.csproj \
-    --configuration Release --no-restore --output /app/publish -p:UseAppHost=false
+    --configuration Release --no-restore --output /app/publish -p:UseAppHost=false -p:OpenApiGenerateDocuments=false
 
 # ---------- Runtime stage: small, no shell, non-root ----------
 # "chiseled" = Ubuntu with only what .NET needs; "extra" adds ICU + tzdata (Persian calendar, Asia/Tehran).

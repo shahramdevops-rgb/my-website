@@ -101,7 +101,7 @@
   Done when: build, tests and format are green; `/health` and `/health/ready` work; no `.cshtml`, `wwwroot` or Tailwind reference is left in `src/` (grep in PR).
   Learn: what an API-only ASP.NET Core app needs (and doesn't).
 
-- [ ] **P2-T2 OpenAPI document + `GET /api/site`**
+- [x] **P2-T2 OpenAPI document + `GET /api/site`**
   Scope: `Microsoft.AspNetCore.OpenApi`; build-time generation (`Microsoft.Extensions.ApiDescription.Server`) to `openapi/v1.json` (committed); all endpoints under `MapGroup("/api")` in per-feature `Endpoints/*` classes; ProblemDetails responses documented; first endpoint `GET /api/site` (`SiteInfoService`: site name per language, social links from `Site:Social`, public feature flags). Integration test: the endpoint returns the configured values; CI step fails when the committed document differs from the generated one.
   Done when: `openapi/v1.json` describes `/api/site`; CI catches a stale document.
   Learn: OpenAPI, code-first contracts.

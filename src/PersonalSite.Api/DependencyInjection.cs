@@ -1,5 +1,6 @@
 using System.Globalization;
-using PersonalSite.Api.Configuration;
+using PersonalSite.Api.Infrastructure;
+using PersonalSite.Application.Site;
 using Serilog;
 using Serilog.Formatting.Compact;
 
@@ -8,7 +9,7 @@ namespace PersonalSite.Api;
 public static class DependencyInjection
 {
     /// <summary>
-    /// Registers Api-layer services: logging, options, routing, error handling and health checks.
+    /// Registers Api-layer services: logging, options, routing, error handling, OpenAPI and health checks.
     /// </summary>
     public static IServiceCollection AddApi(this IServiceCollection services)
     {
@@ -38,11 +39,23 @@ public static class DependencyInjection
             .BindConfiguration(SiteOptions.SectionName)
             .ValidateDataAnnotations()
             .Validate(options => options.BaseUrl is { IsAbsoluteUri: true }, "Site:BaseUrl must be an absolute URL.")
+            .Validate(options => options.Name.IsValid(), "Site:Name:Fa and Site:Name:En must be set.")
             .Validate(options => options.Social.IsValid(), "Site:Social: Email must be an email address, GitHub/Telegram absolute https URLs.")
             .ValidateOnStart();
 
         services.AddRouting(options => options.LowercaseUrls = true);
         services.AddProblemDetails();
+
+        // Code-first contract (ADR-026): the document is generated from the endpoints' signatures and metadata.
+        // The build writes it to openapi/v1.json (see the csproj); it is not served at runtime.
+        services.AddOpenApi(options => options
+            .UseUnixLineEndings()
+            .AddDocumentTransformer((document, _, _) =>
+            {
+                document.Info.Title = "PersonalSite API";
+                document.Info.Description = "JSON API behind the personal site of Mahdi Azghandi.";
+                return Task.CompletedTask;
+            }));
         services.AddHealthChecks();
 
         return services;

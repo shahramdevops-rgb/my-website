@@ -1,0 +1,179 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "PersonalSite API",
+    "description": "JSON API behind the personal site of Mahdi Azghandi.",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/site": {
+      "get": {
+        "tags": [
+          "Site"
+        ],
+        "summary": "Site name, contact links and public feature flags.",
+        "operationId": "GetSite",
+        "responses": {
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SiteInfoDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ProblemDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "title": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "detail": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "instance": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "PublicFeaturesDto": {
+        "required": [
+          "newsletterSignup",
+          "comments",
+          "analytics",
+          "semanticSearch"
+        ],
+        "type": "object",
+        "properties": {
+          "newsletterSignup": {
+            "type": "boolean"
+          },
+          "comments": {
+            "type": "boolean"
+          },
+          "analytics": {
+            "type": "boolean"
+          },
+          "semanticSearch": {
+            "type": "boolean"
+          }
+        },
+        "description": "Only the flags that change what a visitor sees. Back-office flags (`Newsletter.Sending`,\n`Notifications.Email`, `Ai.AdminAssistant` …) stay private: they are nobody else's business."
+      },
+      "SiteInfoDto": {
+        "required": [
+          "name",
+          "social",
+          "features"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "$ref": "#/components/schemas/SiteNameDto"
+          },
+          "social": {
+            "$ref": "#/components/schemas/SocialLinksDto"
+          },
+          "features": {
+            "$ref": "#/components/schemas/PublicFeaturesDto"
+          }
+        },
+        "description": "What every page of the front-end needs about the site itself (`GET /api/site`)."
+      },
+      "SiteNameDto": {
+        "required": [
+          "fa",
+          "en"
+        ],
+        "type": "object",
+        "properties": {
+          "fa": {
+            "type": "string"
+          },
+          "en": {
+            "type": "string"
+          }
+        },
+        "description": "The site name in both languages. Both are sent at once: the response is the same for every page and locale,\nso it can be cached as one entry (and the language switcher needs the other name anyway)."
+      },
+      "SocialLinksDto": {
+        "required": [
+          "email",
+          "gitHub",
+          "telegram"
+        ],
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "gitHub": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uri"
+          },
+          "telegram": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uri"
+          }
+        },
+        "description": "Contact links; `null` = not configured, the front-end hides it."
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Site"
+    }
+  ]
+}

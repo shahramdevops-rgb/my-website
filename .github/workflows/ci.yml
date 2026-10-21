@@ -52,6 +52,16 @@ jobs:
       - name: Build
         run: dotnet build --no-restore --configuration Release
 
+      # The build regenerates openapi/v1.json (ADR-026). Any difference from the committed file means an endpoint
+      # or DTO changed without its new contract being committed, so the front-end types would be stale.
+      - name: Check OpenAPI document is current
+        run: |
+          if [ -n "$(git status --porcelain -- openapi)" ]; then
+            echo "::error file=openapi/v1.json::openapi/v1.json is stale. Run 'dotnet build' and commit the regenerated file."
+            git --no-pager diff -- openapi
+            exit 1
+          fi
+
       - name: Check formatting
         run: dotnet format --verify-no-changes --no-restore
 

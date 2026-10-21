@@ -6,10 +6,18 @@
     <!-- Local dev secrets (e.g. the DB connection string) live outside the repo: `dotnet user-secrets`.
          The id predates the rename from PersonalSite.Web; kept so existing secrets keep working. -->
     <UserSecretsId>personalsite-web-dev</UserSecretsId>
+
+    <!-- Build-time OpenAPI (ADR-026): every build writes the contract to openapi/v1.json at the repo root.
+         The file is committed; CI fails when it differs from what the code generates. -->
+    <OpenApiDocumentsDirectory>$(MSBuildProjectDirectory)/../../openapi</OpenApiDocumentsDirectory>
+    <OpenApiGenerateDocumentsOptions>--file-name v1</OpenApiGenerateDocumentsOptions>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
     <PackageReference Include="Serilog.AspNetCore" />
+    <!-- Build tool only (runs the app once after build to write the document); not shipped in the app. -->
+    <PackageReference Include="Microsoft.Extensions.ApiDescription.Server" PrivateAssets="all" />
     <!-- Needed by `dotnet ef` (this is the startup project); PrivateAssets keeps it out of the published app. -->
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="all" />
   </ItemGroup>
