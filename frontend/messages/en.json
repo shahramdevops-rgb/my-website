@@ -1,0 +1,12 @@
+{
+  "notFound": {
+    "title": "Page not found",
+    "description": "This address doesn't exist on the site."
+  },
+  "time": {
+    "justNow": "just now"
+  },
+  "format": {
+    "readingTime": "{minutes, number} min read"
+  }
+}

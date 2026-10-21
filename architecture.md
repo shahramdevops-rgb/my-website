@@ -103,7 +103,8 @@ my-website/
       ├─ app/admin/                # admin UI (Persian only)
       ├─ app/internal/             # health/ (container healthcheck), revalidate/ (P7) — Caddy answers 404
       ├─ components/ ui/ layout/ bento/ demos/ xray/ keyboard/
-      ├─ lib/ api/ (schema.d.ts generated; server.ts, browser.ts clients) env.ts i18n/ format/ (dates, numbers)
+      ├─ lib/ api/ (schema.d.ts generated; server.ts, browser.ts clients) env.ts
+      │       i18n/ (config.ts: locales, cookie, time zone; request.ts; resolve-locale.ts) format/ (date, number)
       │       site/ (getSiteInfo)
       ├─ instrumentation.ts        # server start: validates env (instrumentation-node.ts exits on a bad value)
       ├─ fonts/                    # self-hosted woff2 + licences
@@ -379,7 +380,11 @@ with a shared secret (`Revalidate__Secret`).
   nonce makes HTML dynamic, ADR-025); API data is cached in Next's data cache and revalidated by tag.
 - **Data access:** only through `src/lib/api/` (generated types + `openapi-fetch` client). Server components use the
   internal API URL; client components call same-origin `/api/...`.
-- **i18n:** next-intl; `app/[locale]/layout.tsx` sets `<html lang dir>` (`fa` → `rtl`, `en` → `ltr`). UI strings in
+- **i18n:** next-intl **without its middleware** (only messages, `getTranslations`, typed keys); `app/[locale]/layout.tsx`
+  is the root layout and sets `<html lang dir>` (`fa` → `rtl`, `en` → `ltr`); `generateStaticParams` + `dynamicParams =
+  false` make any other first segment a 404; `proxy.ts` only redirects `/` (302, §5.4). Dates/numbers: `src/lib/format/`
+  on `Intl` (fa: `persian` calendar + `arabext` digits, en: `gregory` + `latn`, both in `Asia/Tehran`), rendered on the
+  server so the browser's ICU never decides. UI strings in
   `messages/{locale}.json` (English dot-notation keys, same key set in both files — test). Long prose (About,
   Services, Decisions) in `content/*.{locale}.mdx`.
 - **Styling:** Tailwind v4, tokens in `styles/globals.css` (`@theme`), default palette removed so only tokens exist.

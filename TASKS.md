@@ -121,7 +121,7 @@
   Done when: `docker compose up --build` → `http://localhost:8080/` is Next.js and `http://localhost:8080/api/site` is the API; host workflow works on `:3000`.
   Learn: reverse proxy routing, why one origin removes CORS.
 
-- [ ] **P2-T6 i18n (fa + en) & formatting**
+- [x] **P2-T6 i18n (fa + en) & formatting**
   Scope: next-intl with `app/[locale]` (`fa`, `en`; other values → 404), `messages/fa.json` + `messages/en.json` (English dot-notation keys), key-parity test, `<html lang dir>` per locale, `/` redirect in `proxy.ts` (cookie `lang` → `Accept-Language` → `fa`), `src/lib/format/`: dates (`fa`: Persian calendar, `Asia/Tehran`, Persian digits from `Intl`; `en`: Gregorian, Latin digits), relative time ("۳ روز پیش" / "3 days ago"), numbers, reading time — with tests that reuse P1's vectors (`tests/PersonalSite.UnitTests/Formatting/*Tests.cs` at commit `fe205aa`).
   Done when: `/` → 302 `/fa` (or `/en` for an English browser); `/de` → 404; a key missing in one file fails a test; formatter tests green.
   Learn: `Intl` APIs, locale routing in Next.js.
@@ -137,7 +137,7 @@
   Learn: CSS variables as a theme API, FOUC.
 
 - [ ] **P2-T9 Layout shell & language switcher**
-  Scope: per-locale layout: skip link, header (name, nav: Home, About, Projects, Blog, Services, Resume, Contact; theme toggle; language switcher), accessible mobile menu (Esc, focus return), footer (social links from `/api/site`, copyright with the year in the locale's calendar); language switcher goes to the same page in the other locale with the `lang` cookie set and a **View Transition** that slides shared elements to their mirrored places (plain navigation where unsupported); `not-found.tsx` and `error.tsx` (request id only in development).
+  Scope: per-locale layout: skip link, header (name, nav: Home, About, Projects, Blog, Services, Resume, Contact; theme toggle; language switcher), accessible mobile menu (Esc, focus return), footer (social links from `/api/site`, copyright with the year in the locale's calendar); language switcher goes to the same page in the other locale with the `lang` cookie set and a **View Transition** that slides shared elements to their mirrored places (plain navigation where unsupported); `not-found.tsx` and `error.tsx` (request id only in development); close the P2-T6 gap: `/de` (unknown language) answers 404 with an **empty body** today — `notFound()` comes from the `[locale]` root layout itself, which no `not-found.tsx` catches (`global-not-found` didn't help in Next 16.4; a `proxy.ts` rewrite of unknown first segments to an unmatched path works).
   Done when: keyboard navigable; 360 px and 1440 px in both locales and themes; unknown URL → 404 page with status 404.
   Learn: logical properties for RTL/LTR, View Transitions.
 

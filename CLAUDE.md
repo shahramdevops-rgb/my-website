@@ -35,13 +35,14 @@ reveal something real about the back-end. Details and rejected ideas: `roadmap.m
   `P2-T4` (`pnpm gen:api` → `src/lib/api/schema.d.ts`, server/browser `openapi-fetch` clients, `src/lib/env.ts`
   checked at start by `instrumentation-node.ts` (exit 1), home page shows the name from `/api/site`; e2e uses `e2e/mock-api.ts`).
   `P2-T5` (`frontend/Dockerfile`, compose `caddy` + `frontend`, `deploy/Caddyfile.dev`, dev `/api` rewrite on :3000).
-- **Next task:** `P2-T6` (i18n fa + en & formatting).
+  `P2-T6` (next-intl without its middleware: `app/[locale]` + `dynamicParams = false`, `messages/{fa,en}.json` + parity
+  test, `proxy.ts` 302 for `/` (cookie `lang` → Accept-Language → fa), `src/lib/format/` on Intl with P1's vectors).
+- **Next task:** `P2-T7` (security headers & CSP with nonce).
 - **Accent color:** electric blue (`#4DB5FF` dark / `#0A63C9` light), picked by Claude at Mahdi's request; easy to change (`architecture.md §8.1`).
 - **Waiting on Mahdi:** contact links (`Site:Social:Email|GitHub|Telegram`).
 - **Code today:** an API-only ASP.NET Core app (`/health`, `/health/ready`, `GET /api/site`; unknown paths → 404
   ProblemDetails; CSP `default-src 'none'`). Every build rewrites `openapi/v1.json` — commit it with contract changes.
-  `frontend/` is a bare Next.js app: one dynamic placeholder page (fixed `lang="fa"`, name from the API) until P2-T6;
-  fonts in `src/fonts/`. Contract change = `dotnet build` (→ `openapi/v1.json`) + `pnpm gen:api`, both committed.
+  `frontend/` serves `/fa` and `/en` (placeholder page: the site name from the API); fonts in `src/fonts/`. Contract change = `dotnet build` (→ `openapi/v1.json`) + `pnpm gen:api`, both committed.
   P1's ideas that carry over: `architecture.md §8.4`.
 - **Dev DB** is published on host port **5433** (Mahdi has another project's PostgreSQL on 5432). For `dotnet watch`
   on the host, the connection string lives in **user-secrets** (`ConnectionStrings:Default`); in Docker, compose builds it from `.env`.
@@ -57,7 +58,12 @@ reveal something real about the back-end. Details and rejected ideas: `roadmap.m
 
 ## 3. Communication with Mahdi
 
-- **Reply to Mahdi in Persian** (he writes in Persian). Keep technical terms in English where natural (`DbContext`, `Server Component`).
+- **Every reply is written in English, as a briefing for another AI tutor** (Mahdi's rule since 2026-10-21). Mahdi
+  writes in Persian, but he pastes Claude's replies into a separate AI that explains them to him in depth. So each
+  reply must: (1) open with one line addressed to that AI — *"For the tutor AI: this is for Mahdi's learning — expand
+  on it educationally and explain the reasoning behind each decision below."*; (2) state concisely what was done,
+  what was decided and why (facts, file paths, commands, results, open questions); (3) contain no Persian translation
+  and no long tutorial prose — the tutor AI does the explaining. Questions Mahdi must answer go in the same reply.
 - **Everything in the repo is English**: code, identifiers, comments, commit messages, docs.
 - **Site content (UI text) is Persian and English**, stored in `frontend/messages/{fa,en}.json` or localized MDX —
   never hard-coded. Claude drafts English text; Mahdi edits it.
@@ -202,7 +208,7 @@ When Mahdi says **"Do task Px-Ty"** (or «تسک Px-Ty رو انجام بده»)
 5. Add/adjust tests. Run `dotnet build`, `dotnet test`, `dotnet format --verify-no-changes`; for front-end changes
    also `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build` in `frontend/`.
 6. Update docs: tick the task in `TASKS.md` (`[x]`), update §2 *Current status* here, and `architecture.md` if structure/model/decisions changed.
-7. **Teach:** end your reply with a short *"What we did & why"* section (3–8 bullets, in Persian).
+7. **Teach:** end your reply with a short *"What we did & why"* section (3–8 bullets, in English, terse — the tutor AI expands it; see §3).
    If a concept is new and important, add a short entry to `learning.md` (in English, with a tiny example).
 8. Suggest a Conventional Commit message. Commit only if asked.
 

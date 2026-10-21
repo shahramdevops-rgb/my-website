@@ -1,4 +1,8 @@
 import type { NextConfig } from "next";
+import createNextIntlPlugin from "next-intl/plugin";
+
+// Points next-intl at the per-request config (locale + messages).
+const withNextIntl = createNextIntlPlugin("./src/lib/i18n/request.ts");
 
 const nextConfig: NextConfig = {
   // Self-contained server (.next/standalone) with only the files it needs: a small Docker image (P2-T5).
@@ -16,4 +20,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withNextIntl(nextConfig);

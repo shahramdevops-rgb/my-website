@@ -9,15 +9,21 @@ const site: SiteInfo = {
   features: { newsletterSignup: false, comments: false, analytics: false, semanticSearch: false },
 };
 
-// The page's data comes from the API; here it is replaced, so the test checks only what the page renders.
+// The page's data and Next.js request APIs are replaced, so the test checks only what the page renders.
 vi.mock("next/server", () => ({ connection: async () => {} }));
+vi.mock("next-intl/server", () => ({ setRequestLocale: () => {} }));
 vi.mock("@/lib/site/get-site-info", () => ({ getSiteInfo: async () => site }));
 
 describe("HomePage", () => {
-  it("shows the Persian site name from the API as the only top-level heading", async () => {
+  it.each([
+    ["fa", "نام آزمایشی"],
+    ["en", "Test Name"],
+  ])("shows the %s site name from the API as the only top-level heading", async (locale, name) => {
     // An async Server Component is a function that returns JSX: await it, then render the result.
-    render(await HomePage());
+    render(
+      await HomePage({ params: Promise.resolve({ locale }), searchParams: Promise.resolve({}) }),
+    );
 
-    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("نام آزمایشی");
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(name);
   });
 });

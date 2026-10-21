@@ -1,0 +1,12 @@
+{
+  "notFound": {
+    "title": "صفحه پیدا نشد",
+    "description": "این نشانی در سایت وجود ندارد."
+  },
+  "time": {
+    "justNow": "همین الان"
+  },
+  "format": {
+    "readingTime": "{minutes, number} دقیقه مطالعه"
+  }
+}

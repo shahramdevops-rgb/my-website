@@ -389,6 +389,20 @@ historical dates (with DST) still convert correctly.
 ### 6.6 Latin slugs
 `/fa/blog/مقدمه-ای-بر-efcore` becomes `%D9%85%D9%82…` when copied into Telegram — long and ugly. Latin slugs (`/fa/blog/intro-to-efcore`) stay readable everywhere.
 
+
+### 6.7 `Intl`: the platform formats, we don't (P2-T6)
+P1 formatted dates in C#; now Node's built-in ICU does it, and the options say *what*, not *how*:
+```ts
+new Intl.DateTimeFormat("fa", { calendar: "persian", numberingSystem: "arabext", timeZone: "Asia/Tehran",
+  day: "numeric", month: "long", year: "numeric" }).format(new Date("2026-03-20T20:31:00Z")); // "۱ فروردین ۱۴۰۵"
+new Intl.NumberFormat("fa").format(1234567);                            // "۱٬۲۳۴٬۵۶۷"
+new Intl.RelativeTimeFormat("fa", { numeric: "always" }).format(-3, "day"); // "۳ روز پیش"
+```
+No digit is ever swapped by hand: `arabext` *is* the Persian digit set, and the Persian separators (`٬` `٫`) come with it. Everything goes through `src/lib/format/`, so one change (e.g. a different time zone after the international move) changes the whole site. We format on the **server**: a client component would use the visitor's browser ICU, which can differ from Node's and cause a hydration mismatch.
+
+### 6.8 Locale routing in Next.js (P2-T6)
+`app/[locale]/` makes the language a URL segment; `generateStaticParams()` lists `fa` and `en`, and `dynamicParams = false` turns every other value (`/de`) into a 404 — the router itself enforces "only these two languages". `/` has no language, so `proxy.ts` (Next 16's request hook) picks one — `lang` cookie, then `Accept-Language`, then `fa` — and answers **302** (temporary: the answer depends on who asks, so nobody may cache it; `Vary: Cookie, Accept-Language` says the same to caches). Messages are typed: `src/types/next-intl.d.ts` registers `en.json` as the message shape, so `t("notFound.titel")` fails `pnpm typecheck`, and a test fails if `fa.json` and `en.json` ever have different keys.
+
 ---
 
 ## Part 7 — DevOps

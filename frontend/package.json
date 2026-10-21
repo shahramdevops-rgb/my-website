@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "next": "16.4.2",
+    "next-intl": "4.14.9",
     "openapi-fetch": "0.17.0",
     "react": "19.3.1",
     "react-dom": "19.3.1",
@@ -44,6 +45,8 @@
   },
   "pnpm": {
     "ignoredBuiltDependencies": [
+      "@parcel/watcher",
+      "@swc/core",
       "unrs-resolver"
     ],
     "peerDependencyRules": {

@@ -1,15 +1,7 @@
-import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
-// Placeholder until P2-T6 adds the [locale] segment: one fixed language, title from P2-T4's /api/site.
-export const metadata: Metadata = {
-  title: "Mahdi Azghandi",
-};
-
+// Pass-through root layout: it exists only because app/not-found.tsx needs a layout above it.
+// The real <html> (with lang and dir) is rendered per language in app/[locale]/layout.tsx.
 export default function RootLayout({ children }: { children: ReactNode }) {
-  return (
-    <html lang="fa" dir="rtl">
-      <body>{children}</body>
-    </html>
-  );
+  return children;
 }
