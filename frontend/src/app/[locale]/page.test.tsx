@@ -83,15 +83,13 @@ describe("HomePage", () => {
     expect(within(hero).getByText("Test headline")).toBeInTheDocument();
   });
 
-  it("lists the résumé's tech stack in the keyboard slot", async () => {
+  it("gives every technology of the résumé's tech stack a keycap button with its key", async () => {
     await renderHome("en");
 
     const stack = screen.getByRole("region", { name: "Tech stack" });
-    expect(
-      within(stack)
-        .getAllByRole("listitem")
-        .map((item) => item.textContent),
-    ).toEqual(["C#", "PostgreSQL"]);
+    const buttons = within(stack).getAllByRole("button");
+    expect(buttons.map((button) => button.textContent)).toEqual(["C#C", "PostgreSQLP"]);
+    expect(buttons.map((button) => button.getAttribute("aria-keyshortcuts"))).toEqual(["C", "P"]);
   });
 
   it("sends employers to the résumé and the engineering decisions", async () => {

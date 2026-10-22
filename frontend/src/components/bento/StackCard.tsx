@@ -1,32 +1,26 @@
+import { useTranslations } from "next-intl";
+import { KeyboardHero } from "@/components/keyboard/KeyboardHero";
 import { BentoCard } from "@/components/ui/BentoCard";
-import { Tag } from "@/components/ui/Tag";
-import type { Resume } from "@/lib/resume/get-resume";
-
-type StackCardProps = {
-  title: string;
-  description: string;
-  tech: Resume["techStack"];
-};
+import type { Keycap } from "@/lib/keyboard/keycaps";
 
 /**
- * The keyboard hero's slot (P3-T3). Today: the résumé's tech stack as a list — the same keycaps the 3D keyboard will
- * carry, and the start of its accessible equivalent. P3-T3 puts the static poster and the lazy-loaded keyboard here;
- * the card keeps its size (2 × 2 cells), so the swap moves nothing around it.
+ * The keyboard hero's card (P3-T3): the résumé's tech stack as keycaps. The server renders the heading, the
+ * poster and the list of buttons; the 3D keyboard loads into the poster's box after hydration, so the card keeps
+ * its size (2 × 2 cells) and nothing around it moves.
  */
-export function StackCard({ title, description, tech }: StackCardProps) {
+export function StackCard({ keycaps }: { keycaps: Keycap[] }) {
+  const t = useTranslations("home.stack");
+
   return (
     <BentoCard as="section" labelledBy="home-stack" columns={2} rows={2} className="flex flex-col">
       <h2 id="home-stack" className="text-xl font-bold">
-        {title}
+        {t("title")}
       </h2>
-      <p className="mt-2 text-muted">{description}</p>
-      <ul className="mt-6 flex flex-wrap gap-2">
-        {tech.map((item) => (
-          <li key={item.id}>
-            <Tag>{item.name}</Tag>
-          </li>
-        ))}
-      </ul>
+      <p className="mt-2 mb-6 text-muted">{t("description")}</p>
+      <KeyboardHero
+        keycaps={keycaps}
+        labels={{ hint: t("hint"), usedIn: t("usedIn"), noProjects: t("noProjects") }}
+      />
     </BentoCard>
   );
 }

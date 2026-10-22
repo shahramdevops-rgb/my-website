@@ -158,7 +158,7 @@
   Scope: hero card (name, a **concrete** value proposition), **two audience paths** ("Hiring?" → Resume / Decisions, "Have a project?" → Services / Contact `?type=project`), slot for the keyboard hero (P3-T3), cards with placeholders wired later: featured projects (P6), live demo (P6), latest posts (P7), status line (P11); grid reflows from 1 column (360 px) to the full Bento layout.
   Done when: responsive, both themes, both languages, Lighthouse a11y ≥ 90.
 
-- [ ] **P3-T3 Keyboard hero (3D)**
+- [x] **P3-T3 Keyboard hero (3D)**
   Scope: React Three Fiber + drei mechanical keyboard; keycaps show the tech stack from the résumé (C#, .NET, React, TypeScript, PostgreSQL, Docker, AI …); hover or pressing the matching real key depresses the keycap and opens a glass card (what it is, projects that used it); soft RGB lighting; loaded with `next/dynamic` after hydration and only on Home; a static poster of the same size renders first and stays for reduced-motion users and when WebGL is unavailable; an accessible equivalent (list of buttons with the same cards) for keyboard and screen-reader users.
   Done when: poster appears with the first paint (no layout shift); real key presses work; the accessible list exposes every card.
   Learn: 3D on the web, progressive enhancement, lazy loading.

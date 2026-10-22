@@ -405,6 +405,30 @@ dressed up as real (ADR-018). Slots that will be filled later (keyboard hero, st
 size, so filling them moves nothing: no *layout shift* (CLS, a Core Web Vital).
 `.NET` inside Persian text needs an invisible LRM (`‎`) before the dot, for the same bidi reason as `C#` above.
 
+### 4.18 3D on the web, progressive enhancement, lazy loading (P3-T3)
+**WebGL** lets the page draw with the GPU into a `<canvas>`; **Three.js** wraps it in scenes, meshes, lights and a
+camera; **React Three Fiber** (R3F) lets you write that scene as JSX (`<mesh>`, `<pointLight>`), and **drei** adds
+ready-made pieces (we use `RoundedBox`, `useCursor`). Per-frame animation goes in `useFrame`, which mutates refs
+instead of setting state — 60 React renders a second would be far too slow:
+```tsx
+useFrame((_, delta) => {
+  // ease toward the target; damp() runs at the same speed at 60 and 120 Hz
+  group.current.position.y = MathUtils.damp(group.current.position.y, down ? 0.1 : 0.24, 18, delta);
+});
+```
+**Progressive enhancement:** start from something that works everywhere, add the rich layer only where it can run.
+1. The server renders a CSS **poster** of the keyboard + a list of real `<button>`s — works without JavaScript.
+2. After hydration, `useSceneAllowed` checks WebGL and `prefers-reduced-motion` (server answer: "no").
+3. Only then does `next/dynamic(() => import("./KeyboardScene"), { ssr: false })` fetch the ~240 KB (gzip)
+   Three.js chunk — **lazy loading**: the first paint never waits for it, and reduced-motion visitors never download it.
+4. The scene draws into the poster's box (fixed `aspect-ratio`), so the swap causes no layout shift; the poster fades
+   out only after the first 3D frame, and comes back if WebGL fails (error boundary, `webglcontextlost`).
+
+One state, three views: `KeyboardHero` owns *selected / hovered / held*; the poster, the 3D scene and the button list
+only display it and report input. Real keys use `event.code` (`KeyC`, the physical key — layout-independent, so it
+works on a Persian keyboard) and fire only while the pointer is over the keyboard or focus is in its list: always-on
+single-letter shortcuts break voice input (WCAG 2.1.4).
+
 ---
 
 ## Part 5 — Security

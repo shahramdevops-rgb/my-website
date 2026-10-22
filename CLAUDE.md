@@ -53,7 +53,10 @@ reveal something real about the back-end. Details and rejected ideas: `roadmap.m
   `P3-T2` (Home Bento in `src/components/bento/`: hero with résumé headline + pitch + status-line slot, keyboard slot
   listing `techStack`, two audience paths, "In progress" cards for projects/demo/posts; `getResume` in `src/lib/resume/`;
   `e2e/home.spec.ts`; Lighthouse a11y 100 on fa/en mobile + desktop).
-- **Next task:** `P3-T3` (Keyboard hero, 3D).
+  `P3-T3` (keyboard hero in `src/components/keyboard/`: CSS poster first, lazy R3F + drei scene after hydration when
+  WebGL + no reduced motion, button list + glass card as the accessible equivalent, real keys by `event.code` scoped
+  to pointer-over/focus-within; keycaps from `src/lib/keyboard/keycaps.ts`; `e2e/keyboard.spec.ts`).
+- **Next task:** `P3-T4` (About — "From circuits to cloud").
 - **Accent color:** electric blue (`#4DB5FF` dark / `#0A63C9` light), picked by Claude at Mahdi's request; easy to change (`architecture.md §8.1`).
 - **Waiting on Mahdi:** contact links (`Site:Social:Email|GitHub|Telegram`); optional display face (P2-T8 left it out);
   real résumé facts — every `[placeholder]` and `2000-01` date in `src/PersonalSite.Api/Content/resume.*.json`.

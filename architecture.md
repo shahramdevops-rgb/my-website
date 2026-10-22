@@ -428,12 +428,25 @@ with a shared secret (`Revalidate__Secret`).
 - **Home (P3-T2):** `app/[locale]/page.tsx` fetches `/api/site` and `/api/resume?lang=` in parallel (`getSiteInfo`,
   `getResume`, both React-`cache()`d) and renders `components/bento/HomeBento` — a `BentoGrid` of, at lg:
   hero 2×2 (résumé headline, name as the page's only h1, pitch from `home.hero.pitch`, the reserved status-line slot
-  for P11-T7) + keyboard slot 2×2 (`StackCard`: the résumé's `techStack` as a list until P3-T3 puts the poster and
-  3D keyboard there at the same size) / the two audience paths (`PathCard`: Resume + Decisions; Contact
+  for P11-T7) + keyboard 2×2 (`StackCard` → keyboard hero, below) / the two audience paths (`PathCard`: Resume + Decisions; Contact
   `?type=project` + Services) / `UpcomingCard`s for featured projects (2 wide, P6), live demo (P6), latest posts (P7)
   with an "In progress" badge instead of sample data (ADR-018). Each card is a `section` named by its heading
   (`Card`'s `labelledBy`). DOM order = reading order = the 1-column phone order. `e2e/home.spec.ts` checks the
   reflow (360/1440, RTL mirroring) and the path links.
+- **Keyboard hero (P3-T3):** `lib/keyboard/keycaps.ts` turns the résumé into `Keycap`s on the server (`buildKeycaps`:
+  each tech gets the first free letter/digit of its name as its key — C# → C, Next.js → X once N is taken — and the
+  `experience` entries whose `tech` lists it; `keyboardLayout`: ≤ 4 per row). `components/keyboard/KeyboardHero`
+  (client) owns the state (selected / hovered / held) and renders: a stage with fixed `aspect-ratio` (16/10, 5/4 at
+  lg; `dir="ltr"`, `aria-hidden`) holding `KeyboardPoster` (HTML/CSS keycaps with a CSS perspective, first paint) and,
+  when `useSceneAllowed` says so (WebGL + no reduced motion; false on the server), `KeyboardScene` via
+  `next/dynamic({ ssr: false })` — R3F + drei `RoundedBox` keycaps, legends drawn on 2D canvases with the page's own
+  fonts (no troika/font download/worker), colors read from the CSS tokens and re-read on theme change, soft hue-cycling
+  underglow + point lights, `frameloop="never"` while off screen, error boundary → poster; then a hint, the
+  accessible list (one `<button>` per tech: `aria-expanded`, `aria-controls` → card, `aria-keyshortcuts`) and the glass
+  `TechCard` (after the list in the DOM; floats over the stage's top from sm, in flow below the list on phones).
+  Real keys (`KeyboardEvent.code`) work while the pointer is over the stage or focus is in the hero (WCAG 2.1.4);
+  modifiers and editable targets are ignored; Esc closes. `e2e/keyboard.spec.ts`: poster without JS, zero layout
+  shift while the scene loads, real keys, every card reachable from the list, reduced motion → no canvas.
 - **Theme (P2-T8):** `data-theme="dark|light"` on `<html>`; no attribute = dark (the `dark:` variant matches "not
   light"). `components/layout/HtmlDocument.tsx` is the shared `<html>` shell (locale layout + 404). In `<head>`,
   `ThemeScript` writes the inline pre-paint script (`src/lib/theme/theme.ts`) with this request's nonce, which

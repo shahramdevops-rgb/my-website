@@ -87,6 +87,9 @@ test.describe("home Bento grid", () => {
 
     await expect(page.getByText("عنوان آزمایشی e2e")).toBeVisible();
     const stack = page.getByRole("region", { name: "پشته فنی" });
-    await expect(stack.getByRole("listitem")).toHaveText(["C#", ".NET", "React"]);
+    const names = await stack
+      .getByRole("button")
+      .evaluateAll((buttons) => buttons.map((button) => button.querySelector("span")?.textContent));
+    expect(names).toEqual(["C#", ".NET", "React"]);
   });
 });

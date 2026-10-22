@@ -1,6 +1,7 @@
 import { useTranslations } from "next-intl";
 import { BentoGrid } from "@/components/ui/BentoGrid";
 import { ButtonLink } from "@/components/ui/ButtonLink";
+import { buildKeycaps } from "@/lib/keyboard/keycaps";
 import type { Resume } from "@/lib/resume/get-resume";
 import { HeroCard } from "./HeroCard";
 import { PathCard } from "./PathCard";
@@ -10,7 +11,7 @@ import { UpcomingCard } from "./UpcomingCard";
 /**
  * The home page's Bento grid (ADR-024). At lg (4 columns):
  *
- *   [ hero 2×2        ][ keyboard slot 2×2 ]
+ *   [ hero 2×2        ][ keyboard 2×2      ]
  *   [ hiring path     ][ project path      ]
  *   [ featured projects ][ demo ][ posts   ]
  *
@@ -28,11 +29,7 @@ export function HomeBento({ name, resume }: { name: string; resume: Resume }) {
         pitch={t("hero.pitch")}
         status={t("hero.status")}
       />
-      <StackCard
-        title={t("stack.title")}
-        description={t("stack.description")}
-        tech={resume.techStack}
-      />
+      <StackCard keycaps={buildKeycaps(resume)} />
       <PathCard
         id="home-hiring"
         eyebrow={t("hiring.eyebrow")}
