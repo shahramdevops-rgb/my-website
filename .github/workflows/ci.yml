@@ -123,3 +123,11 @@ jobs:
 
       - name: Build
         run: pnpm build
+
+      # Browser tests against the production build (and the typed mock API): language routing, and the CSP
+      # check on every route — any CSP violation fails the job (ADR-025).
+      - name: Install Playwright browser
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: E2E tests
+        run: pnpm e2e

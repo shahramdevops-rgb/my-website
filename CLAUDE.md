@@ -37,7 +37,10 @@ reveal something real about the back-end. Details and rejected ideas: `roadmap.m
   `P2-T5` (`frontend/Dockerfile`, compose `caddy` + `frontend`, `deploy/Caddyfile.dev`, dev `/api` rewrite on :3000).
   `P2-T6` (next-intl without its middleware: `app/[locale]` + `dynamicParams = false`, `messages/{fa,en}.json` + parity
   test, `proxy.ts` 302 for `/` (cookie `lang` → Accept-Language → fa), `src/lib/format/` on Intl with P1's vectors).
-- **Next task:** `P2-T7` (security headers & CSP with nonce).
+  `P2-T7` (`proxy.ts` nonce CSP per page view + `nosniff`/`Referrer-Policy`/`Permissions-Policy` from
+  `src/lib/security/headers.ts`; every page dynamic via `connection()` in the `[locale]` layout; `e2e/csp.spec.ts`;
+  e2e now runs in CI).
+- **Next task:** `P2-T8` (design tokens, fonts & theme).
 - **Accent color:** electric blue (`#4DB5FF` dark / `#0A63C9` light), picked by Claude at Mahdi's request; easy to change (`architecture.md §8.1`).
 - **Waiting on Mahdi:** contact links (`Site:Social:Email|GitHub|Telegram`).
 - **Code today:** an API-only ASP.NET Core app (`/health`, `/health/ready`, `GET /api/site`; unknown paths → 404
@@ -61,7 +64,8 @@ reveal something real about the back-end. Details and rejected ideas: `roadmap.m
 - **Every reply is written in English, as a briefing for another AI tutor** (Mahdi's rule since 2026-10-21). Mahdi
   writes in Persian, but he pastes Claude's replies into a separate AI that explains them to him in depth. So each
   reply must: (1) open with one line addressed to that AI — *"For the tutor AI: this is for Mahdi's learning — expand
-  on it educationally and explain the reasoning behind each decision below."*; (2) state concisely what was done,
+  on it educationally and explain the reasoning behind each decision below. Keep English technical terms in English;
+  if a term needs a translation, add it in parentheses."*; (2) state concisely what was done,
   what was decided and why (facts, file paths, commands, results, open questions); (3) contain no Persian translation
   and no long tutorial prose — the tutor AI does the explaining. Questions Mahdi must answer go in the same reply.
 - **Everything in the repo is English**: code, identifiers, comments, commit messages, docs.

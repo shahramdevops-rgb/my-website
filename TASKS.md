@@ -126,7 +126,7 @@
   Done when: `/` → 302 `/fa` (or `/en` for an English browser); `/de` → 404; a key missing in one file fails a test; formatter tests green.
   Learn: `Intl` APIs, locale routing in Next.js.
 
-- [ ] **P2-T7 Security headers & CSP with nonce** (ADR-025)
+- [x] **P2-T7 Security headers & CSP with nonce** (ADR-025)
   Scope: `proxy.ts` creates a nonce per request and sets `Content-Security-Policy` (`default-src 'self'; script-src 'self' 'nonce-…' 'strict-dynamic'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'`; dev additions for HMR only in development), plus `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`. Playwright test visits every route and fails on any CSP violation in the console.
   Done when: no `unsafe-eval`, no `unsafe-inline` for scripts; zero CSP violations in e2e.
   Learn: nonces vs hashes, `strict-dynamic`.

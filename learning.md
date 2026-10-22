@@ -348,6 +348,16 @@ Content-Security-Policy: default-src 'self'; object-src 'none'; base-uri 'self';
 ```
 `frame-ancestors 'none'` also stops other sites from framing ours (clickjacking). The one inline script we need (the theme script, P1-T6) is allowed by its **hash**: the header lists `'sha256-…'` of the script's exact text, and the browser runs an inline script only if its text hashes to a listed value — an attacker's script never matches. The alternative, a **nonce** (a random value per response, in the header and on `<script nonce>`), breaks when a cached page is served, so we use hashes (ADR-020). One extra space inside the `<script>` tag changes the hash and the script is blocked — hence the test. Violations show up in the browser console as "Refused to execute…".
 
+
+### 5.8 Nonces vs hashes, and `'strict-dynamic'` (P2-T7)
+5.7 describes P1, which used **hashes**: fine for one fixed inline script. Next.js emits many inline scripts whose text differs per page and per request (the data it streams to the browser), so hashes can't be known in advance — we use a **nonce** instead (ADR-025, which replaced ADR-020):
+```
+proxy.ts:  nonce = 16 random bytes → header  script-src 'self' 'nonce-VScAIG…' 'strict-dynamic'
+Next.js:   reads the header while rendering → <script nonce="VScAIG…"> on every script it writes
+browser:   runs a script only if its nonce matches the header of *this* response
+```
+An injected `<script>` has no (or an old) nonce, so it never runs; a new nonce per page view means a stolen one is useless. The price: a nonce must be fresh, so pages can't be built once and served from a cache — every page renders per request (`await connection()` in the layout); API data is still cached. **`'strict-dynamic'`** says: "trust scripts loaded *by* a trusted (nonced) script". Next's runtime loads its chunks dynamically; without `'strict-dynamic'` every chunk URL would have to be listed. With it, `'self'` and host lists are ignored for scripts — only the nonce chain counts. `e2e/csp.spec.ts` proves it on every route: header correct, every `<script>` carries the nonce, Next's inline scripts actually ran, zero violations — and it was checked to fail when the nonce is removed.
+
 ---
 
 ## Part 6 — Internationalization (i18n)

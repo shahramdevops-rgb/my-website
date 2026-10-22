@@ -26,7 +26,10 @@ export default defineConfig({
       // Tests run against a production build, the same code visitors get (not the dev server).
       // `next start` warns that it "does not work" with output: "standalone"; it still serves the build fine.
       // Production runs .next/standalone/server.js in the Docker image instead (P2-T5).
-      command: `next build && next start --port ${port}`,
+      // In CI the job's Build step already ran `next build`; locally `pnpm e2e` builds first.
+      command: process.env.CI
+        ? `next start --port ${port}`
+        : `next build && next start --port ${port}`,
       url: baseURL,
       env: { API_INTERNAL_URL: `http://localhost:${mockApiPort}` },
       reuseExistingServer: !process.env.CI,

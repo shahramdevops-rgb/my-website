@@ -109,7 +109,8 @@ my-website/
       ├─ instrumentation.ts        # server start: validates env (instrumentation-node.ts exits on a bad value)
       ├─ fonts/                    # self-hosted woff2 + licences
       ├─ styles/globals.css        # Tailwind entry + tokens
-      └─ proxy.ts                  # Next.js 16 request hook (formerly middleware): locale redirect, CSP nonce
+      ├─ lib/security/headers.ts   # CSP builder + static security headers (used by proxy.ts)
+      └─ proxy.ts                  # Next.js 16 request hook (formerly middleware): `/` redirect, CSP nonce per page
 ```
 
 ### 3.1 Dependency rule
@@ -375,6 +376,11 @@ with a shared secret (`Revalidate__Secret`).
 
 ## 8. Front-end architecture
 
+- **CSP (ADR-025, P2-T7):** `proxy.ts` runs for every page (not `/api`, `/_next/static`, `/internal`, prefetches),
+  creates a 128-bit nonce, and sends `script-src 'self' 'nonce-…' 'strict-dynamic'` on the request (Next reads it and
+  stamps the nonce on its scripts) and on the response (the browser enforces it). Dev adds only `'unsafe-eval'` and
+  `ws:`. Hence every page is dynamic: `await connection()` in `app/[locale]/layout.tsx` (and `app/not-found.tsx`).
+  `e2e/csp.spec.ts` (in CI) fails on any violation; new HTML routes are added to its `routes` list.
 - **Rendering model:** React Server Components by default; `"use client"` only for leaves that need the browser
   (spotlight, demos, keyboard, X-Ray toggle, theme toggle, forms). Pages render on the server per request (the CSP
   nonce makes HTML dynamic, ADR-025); API data is cached in Next's data cache and revalidated by tag.

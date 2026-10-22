@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { connection } from "next/server";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { setRequestLocale } from "next-intl/server";
 import { locales, textDirection } from "@/lib/i18n/config";
@@ -17,6 +18,10 @@ export default async function LocaleLayout({ children, params }: LayoutProps<"/[
 
   // Tells next-intl the language of this request (we don't use its middleware; proxy.ts only handles "/").
   setRequestLocale(locale);
+
+  // Every page renders per request (ADR-025): its scripts must carry this request's CSP nonce (proxy.ts),
+  // which a page built once at `next build` could not have.
+  await connection();
 
   return (
     <html lang={locale} dir={textDirection(locale)}>
