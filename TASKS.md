@@ -136,7 +136,7 @@
   Done when: no theme flash on reload; contrast test green in both themes; no font request leaves the origin.
   Learn: CSS variables as a theme API, FOUC.
 
-- [ ] **P2-T9 Layout shell & language switcher**
+- [x] **P2-T9 Layout shell & language switcher**
   Scope: per-locale layout: skip link, header (name, nav: Home, About, Projects, Blog, Services, Resume, Contact; theme toggle; language switcher), accessible mobile menu (Esc, focus return), footer (social links from `/api/site`, copyright with the year in the locale's calendar); language switcher goes to the same page in the other locale with the `lang` cookie set and a **View Transition** that slides shared elements to their mirrored places (plain navigation where unsupported); `not-found.tsx` and `error.tsx` (request id only in development); close the P2-T6 gap: `/de` (unknown language) answers 404 with an **empty body** today — `notFound()` comes from the `[locale]` root layout itself, which no `not-found.tsx` catches (`global-not-found` didn't help in Next 16.4; a `proxy.ts` rewrite of unknown first segments to an unmatched path works).
   Done when: keyboard navigable; 360 px and 1440 px in both locales and themes; unknown URL → 404 page with status 404.
   Learn: logical properties for RTL/LTR, View Transitions.

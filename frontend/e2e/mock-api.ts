@@ -9,7 +9,8 @@ type SiteInfo = components["schemas"]["SiteInfoDto"];
 const siteInfo: SiteInfo = {
   // Must match e2e/smoke.spec.ts.
   name: { fa: "نام آزمایشی e2e", en: "e2e test name" },
-  social: { email: null, gitHub: null, telegram: null },
+  // Must match e2e/layout.spec.ts: two links configured, Telegram not (hidden).
+  social: { email: "e2e@example.com", gitHub: "https://github.com/e2e", telegram: null },
   features: { newsletterSignup: false, comments: false, analytics: false, semanticSearch: false },
 };
 

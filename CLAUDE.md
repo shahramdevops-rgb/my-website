@@ -43,12 +43,16 @@ reveal something real about the back-end. Details and rejected ideas: `roadmap.m
   `P2-T8` (Tailwind v4 via `@tailwindcss/postcss`; tokens in `src/styles/globals.css` + Vitest contrast test; fonts via
   `next/font/local` in `src/lib/fonts.ts`; `HtmlDocument` shell; pre-paint `ThemeScript` with the nonce from `x-nonce`;
   `ThemeToggle` (`aria-pressed`) on the placeholder home until P2-T9's header; `e2e/theme.spec.ts`).
-- **Next task:** `P2-T9` (layout shell & language switcher).
+  `P2-T9` (`[locale]` layout: skip link, `SiteHeader` + `MobileMenu`, `LanguageSwitcher` = plain `<a>` + `lang` cookie +
+  cross-document View Transitions, `SiteFooter`; `[locale]/[...rest]` + `not-found.tsx` + `error.tsx`; `proxy.ts`
+  rewrites unknown languages to a localized 404; `e2e/layout.spec.ts`).
+- **Next task:** `P2-T10` (UI kit & style guide).
 - **Accent color:** electric blue (`#4DB5FF` dark / `#0A63C9` light), picked by Claude at Mahdi's request; easy to change (`architecture.md §8.1`).
 - **Waiting on Mahdi:** contact links (`Site:Social:Email|GitHub|Telegram`); optional display face (P2-T8 left it out).
 - **Code today:** an API-only ASP.NET Core app (`/health`, `/health/ready`, `GET /api/site`; unknown paths → 404
   ProblemDetails; CSP `default-src 'none'`). Every build rewrites `openapi/v1.json` — commit it with contract changes.
-  `frontend/` serves `/fa` and `/en` (placeholder page: the site name from the API); fonts in `src/fonts/`. Contract change = `dotnet build` (→ `openapi/v1.json`) + `pnpm gen:api`, both committed.
+  `frontend/` serves `/fa` and `/en` (header/footer shell + placeholder page: the site name from the API; nav links
+  to pages not built yet are 404 until their phase); fonts in `src/fonts/`. Contract change = `dotnet build` (→ `openapi/v1.json`) + `pnpm gen:api`, both committed.
   P1's ideas that carry over: `architecture.md §8.4`.
 - **Dev DB** is published on host port **5433** (Mahdi has another project's PostgreSQL on 5432). For `dotnet watch`
   on the host, the connection string lives in **user-secrets** (`ConnectionStrings:Default`); in Docker, compose builds it from `.env`.

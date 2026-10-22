@@ -22,7 +22,7 @@ export function HtmlDocument({ locale, children }: { locale: Locale; children: R
       <head>
         <ThemeScript />
       </head>
-      <body className="min-h-dvh">{children}</body>
+      <body className="flex min-h-dvh flex-col">{children}</body>
     </html>
   );
 }

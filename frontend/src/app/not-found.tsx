@@ -3,9 +3,9 @@ import { getTranslations } from "next-intl/server";
 import { HtmlDocument } from "@/components/layout/HtmlDocument";
 import { defaultLocale } from "@/lib/i18n/config";
 
-// 404 page for URLs that match no route (e.g. /fa/no-such-page). There is no locale to go by, so it uses the
-// default one. Known gap: /de (an unknown language) gets status 404 but an empty body, because the 404 comes
-// from the [locale] layout itself; P2-T9 adds the per-language 404 pages and closes it.
+// Last-resort 404 for URLs outside [locale] that match no route (e.g. /internal/other). Page URLs never get here:
+// unknown paths under a language hit app/[locale]/[...rest], unknown languages are rewritten by proxy.ts, and both
+// show app/[locale]/not-found.tsx. There is no locale to go by here, so it uses the default one.
 export default async function NotFound() {
   // Rendered per request like every page, so its scripts get the CSP nonce.
   await connection();

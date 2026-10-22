@@ -1,7 +1,38 @@
 {
+  "skipLink": "رفتن به محتوای اصلی",
+  "nav": {
+    "label": "اصلی",
+    "menu": "منو",
+    "home": "خانه",
+    "about": "درباره من",
+    "projects": "پروژه‌ها",
+    "blog": "بلاگ",
+    "services": "خدمات",
+    "resume": "رزومه",
+    "contact": "تماس"
+  },
+  "language": {
+    "other": "English"
+  },
+  "footer": {
+    "copyright": "© {year} {name}",
+    "social": {
+      "label": "راه‌های ارتباطی",
+      "email": "ایمیل",
+      "gitHub": "گیت‌هاب",
+      "telegram": "تلگرام"
+    }
+  },
   "notFound": {
     "title": "صفحه پیدا نشد",
-    "description": "این نشانی در سایت وجود ندارد."
+    "description": "این نشانی در سایت وجود ندارد.",
+    "home": "بازگشت به صفحه اصلی"
+  },
+  "error": {
+    "title": "مشکلی پیش آمد",
+    "description": "نمایش این صفحه ممکن نشد. لطفاً چند لحظه بعد دوباره امتحان کنید.",
+    "retry": "دوباره امتحان کنید",
+    "digest": "شناسه خطا: {digest}"
   },
   "time": {
     "justNow": "همین الان"

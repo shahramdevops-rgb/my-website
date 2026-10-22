@@ -332,6 +332,24 @@ The script needs this request's CSP nonce (5.8): `proxy.ts` also puts it in an `
 is right before React runs; only `aria-pressed` waits for hydration. e2e proves it by blocking every JS bundle and
 checking the page is still light.
 
+### 4.15 One layout for both directions; View Transitions (P2-T9)
+The header is written once with logical utilities (4.5): `ms-auto` pushes the controls to the *end* — left in Persian,
+right in English. `dir` on `<html>` flips the whole row; no `rtl:` variants needed.
+
+The fa ↔ en switch is a plain `<a href="/en/...">` (a full page load), and both pages opt in to **cross-document
+View Transitions** in CSS. The browser screenshots the old page, loads the new one, and for every element whose
+`view-transition-name` exists on both pages, animates it from its old box to its new box:
+```css
+@view-transition { navigation: auto; }              /* inside @media (prefers-reduced-motion: no-preference) */
+.brand { view-transition-name: site-brand; }        /* right edge in fa → left edge in en: it slides across */
+```
+No JavaScript, so nothing for the CSP to block; browsers without support just navigate. Rule: a name must be
+unique on the page (the mobile menu has none). e2e checks it through `pagereveal`'s `event.viewTransition`.
+
+404 in the right language: `app/[locale]/[...rest]/page.tsx` catches every unknown path and calls `notFound()`, so
+`app/[locale]/not-found.tsx` renders *inside* the layout (header, footer, `lang`). `/de` has no language at all, so
+`proxy.ts` rewrites it (the address bar keeps `/de`) to `/en/de` for an English browser, which lands in that catch-all.
+
 ---
 
 ## Part 5 — Security

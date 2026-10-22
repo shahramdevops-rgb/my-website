@@ -399,6 +399,16 @@ with a shared secret (`Revalidate__Secret`).
   fallback, no layout shift): Vazirmatn variable (UI/body, Persian + Latin, preloaded), JetBrains Mono 400/700 (code,
   not preloaded — few pages show code). Their CSS variables feed `--font-sans`/`--font-mono` (`@theme inline`).
   `code, kbd, samp, pre` are always LTR and bidi-isolated. Display face: none yet (optional, Mahdi's pick, OFL only).
+- **Layout shell (P2-T9):** `app/[locale]/layout.tsx` renders `SkipLink` → `SiteHeader` (name, `mainNav` from
+  `src/lib/site/navigation.ts` with `aria-current`, `LanguageSwitcher`, `ThemeToggle`, `MobileMenu` below `lg`) →
+  `<main id="main">` → `SiteFooter` (configured social links from `/api/site`, year via `formatYear`). Links use
+  next-intl's `Link` from `src/lib/i18n/navigation.ts`. The language switcher is a plain `<a>` (full document load)
+  to the same path + query in the other locale; its click sets the `lang` cookie; cross-document View Transitions
+  (`@view-transition` in `globals.css`, off for reduced motion) slide the `site-*` named parts to their mirrored places.
+  404s: `app/[locale]/[...rest]` → `notFound()` → `app/[locale]/not-found.tsx` inside the layout; `proxy.ts` rewrites
+  an unknown first segment (`/de/x`) to `/{visitor locale}/de/x`, so it gets the same page in the visitor's language.
+  `app/[locale]/error.tsx` replaces only the page (digest shown in development only); errors in the layout itself
+  (e.g. `/api/site` down) are not caught by it.
 - **Theme (P2-T8):** `data-theme="dark|light"` on `<html>`; no attribute = dark (the `dark:` variant matches "not
   light"). `components/layout/HtmlDocument.tsx` is the shared `<html>` shell (locale layout + 404). In `<head>`,
   `ThemeScript` writes the inline pre-paint script (`src/lib/theme/theme.ts`) with this request's nonce, which

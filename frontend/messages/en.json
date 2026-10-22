@@ -1,7 +1,38 @@
 {
+  "skipLink": "Skip to content",
+  "nav": {
+    "label": "Main",
+    "menu": "Menu",
+    "home": "Home",
+    "about": "About",
+    "projects": "Projects",
+    "blog": "Blog",
+    "services": "Services",
+    "resume": "Resume",
+    "contact": "Contact"
+  },
+  "language": {
+    "other": "فارسی"
+  },
+  "footer": {
+    "copyright": "© {year} {name}",
+    "social": {
+      "label": "Contact links",
+      "email": "Email",
+      "gitHub": "GitHub",
+      "telegram": "Telegram"
+    }
+  },
   "notFound": {
     "title": "Page not found",
-    "description": "This address doesn't exist on the site."
+    "description": "This address doesn't exist on the site.",
+    "home": "Back to the home page"
+  },
+  "error": {
+    "title": "Something went wrong",
+    "description": "This page couldn't be shown. Please try again in a moment.",
+    "retry": "Try again",
+    "digest": "Error id: {digest}"
   },
   "time": {
     "justNow": "just now"

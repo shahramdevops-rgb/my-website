@@ -1,7 +1,7 @@
 import { expect, type Page, test } from "@playwright/test";
 
 // Every HTML route the site has today (the 404 page included). Add new routes here as they appear.
-const routes = ["/fa", "/en", "/fa/no-such-page"];
+const routes = ["/fa", "/en", "/fa/no-such-page", "/en/no-such-page", "/de"];
 
 declare global {
   interface Window {
@@ -42,10 +42,18 @@ for (const route of routes) {
     expect(scriptSrc).not.toContain("unsafe-inline");
     expect(policy).not.toContain("unsafe-eval");
 
-    // The browser hides nonce attributes from the DOM; the `nonce` property still holds the value.
-    const scriptNonces = await page.$$eval("script", (scripts) => scripts.map((s) => s.nonce));
-    expect(scriptNonces.length).toBeGreaterThan(0);
-    expect(new Set(scriptNonces)).toEqual(new Set([nonceOf(policy)]));
+    // Every script the server wrote carries this request's nonce.
+    const scriptTags = (await response?.text())?.match(/<script\b[^>]*>/g) ?? [];
+    expect(scriptTags.length).toBeGreaterThan(0);
+    for (const tag of scriptTags) expect(tag).toContain(`nonce="${nonceOf(policy)}"`);
+
+    // Scripts added later by Next's chunk loader have no nonce: 'strict-dynamic' trusts them because a nonced
+    // script inserted them. They must still be our own files. (The DOM hides nonce attributes; the property
+    // still holds the value.)
+    const addedLater = await page.$$eval("script", (scripts) =>
+      scripts.filter((s) => !s.nonce).map((s) => s.src),
+    );
+    for (const src of addedLater) expect(new URL(src).pathname).toMatch(/^\/_next\/static\//);
 
     // Next's inline scripts fill self.__next_f: if CSP had blocked them, it would not exist.
     expect(await page.evaluate(() => Array.isArray(window.__next_f))).toBe(true);

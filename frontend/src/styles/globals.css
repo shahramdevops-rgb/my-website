@@ -124,6 +124,25 @@
 }
 
 /*
+  fa ↔ en switch (architecture.md §8.2): the language switcher is a full navigation to the other language's page,
+  and both pages opt in to cross-document View Transitions, so the browser animates from one to the other. Parts
+  with the same view-transition-name on both pages (the site-* names in SiteHeader/SiteFooter) move from their old
+  place to the new one: <html dir> flipped, so they slide to their mirrored places; everything else cross-fades.
+  Next's own client-side navigations are not document navigations and are unaffected. Browsers without support,
+  and reduced-motion visitors, get a plain navigation.
+*/
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition {
+    navigation: auto;
+  }
+
+  ::view-transition-group(*) {
+    animation-duration: 450ms;
+    animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+}
+
+/*
   Theme switch fade: ThemeToggle adds .theme-transition to <html> for a moment while switching. Outside any layer,
   so it beats utilities' own transitions for that moment. Reduced-motion visitors get an instant switch.
 */

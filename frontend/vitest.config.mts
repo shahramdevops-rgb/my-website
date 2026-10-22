@@ -10,5 +10,12 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: ["./vitest.setup.ts"],
     include: ["src/**/*.test.{ts,tsx}"],
+    server: {
+      deps: {
+        // next-intl imports "next/navigation" without an extension, which Node's own ESM loader can't resolve
+        // (Next has no "exports" map). Letting Vite process next-intl resolves it, and lets tests mock it.
+        inline: ["next-intl"],
+      },
+    },
   },
 });
