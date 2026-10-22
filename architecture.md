@@ -102,10 +102,10 @@ my-website/
       ├─ app/[locale]/             # public routes (layout, page, about/, projects/, blog/ …)
       ├─ app/admin/                # admin UI (Persian only)
       ├─ app/internal/             # health/ (container healthcheck), revalidate/ (P7) — Caddy answers 404
-      ├─ components/ ui/ layout/ bento/ demos/ xray/ keyboard/
+      ├─ components/ ui/ layout/ (HtmlDocument) theme/ (ThemeScript, ThemeToggle) bento/ demos/ xray/ keyboard/
       ├─ lib/ api/ (schema.d.ts generated; server.ts, browser.ts clients) env.ts
       │       i18n/ (config.ts: locales, cookie, time zone; request.ts; resolve-locale.ts) format/ (date, number)
-      │       site/ (getSiteInfo)
+      │       site/ (getSiteInfo) theme/ (theme.ts: pre-paint script, switchTheme) fonts.ts security/nonce.ts
       ├─ instrumentation.ts        # server start: validates env (instrumentation-node.ts exits on a bad value)
       ├─ fonts/                    # self-hosted woff2 + licences
       ├─ styles/globals.css        # Tailwind entry + tokens
@@ -395,10 +395,17 @@ with a shared secret (`Revalidate__Secret`).
   Services, Decisions) in `content/*.{locale}.mdx`.
 - **Styling:** Tailwind v4, tokens in `styles/globals.css` (`@theme`), default palette removed so only tokens exist.
   Logical utilities only (`ms-*`, `pe-*`, `start-*`), so RTL and LTR share every component.
-- **Fonts:** self-hosted via `next/font/local` (preloaded, no layout shift): Vazirmatn (UI/body, Persian + Latin),
-  JetBrains Mono (code); an optional display face is chosen in P2-T8 (OFL only).
-- **Theme:** `data-theme="dark|light"` on `<html>`, dark by default; a tiny pre-paint script (with the CSP nonce)
-  applies a saved choice before first paint.
+- **Fonts:** self-hosted via `next/font/local` in `src/lib/fonts.ts` (served from `/_next/static/media`, size-adjusted
+  fallback, no layout shift): Vazirmatn variable (UI/body, Persian + Latin, preloaded), JetBrains Mono 400/700 (code,
+  not preloaded — few pages show code). Their CSS variables feed `--font-sans`/`--font-mono` (`@theme inline`).
+  `code, kbd, samp, pre` are always LTR and bidi-isolated. Display face: none yet (optional, Mahdi's pick, OFL only).
+- **Theme (P2-T8):** `data-theme="dark|light"` on `<html>`; no attribute = dark (the `dark:` variant matches "not
+  light"). `components/layout/HtmlDocument.tsx` is the shared `<html>` shell (locale layout + 404). In `<head>`,
+  `ThemeScript` writes the inline pre-paint script (`src/lib/theme/theme.ts`) with this request's nonce, which
+  `proxy.ts` also passes in an `x-nonce` request header; it applies the `localStorage` choice before first paint.
+  `ThemeToggle` (client leaf, `aria-pressed`, label "Dark theme") reads the attribute via `useSyncExternalStore`; the
+  icon is chosen by CSS so it is right before hydration; `.theme-transition` fades colors only without
+  `prefers-reduced-motion`. `e2e/theme.spec.ts` proves no flash with every JS bundle blocked.
 - **Motion:** Motion for layout/UI animation, CSS for scroll-driven effects, View Transitions for page and fa ↔ en
   changes (no animation where unsupported). Every animation checks `prefers-reduced-motion`.
 - **Accessibility:** WCAG AA contrast (test), keyboard operable, visible focus, every interactive showpiece
@@ -424,7 +431,7 @@ Neutrals are slightly cool so the blue feels at home.
 | `--color-danger` | `#FF6B6B` | `#C42B2B` | down 🔴, demo conflict |
 
 All text/background pairs must meet WCAG AA (≥ 4.5:1); the focus ring and other non-text UI ≥ 3:1. A Vitest test
-reads `globals.css` and enforces it (port of P1's `ColorContrastTests`). Checked for these values: the weakest
+(`src/styles/contrast.test.ts`) reads `globals.css` and enforces it (port of P1's `ColorContrastTests`). Checked for these values: the weakest
 pairs are light `success` on `surface-2` (4.67), light `accent` on `accent-soft` (4.76) and light `accent` on
 `surface-2` (5.00); everything in dark is ≥ 6.2.
 

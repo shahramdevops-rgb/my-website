@@ -1,5 +1,8 @@
 // Security headers for every HTML response (ADR-025). The API sets its own, stricter set (SecurityHeadersMiddleware).
 
+/** Request header that hands the nonce from proxy.ts to the page render (read by `getNonce`). */
+export const nonceHeaderName = "x-nonce";
+
 /** A fresh, unguessable value per request: 128 random bits, base64. */
 export function createNonce(): string {
   const bytes = crypto.getRandomValues(new Uint8Array(16));

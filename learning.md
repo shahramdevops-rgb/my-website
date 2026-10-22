@@ -316,6 +316,22 @@ data?.name.fa;                                             // typed as string
 ```
 Try it: rename `Fa` to `Persian` in C#, run both generators, and `pnpm typecheck` fails at every place that reads `name.fa` — before anything is deployed. CI runs both generators and fails if the committed files differ, so nobody can skip the step. Two clients exist because the two sides reach the API differently: the server calls `API_INTERNAL_URL` directly (container to container), the browser calls its own origin (`/api/...`), which Caddy routes to the API.
 
+### 4.14 CSS variables as a theme API; no flash in Next.js (P2-T8)
+The tokens (4.3) are the *contract* between design and components: a component says `bg-surface`, never a color.
+`globals.css` holds dark values in `@theme static`, light overrides in `:root[data-theme="light"]`; one attribute on
+`<html>` re-colors everything. `--color-*: initial` deletes Tailwind's palette, so `bg-red-500` simply doesn't exist.
+
+No flash (FOUC, 4.4) in Next.js takes three pieces, because three different moments can go wrong:
+```
+HTML parsing  → <script nonce=…> in <head> sets data-theme from localStorage   (before the first paint)
+hydration     → suppressHydrationWarning on <html>: React accepts the attribute the script added
+after that    → ThemeToggle reads the attribute with useSyncExternalStore (server snapshot = "dark")
+```
+The script needs this request's CSP nonce (5.8): `proxy.ts` also puts it in an `x-nonce` request header, and
+`ThemeScript` reads it with `headers()`. The toggle's *icon* is picked by CSS (`light:hidden` / `dark:hidden`), so it
+is right before React runs; only `aria-pressed` waits for hydration. e2e proves it by blocking every JS bundle and
+checking the page is still light.
+
 ---
 
 ## Part 5 — Security

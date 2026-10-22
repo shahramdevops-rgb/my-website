@@ -11,7 +11,10 @@ const site: SiteInfo = {
 
 // The page's data and Next.js request APIs are replaced, so the test checks only what the page renders.
 vi.mock("next/server", () => ({ connection: async () => {} }));
-vi.mock("next-intl/server", () => ({ setRequestLocale: () => {} }));
+vi.mock("next-intl/server", () => ({
+  setRequestLocale: () => {},
+  getTranslations: async () => (key: string) => key,
+}));
 vi.mock("@/lib/site/get-site-info", () => ({ getSiteInfo: async () => site }));
 
 describe("HomePage", () => {

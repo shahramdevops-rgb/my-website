@@ -8,5 +8,8 @@
   },
   "format": {
     "readingTime": "{minutes, number} دقیقه مطالعه"
+  },
+  "theme": {
+    "dark": "حالت تیره"
   }
 }

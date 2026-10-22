@@ -1,6 +1,7 @@
 import { connection } from "next/server";
 import { getTranslations } from "next-intl/server";
-import { defaultLocale, textDirection } from "@/lib/i18n/config";
+import { HtmlDocument } from "@/components/layout/HtmlDocument";
+import { defaultLocale } from "@/lib/i18n/config";
 
 // 404 page for URLs that match no route (e.g. /fa/no-such-page). There is no locale to go by, so it uses the
 // default one. Known gap: /de (an unknown language) gets status 404 but an empty body, because the 404 comes
@@ -11,13 +12,11 @@ export default async function NotFound() {
   const t = await getTranslations({ locale: defaultLocale, namespace: "notFound" });
 
   return (
-    <html lang={defaultLocale} dir={textDirection(defaultLocale)}>
-      <body>
-        <main>
-          <h1>{t("title")}</h1>
-          <p>{t("description")}</p>
-        </main>
-      </body>
-    </html>
+    <HtmlDocument locale={defaultLocale}>
+      <main className="mx-auto max-w-3xl px-4 py-16">
+        <h1 className="text-3xl font-bold">{t("title")}</h1>
+        <p className="mt-4 text-muted">{t("description")}</p>
+      </main>
+    </HtmlDocument>
   );
 }

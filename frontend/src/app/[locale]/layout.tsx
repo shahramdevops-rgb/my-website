@@ -2,7 +2,8 @@ import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { setRequestLocale } from "next-intl/server";
-import { locales, textDirection } from "@/lib/i18n/config";
+import { HtmlDocument } from "@/components/layout/HtmlDocument";
+import { locales } from "@/lib/i18n/config";
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
@@ -24,11 +25,9 @@ export default async function LocaleLayout({ children, params }: LayoutProps<"/[
   await connection();
 
   return (
-    <html lang={locale} dir={textDirection(locale)}>
-      <body>
-        {/* Makes the messages available to Client Components (the language switcher from P2-T9). */}
-        <NextIntlClientProvider>{children}</NextIntlClientProvider>
-      </body>
-    </html>
+    <HtmlDocument locale={locale}>
+      {/* Makes the messages available to Client Components (the language switcher from P2-T9). */}
+      <NextIntlClientProvider>{children}</NextIntlClientProvider>
+    </HtmlDocument>
   );
 }

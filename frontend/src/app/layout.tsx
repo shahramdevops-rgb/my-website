@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+// Tailwind + design tokens for every page (the 404 page renders outside app/[locale]).
+import "@/styles/globals.css";
 
 // Pass-through root layout: it exists only because app/not-found.tsx needs a layout above it.
 // The real <html> (with lang and dir) is rendered per language in app/[locale]/layout.tsx.

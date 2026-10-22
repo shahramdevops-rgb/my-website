@@ -1,0 +1,142 @@
+/*
+  Tailwind v4 entry and the site's design tokens (architecture.md §8.1, ADR-024).
+  source(".."): scan src/ for class names; nothing outside it holds markup.
+*/
+@import "tailwindcss" source("..");
+
+/*
+  Theme switch: data-theme="dark|light" on <html>. Dark is the default, so the dark variant matches whenever the
+  page is NOT explicitly light — also before any script ran. Replaces Tailwind's prefers-color-scheme variant:
+  the visitor's saved choice decides, not the OS.
+*/
+@custom-variant dark (&:where(:root:not([data-theme="light"]), :root:not([data-theme="light"]) *));
+@custom-variant light (&:where(:root[data-theme="light"], :root[data-theme="light"] *));
+
+/*
+  Color tokens. Values here are the DARK theme; the light theme overrides the same variables in @layer base below.
+  Utilities read the variable at runtime (bg-surface → var(--color-surface)), so switching data-theme re-colors the
+  page without a second set of classes. "static" emits every token even before a utility uses it.
+  WCAG contrast of every text/background pair is enforced by src/styles/contrast.test.ts.
+*/
+@theme static {
+  /* Drop Tailwind's default palette: markup can use our tokens only (rules.md §9 — no raw colors). */
+  --color-*: initial;
+
+  --color-bg: #0a0b0e;
+  --color-surface: #111318;
+  --color-surface-2: #181b22;
+  --color-border: #262a33;
+  --color-text: #e8eaef;
+  --color-muted: #9aa2b1;
+  --color-accent: #4db5ff;
+  --color-accent-soft: #0f2638;
+  --color-success: #3dd68c;
+  --color-danger: #ff6b6b;
+
+  /*
+    Type scale. Persian script has tall letters and dots above and below the line, so line-heights are taller than
+    Tailwind's defaults (1.85 for body text); big headings need less, or their lines drift apart.
+  */
+  --text-*: initial;
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1.7;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.75;
+  --text-base: 1rem;
+  --text-base--line-height: 1.85;
+  --text-lg: 1.125rem;
+  --text-lg--line-height: 1.8;
+  --text-xl: 1.25rem;
+  --text-xl--line-height: 1.7;
+  --text-2xl: 1.5rem;
+  --text-2xl--line-height: 1.55;
+  --text-3xl: 1.875rem;
+  --text-3xl--line-height: 1.45;
+  --text-4xl: 2.25rem;
+  --text-4xl--line-height: 1.35;
+  --text-5xl: 3rem;
+  --text-5xl--line-height: 1.25;
+  --text-6xl: 3.75rem;
+  --text-6xl--line-height: 1.15;
+}
+
+/*
+  Fonts (src/lib/fonts.ts): next/font sets --font-vazirmatn and --font-jetbrains-mono on <html>. "inline" puts the
+  var() into the utilities themselves, so they resolve on the element that uses them.
+  Vazirmatn has Latin glyphs too, so mixed Persian/English text uses one face. Tahoma is the best-looking Persian
+  system font on Windows for the moment before Vazirmatn has loaded.
+*/
+@theme inline {
+  --font-*: initial;
+  --font-sans: var(--font-vazirmatn), Tahoma, ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, Consolas, monospace;
+}
+
+@layer base {
+  :root {
+    /* Native widgets (scrollbars, form controls) follow the theme too. */
+    color-scheme: dark;
+  }
+
+  :root[data-theme="light"] {
+    color-scheme: light;
+
+    --color-bg: #f6f7f9;
+    --color-surface: #ffffff;
+    --color-surface-2: #eceff4;
+    --color-border: #d9dee6;
+    --color-text: #111419;
+    --color-muted: #566070;
+    --color-accent: #0a63c9;
+    --color-accent-soft: #dcebfc;
+    --color-success: #137a45;
+    --color-danger: #c42b2b;
+  }
+
+  html {
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-sans);
+    /* Text without a text-* utility gets the Persian-friendly body line-height, not Tailwind's 1.5. */
+    line-height: var(--text-base--line-height);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* One visible focus ring for every interactive element (WCAG 2.4.7); its contrast is ≥ 3:1 (test). */
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  /*
+    Code reads left to right in both languages. "isolate" keeps an inline snippet from reordering the Persian text
+    around it (the Unicode bidi algorithm would otherwise mix their directions).
+  */
+  code,
+  kbd,
+  samp,
+  pre {
+    font-family: var(--font-mono);
+    direction: ltr;
+    unicode-bidi: isolate;
+  }
+}
+
+/*
+  Theme switch fade: ThemeToggle adds .theme-transition to <html> for a moment while switching. Outside any layer,
+  so it beats utilities' own transitions for that moment. Reduced-motion visitors get an instant switch.
+*/
+@media (prefers-reduced-motion: no-preference) {
+  .theme-transition,
+  .theme-transition *,
+  .theme-transition *::before,
+  .theme-transition *::after {
+    transition:
+      background-color 250ms ease,
+      border-color 250ms ease,
+      color 250ms ease,
+      fill 250ms ease,
+      stroke 250ms ease;
+  }
+}

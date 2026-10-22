@@ -8,5 +8,8 @@
   },
   "format": {
     "readingTime": "{minutes, number} min read"
+  },
+  "theme": {
+    "dark": "Dark theme"
   }
 }
