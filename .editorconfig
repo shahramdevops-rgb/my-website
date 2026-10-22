@@ -75,6 +75,7 @@ dotnet_naming_style.end_in_async.capitalization = pascal_case
 dotnet_diagnostic.CA2007.severity = none   # ConfigureAwait not needed in ASP.NET Core (see rules.md §3)
 dotnet_diagnostic.IDE0005.severity = warning  # remove unnecessary usings
 dotnet_diagnostic.CA1515.severity = none      # "make public types internal": not useful for an app (PageModels, tests)
+dotnet_diagnostic.CA1716.severity = none      # names that are VB keywords (e.g. namespace "Resume"): no VB consumers
 
 # Tests: names use Method_State_ExpectedResult (rules.md §11), so underscores are allowed.
 [tests/**.cs]

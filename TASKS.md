@@ -149,7 +149,7 @@
 
 > Mahdi provides the facts; Claude drafts the English text for Mahdi to edit. Prose lives in `frontend/content/*.{locale}.mdx`.
 
-- [ ] **P3-T1 Structured résumé in the API**
+- [x] **P3-T1 Structured résumé in the API**
   Scope: `ResumeProfile` record (experience, education, skills with categories, tech stack, links) loaded from `Content/resume.fa.json` + `resume.en.json` (ADR-013), validated at startup; `GET /api/resume?lang=` for the pages; regenerated OpenAPI + TS types.
   Done when: an invalid or incomplete file fails startup (test); endpoint test for both languages.
   Learn: single source of truth, many renderings.

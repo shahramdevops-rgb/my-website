@@ -132,7 +132,7 @@ frontend ──HTTP (typed client)──► Api ──► Application ──► 
 
 ```
 PersonalSite.Domain/
-├─ Common/            Entity.cs (Id, CreatedAt, UpdatedAt), IAuditable, Slug.cs (value object), Language.cs
+├─ Common/            Entity.cs (Id, CreatedAt, UpdatedAt), IAuditable, Slug.cs (value object), Language.cs (enum Fa/En)
 ├─ Blog/              Post.cs, PostStatus.cs, Tag.cs, Comment.cs, CommentStatus.cs
 ├─ Projects/          Project.cs, ProjectStatus.cs
 ├─ Demos/             CinemaSeat.cs, GymMember.cs, Locker.cs … (sandbox entities for live demos, ADR-027)
@@ -145,7 +145,8 @@ PersonalSite.Application/
 │                     IFrontendRevalidator), Results/ (Result, Error), Paging/ (PagedList<T>, PageRequest)
 ├─ DependencyInjection.cs      (AddApplication)
 ├─ Site/              SiteOptions, SiteInfoService + DTOs (name, social links, public feature flags → GET /api/site)
-├─ Blog/  Projects/  Contact/  Newsletter/  Resume/ (ResumeProfile, ADR-013)  Demos/  Search/ (P12)  Assistant/ (P12)
+├─ Resume/            ResumeProfile records, ResumeContent (options: fa + en), ResumeContentValidator, ResumeService
+├─ Blog/  Projects/  Contact/  Newsletter/  Demos/  Search/ (P12)  Assistant/ (P12)
 └─ Features/          FeatureFlags.cs (string constants)
 
 PersonalSite.Infrastructure/
@@ -165,13 +166,16 @@ PersonalSite.Api/
 ├─ DependencyInjection.cs        (AddApi: Serilog, options, ProblemDetails, OpenAPI, auth, rate limiting, health)
 ├─ Configuration/                Api-only Options classes (FrontendOptions …), all ValidateOnStart; options that
 │                                Application services read (SiteOptions) live in Application, bound + validated here
+│                                ResumeContentLoader: reads Content/resume.{fa,en}.json (strict JSON) → ResumeContent
 ├─ Endpoints/                    one static class per feature: SiteEndpoints, ProjectEndpoints, BlogEndpoints,
 │                                AdminPostEndpoints, AuthEndpoints, DemoEndpoints, ResumeEndpoints, CurlCardEndpoint,
 │                                LlmsTxtEndpoint, HealthEndpoints, McpEndpoints (P12) — mapped under MapGroup("/api")
 ├─ Infrastructure/               SecurityHeadersMiddleware (API responses), HealthProbe, Routes (path constants),
+│                                LanguageParameter (strict fa|en binding for `lang`),
 │                                OpenApiGeneration (build-time doc run), OpenApiLineEndings (
  in descriptions)
-└─ Content/                      resume.fa.json, resume.en.json (ADR-013)
+└─ Content/                      resume.fa.json, resume.en.json (ADR-013): read once at startup, validated
+                                 (ValidateOnStart), served by GET /api/resume; both files must state the same facts
 ```
 
 ## 4. Data model
@@ -342,6 +346,7 @@ configured locales (`fa`, `en`), anything else is a 404. Admin routes live under
 | URL | Purpose |
 |---|---|
 | `/api/site` | name, social links, public feature flags |
+| `/api/resume?lang=fa\|en` | structured résumé for the pages (ADR-013); unknown `lang` → 400 |
 | `/api/projects?lang=`, `/api/projects/{lang}/{slug}` | projects |
 | `/api/posts?lang=&page=`, `/api/posts/{lang}/{slug}`, `/api/tags/{lang}/{slug}` | blog |
 | `/api/demos/cinema/*`, `/api/demos/gym/*` | live demo sandboxes (ADR-027) |

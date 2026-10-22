@@ -48,10 +48,13 @@ reveal something real about the back-end. Details and rejected ideas: `roadmap.m
   rewrites unknown languages to a localized 404; `e2e/layout.spec.ts`).
   `P2-T10` (`src/components/ui/`: Button/ButtonLink, Card, BentoGrid + BentoCard with cursor spotlight, Tag, Badge,
   SectionHeader, FormField, Alert; dev-only `/{locale}/_styleguide` (folder `%5Fstyleguide`, 404 in production)).
-- **Next task:** `P3-T1` (Structured résumé in the API) — Phase 2 is complete.
+- **Done in P3:** `P3-T1` (`Content/resume.{fa,en}.json` → `ResumeProfile` records, strict JSON + `ResumeContentValidator`
+  on `ValidateOnStart`, fa/en must state the same facts; `GET /api/resume?lang=fa|en` via `LanguageParameter`; TS types regenerated).
+- **Next task:** `P3-T2` (Home — Bento grid).
 - **Accent color:** electric blue (`#4DB5FF` dark / `#0A63C9` light), picked by Claude at Mahdi's request; easy to change (`architecture.md §8.1`).
-- **Waiting on Mahdi:** contact links (`Site:Social:Email|GitHub|Telegram`); optional display face (P2-T8 left it out).
-- **Code today:** an API-only ASP.NET Core app (`/health`, `/health/ready`, `GET /api/site`; unknown paths → 404
+- **Waiting on Mahdi:** contact links (`Site:Social:Email|GitHub|Telegram`); optional display face (P2-T8 left it out);
+  real résumé facts — every `[placeholder]` and `2000-01` date in `src/PersonalSite.Api/Content/resume.*.json`.
+- **Code today:** an API-only ASP.NET Core app (`/health`, `/health/ready`, `GET /api/site`, `GET /api/resume?lang=`; unknown paths → 404
   ProblemDetails; CSP `default-src 'none'`). Every build rewrites `openapi/v1.json` — commit it with contract changes.
   `frontend/` serves `/fa` and `/en` (header/footer shell + placeholder page: the site name from the API; nav links
   to pages not built yet are 404 until their phase); fonts in `src/fonts/`. Contract change = `dotnet build` (→ `openapi/v1.json`) + `pnpm gen:api`, both committed.

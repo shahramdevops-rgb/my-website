@@ -15,6 +15,7 @@ public static class ApiEndpoints
             .ProducesProblem(StatusCodes.Status500InternalServerError);
 
         api.MapSiteEndpoints();
+        api.MapResumeEndpoints();
 
         return endpoints;
     }

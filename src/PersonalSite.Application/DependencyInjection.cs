@@ -1,5 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Microsoft.FeatureManagement;
+using PersonalSite.Application.Resume;
 using PersonalSite.Application.Site;
 
 namespace PersonalSite.Application;
@@ -18,6 +20,10 @@ public static class DependencyInjection
         services.AddFeatureManagement();
 
         services.AddScoped<SiteInfoService>();
+
+        // The Api fills ResumeContent from its content files; this validator runs on it at startup (ValidateOnStart).
+        services.AddSingleton<IValidateOptions<ResumeContent>, ResumeContentValidator>();
+        services.AddSingleton<ResumeService>();
 
         return services;
     }

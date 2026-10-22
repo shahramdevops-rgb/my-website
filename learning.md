@@ -133,6 +133,31 @@ static async Task<Ok<SiteInfoDto>> GetSiteAsync(SiteInfoService site, Cancellati
 ```
 `Microsoft.Extensions.ApiDescription.Server` runs the app once after each build and writes `openapi/v1.json`. The file is committed, so a contract change shows up as a diff in the PR, and CI rebuilds it and fails if it differs from the committed one. In P2-T4 the front-end turns the same file into TypeScript types: rename a C# property and `pnpm typecheck` fails — the mistake is caught in the build, not by a visitor. (Why `TypedResults` and not `Results`: `Results.Ok(x)` returns `IResult`, which says nothing about the type, so the document would have no schema.)
 
+### 2.16 Single source of truth: the structured résumé (P3-T1)
+The résumé is data, not a page: `src/PersonalSite.Api/Content/resume.{fa,en}.json` → typed `ResumeProfile` records → `GET /api/resume?lang=`. The Resume page, About skills grid, keyboard hero, `curl` card, `llms.txt` and MCP all read the same records, so they can never disagree (ADR-013). Three layers catch mistakes **at startup**, before any visitor:
+```csharp
+new JsonSerializerOptions(JsonSerializerDefaults.Web)
+{
+    RespectRequiredConstructorParameters = true,                  // "headline" missing    → error
+    RespectNullableAnnotations = true,                            // "headline": null       → error
+    UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow, // "headlin": "typo"      → error
+};
+// + ResumeContentValidator (IValidateOptions): blank text, "2021-13", end < start, unknown tech id,
+//   and fa/en disagreeing on dates or stack. + ValidateOnStart() → the app refuses to start.
+```
+"Fail fast" is cheaper than "fail on the first request": a broken file breaks the deploy's health check, not a page.
+
+### 2.17 Custom parameter binding: strict `?lang=` (P3-T1)
+Minimal APIs bind an `enum` with `Enum.TryParse`, which is case-sensitive on C# names (`Fa`, not `fa`) **and accepts numbers** (`?lang=5` → an undefined `Language`, then a 500). A type with a `static bool TryParse(string?, out T)` method gets custom binding instead:
+```csharp
+public readonly record struct LanguageParameter(Language Value)
+{
+    public static bool TryParse(string? value, out LanguageParameter result) { /* only "fa" or "en" */ }
+}
+// GET /api/resume?lang=FA → TryParse returns false → 400 ProblemDetails, before the handler runs.
+```
+An OpenAPI schema transformer adds `enum: ["fa","en"]` to that parameter, so the generated TS type is `"fa" | "en"` and a call with `lang: "de"` fails `pnpm typecheck`. An integration test found this bug: the first version bound the enum directly and returned 400 for `?lang=fa`.
+
 ## Part 3 — Data
 
 ### 3.1 EF Core migrations

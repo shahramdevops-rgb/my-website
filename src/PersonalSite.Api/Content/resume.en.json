@@ -1,0 +1,100 @@
+{
+  "basics": {
+    "name": "Mahdi Azghandi",
+    "headline": "Full-stack engineer — C#/.NET back-end, React/TypeScript front-end",
+    "summary": "I build real systems under hard constraints and engineer AI into them. This site is the proof: a Next.js front-end and an ASP.NET Core API on one origin, with live demos on real endpoints.",
+    "location": "Iran"
+  },
+  "links": [],
+  "experience": [
+    {
+      "organization": "[placeholder] Company or client",
+      "role": "[placeholder] Role",
+      "start": "2000-01",
+      "end": null,
+      "location": null,
+      "summary": "[placeholder] One or two sentences: what the product does and what you owned.",
+      "highlights": [
+        "[placeholder] Gym management system: what you built and a measurable result.",
+        "[placeholder] Cinema reservation: what you built and a measurable result."
+      ],
+      "tech": ["csharp", "dotnet", "ef-core", "postgresql"]
+    }
+  ],
+  "education": [
+    {
+      "institution": "Shahid Beheshti University",
+      "degree": "MSc",
+      "field": "Electrical Engineering",
+      "start": "2000-01",
+      "end": "2000-01"
+    },
+    {
+      "institution": "University of Guilan",
+      "degree": "BSc",
+      "field": "Electrical Engineering",
+      "start": "2000-01",
+      "end": "2000-01"
+    }
+  ],
+  "skills": [
+    {
+      "category": "Back-end",
+      "items": ["C#", "ASP.NET Core (Minimal APIs)", "Entity Framework Core", "PostgreSQL", "REST & OpenAPI"]
+    },
+    {
+      "category": "Front-end",
+      "items": ["React", "TypeScript", "Next.js (App Router)", "Tailwind CSS", "RTL & i18n"]
+    },
+    {
+      "category": "Delivery",
+      "items": ["Docker & Compose", "GitHub Actions", "Caddy", "Linux servers"]
+    },
+    {
+      "category": "Practices",
+      "items": ["Clean Architecture", "Automated testing (xUnit, Testcontainers, Playwright)", "Typed API contracts"]
+    }
+  ],
+  "techStack": [
+    {
+      "id": "csharp",
+      "name": "C#",
+      "description": "My main language for back-end code: typed, fast, with modern pattern matching and records."
+    },
+    {
+      "id": "dotnet",
+      "name": ".NET",
+      "description": "The runtime and ASP.NET Core web framework behind the APIs I build."
+    },
+    {
+      "id": "ef-core",
+      "name": "EF Core",
+      "description": "The ORM I use to map domain models to PostgreSQL, with migrations and projections."
+    },
+    {
+      "id": "postgresql",
+      "name": "PostgreSQL",
+      "description": "The relational database I trust for transactions, constraints and concurrency."
+    },
+    {
+      "id": "react",
+      "name": "React",
+      "description": "The UI library for interactive front-ends, from forms to live demos."
+    },
+    {
+      "id": "typescript",
+      "name": "TypeScript",
+      "description": "Typed JavaScript; my front-end types are generated from the API's OpenAPI contract."
+    },
+    {
+      "id": "nextjs",
+      "name": "Next.js",
+      "description": "The React framework for server rendering, routing and i18n on this site."
+    },
+    {
+      "id": "docker",
+      "name": "Docker",
+      "description": "Containers for every service, built in CI and run the same way locally and in production."
+    }
+  ]
+}

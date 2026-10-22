@@ -1,0 +1,100 @@
+{
+  "basics": {
+    "name": "مهدی ازقندی",
+    "headline": "مهندس فول‌استک — بک‌اند C#/.NET، فرانت‌اند React/TypeScript",
+    "summary": "سیستم‌های واقعی را زیر محدودیت‌های سخت می‌سازم و هوش مصنوعی را به‌شکل مهندسی‌شده در آن‌ها به کار می‌گیرم. همین سایت گواه آن است: فرانت‌اند Next.js و API با ASP.NET Core روی یک دامنه، با دموهای زنده روی endpointهای واقعی.",
+    "location": "ایران"
+  },
+  "links": [],
+  "experience": [
+    {
+      "organization": "[placeholder] شرکت یا کارفرما",
+      "role": "[placeholder] نقش",
+      "start": "2000-01",
+      "end": null,
+      "location": null,
+      "summary": "[placeholder] یکی دو جمله: محصول چه می‌کند و مسئولیت شما چه بود.",
+      "highlights": [
+        "[placeholder] سیستم مدیریت باشگاه: چه ساختید و یک نتیجهٔ قابل‌اندازه‌گیری.",
+        "[placeholder] رزرو سینما: چه ساختید و یک نتیجهٔ قابل‌اندازه‌گیری."
+      ],
+      "tech": ["csharp", "dotnet", "ef-core", "postgresql"]
+    }
+  ],
+  "education": [
+    {
+      "institution": "دانشگاه شهید بهشتی",
+      "degree": "کارشناسی ارشد",
+      "field": "مهندسی برق",
+      "start": "2000-01",
+      "end": "2000-01"
+    },
+    {
+      "institution": "دانشگاه گیلان",
+      "degree": "کارشناسی",
+      "field": "مهندسی برق",
+      "start": "2000-01",
+      "end": "2000-01"
+    }
+  ],
+  "skills": [
+    {
+      "category": "بک‌اند",
+      "items": ["C#", "ASP.NET Core (Minimal APIs)", "Entity Framework Core", "PostgreSQL", "REST و OpenAPI"]
+    },
+    {
+      "category": "فرانت‌اند",
+      "items": ["React", "TypeScript", "Next.js (App Router)", "Tailwind CSS", "راست‌به‌چپ و چندزبانگی"]
+    },
+    {
+      "category": "تحویل و استقرار",
+      "items": ["Docker و Compose", "GitHub Actions", "Caddy", "سرورهای لینوکس"]
+    },
+    {
+      "category": "روش‌ها",
+      "items": ["Clean Architecture", "تست خودکار (xUnit، Testcontainers، Playwright)", "قرارداد API تایپ‌شده"]
+    }
+  ],
+  "techStack": [
+    {
+      "id": "csharp",
+      "name": "C#",
+      "description": "زبان اصلی من برای بک‌اند: تایپ‌شده، سریع، با pattern matching و recordهای مدرن."
+    },
+    {
+      "id": "dotnet",
+      "name": ".NET",
+      "description": "runtime و فریم‌ورک وب ASP.NET Core که APIهایم روی آن ساخته می‌شوند."
+    },
+    {
+      "id": "ef-core",
+      "name": "EF Core",
+      "description": "ORMی که با آن مدل‌های دامنه را با migration و projection به PostgreSQL نگاشت می‌کنم."
+    },
+    {
+      "id": "postgresql",
+      "name": "PostgreSQL",
+      "description": "پایگاه‌دادهٔ رابطه‌ای که برای تراکنش، constraint و هم‌زمانی به آن اعتماد دارم."
+    },
+    {
+      "id": "react",
+      "name": "React",
+      "description": "کتابخانهٔ UI برای فرانت‌اندهای تعاملی، از فرم‌ها تا دموهای زنده."
+    },
+    {
+      "id": "typescript",
+      "name": "TypeScript",
+      "description": "جاوااسکریپت تایپ‌شده؛ تایپ‌های فرانت‌اند من از قرارداد OpenAPI همان API تولید می‌شوند."
+    },
+    {
+      "id": "nextjs",
+      "name": "Next.js",
+      "description": "فریم‌ورک React برای رندر سمت سرور، مسیریابی و چندزبانگی در همین سایت."
+    },
+    {
+      "id": "docker",
+      "name": "Docker",
+      "description": "کانتینر برای هر سرویس؛ در CI ساخته می‌شود و محلی و در production یکسان اجرا می‌شود."
+    }
+  ]
+}

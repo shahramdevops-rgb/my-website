@@ -36,6 +36,61 @@
           }
         }
       }
+    },
+    "/api/resume": {
+      "get": {
+        "tags": [
+          "Resume"
+        ],
+        "summary": "The structured résumé in one language.",
+        "operationId": "GetResume",
+        "parameters": [
+          {
+            "name": "lang",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "enum": [
+                "fa",
+                "en"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResumeProfile"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -101,6 +156,213 @@
           }
         },
         "description": "Only the flags that change what a visitor sees. Back-office flags (`Newsletter.Sending`,\n`Notifications.Email`, `Ai.AdminAssistant` …) stay private: they are nobody else's business."
+      },
+      "ResumeBasics": {
+        "required": [
+          "name",
+          "headline",
+          "summary",
+          "location"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "headline": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "location": {
+            "type": "string"
+          }
+        },
+        "description": "Who: name (ADR-017), one-line headline, short summary, location."
+      },
+      "ResumeEducation": {
+        "required": [
+          "institution",
+          "degree",
+          "field",
+          "start"
+        ],
+        "type": "object",
+        "properties": {
+          "institution": {
+            "type": "string"
+          },
+          "degree": {
+            "type": "string"
+          },
+          "field": {
+            "type": "string"
+          },
+          "start": {
+            "type": "string"
+          },
+          "end": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "description": "A degree. `end` = `null` means \"in progress\"."
+      },
+      "ResumeExperience": {
+        "required": [
+          "organization",
+          "role",
+          "start",
+          "summary",
+          "highlights",
+          "tech"
+        ],
+        "type": "object",
+        "properties": {
+          "organization": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "start": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "highlights": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "tech": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "end": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "location": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "description": "A job or engagement. `end` = `null` means \"present\". `tech` holds ids from\n`techStack`, so the keyboard hero can list the work that used each technology."
+      },
+      "ResumeLink": {
+        "required": [
+          "label",
+          "url"
+        ],
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "description": "A public profile or page (e.g. GitHub). Absolute https URL."
+      },
+      "ResumeProfile": {
+        "required": [
+          "basics",
+          "links",
+          "experience",
+          "education",
+          "skills",
+          "techStack"
+        ],
+        "type": "object",
+        "properties": {
+          "basics": {
+            "$ref": "#/components/schemas/ResumeBasics"
+          },
+          "links": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ResumeLink"
+            }
+          },
+          "experience": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ResumeExperience"
+            }
+          },
+          "education": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ResumeEducation"
+            }
+          },
+          "skills": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ResumeSkillGroup"
+            }
+          },
+          "techStack": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ResumeTech"
+            }
+          }
+        },
+        "description": "The whole résumé in one language."
+      },
+      "ResumeSkillGroup": {
+        "required": [
+          "category",
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "category": {
+            "type": "string"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "description": "A category of skills (\"Back-end\", \"Front-end\" …) with its items, in display order."
+      },
+      "ResumeTech": {
+        "required": [
+          "id",
+          "name",
+          "description"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        },
+        "description": "One technology of the stack (a keycap of the keyboard hero). `id` is a language-neutral slug\n(`csharp`, `postgresql`), identical in both files; `name` and `description` are localized."
       },
       "SiteInfoDto": {
         "required": [
@@ -174,6 +436,9 @@
   "tags": [
     {
       "name": "Site"
+    },
+    {
+      "name": "Resume"
     }
   ]
 }

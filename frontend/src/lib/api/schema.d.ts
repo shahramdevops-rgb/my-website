@@ -21,6 +21,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/resume": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The structured résumé in one language. */
+        get: operations["GetResume"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -42,6 +59,64 @@ export interface components {
             comments: boolean;
             analytics: boolean;
             semanticSearch: boolean;
+        };
+        /** @description Who: name (ADR-017), one-line headline, short summary, location. */
+        ResumeBasics: {
+            name: string;
+            headline: string;
+            summary: string;
+            location: string;
+        };
+        /** @description A degree. `end` = `null` means "in progress". */
+        ResumeEducation: {
+            institution: string;
+            degree: string;
+            field: string;
+            start: string;
+            end?: null | string;
+        };
+        /**
+         * @description A job or engagement. `end` = `null` means "present". `tech` holds ids from
+         *     `techStack`, so the keyboard hero can list the work that used each technology.
+         */
+        ResumeExperience: {
+            organization: string;
+            role: string;
+            start: string;
+            summary: string;
+            highlights: string[];
+            tech: string[];
+            end?: null | string;
+            location?: null | string;
+        };
+        /** @description A public profile or page (e.g. GitHub). Absolute https URL. */
+        ResumeLink: {
+            label: string;
+            /** Format: uri */
+            url: string;
+        };
+        /** @description The whole résumé in one language. */
+        ResumeProfile: {
+            basics: components["schemas"]["ResumeBasics"];
+            links: components["schemas"]["ResumeLink"][];
+            experience: components["schemas"]["ResumeExperience"][];
+            education: components["schemas"]["ResumeEducation"][];
+            skills: components["schemas"]["ResumeSkillGroup"][];
+            techStack: components["schemas"]["ResumeTech"][];
+        };
+        /** @description A category of skills ("Back-end", "Front-end" …) with its items, in display order. */
+        ResumeSkillGroup: {
+            category: string;
+            items: string[];
+        };
+        /**
+         * @description One technology of the stack (a keycap of the keyboard hero). `id` is a language-neutral slug
+         *     (`csharp`, `postgresql`), identical in both files; `name` and `description` are localized.
+         */
+        ResumeTech: {
+            id: string;
+            name: string;
+            description: string;
         };
         /** @description What every page of the front-end needs about the site itself (`GET /api/site`). */
         SiteInfoDto: {
@@ -90,6 +165,46 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SiteInfoDto"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetResume: {
+        parameters: {
+            query: {
+                lang: "fa" | "en";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResumeProfile"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Internal Server Error */

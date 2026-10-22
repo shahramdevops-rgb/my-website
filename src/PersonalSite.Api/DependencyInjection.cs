@@ -1,4 +1,6 @@
 using System.Globalization;
+using System.Text.Json.Nodes;
+using PersonalSite.Api.Configuration;
 using PersonalSite.Api.Infrastructure;
 using PersonalSite.Application.Site;
 using Serilog;
@@ -43,6 +45,8 @@ public static class DependencyInjection
             .Validate(options => options.Social.IsValid(), "Site:Social: Email must be an email address, GitHub/Telegram absolute https URLs.")
             .ValidateOnStart();
 
+        services.AddResumeContent();
+
         services.AddRouting(options => options.LowercaseUrls = true);
         services.AddProblemDetails();
 
@@ -54,6 +58,16 @@ public static class DependencyInjection
             {
                 document.Info.Title = "PersonalSite API";
                 document.Info.Description = "JSON API behind the personal site of Mahdi Azghandi.";
+                return Task.CompletedTask;
+            })
+            .AddSchemaTransformer((schema, context, _) =>
+            {
+                // A custom-bound parameter is just "string" to the generator; list its allowed values.
+                if (context.ParameterDescription?.Type == typeof(LanguageParameter))
+                {
+                    schema.Enum = [.. LanguageParameter.Codes.Select(code => (JsonNode)JsonValue.Create(code))];
+                }
+
                 return Task.CompletedTask;
             }));
         services.AddHealthChecks();

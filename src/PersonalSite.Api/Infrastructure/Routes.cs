@@ -12,4 +12,5 @@ public static class Routes
     /// <summary>Prefix of every feature endpoint; Caddy routes it to the API (architecture.md §6).</summary>
     public const string Api = "/api";
     public const string Site = "/site";
+    public const string Resume = "/resume";
 }
