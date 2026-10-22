@@ -88,5 +88,29 @@
       "title": "Latest posts",
       "body": "Notes on .NET, React and building software under real constraints, in Persian and English."
     }
+  },
+  "about": {
+    "meta": {
+      "title": "About {name}"
+    },
+    "eyebrow": "About",
+    "title": "From circuits to cloud",
+    "lead": "Trained as an electrical engineer, working as a full-stack software engineer — and the first still shapes how I do the second.",
+    "timeline": {
+      "title": "The path",
+      "degree": "{degree} in {field}",
+      "now": {
+        "title": "Software engineering",
+        "body": "Full-stack: C#/.NET back-ends and React/TypeScript front-ends, from the database schema to deployment."
+      }
+    },
+    "bridge": {
+      "from": "In electrical engineering:",
+      "to": "In software:"
+    },
+    "skills": {
+      "title": "Skills",
+      "description": "The same list as on my résumé."
+    }
   }
 }

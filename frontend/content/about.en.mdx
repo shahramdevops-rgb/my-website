@@ -1,0 +1,47 @@
+{/*
+  The About page's story (P3-T4). Draft by Claude for Mahdi to edit: every "[placeholder]" still needs a real fact.
+  Components (passed in by app/[locale]/about/page.tsx): <Timeline />, <Bridges>, <Bridge from to>, <Skills />.
+  about.fa.mdx must use the same components in the same order (src/lib/content/content.test.ts).
+*/}
+
+I studied electrical engineering: a BSc at the University of Guilan, then an MSc at Shahid Beheshti University.
+Circuits, signals and control systems taught me to think in systems — inputs, outputs, feedback, and the limits
+every real component has.
+
+Today I build software: ASP.NET Core APIs and PostgreSQL data models on the back-end, React and TypeScript on the
+front-end. [placeholder] One or two sentences on how you moved into software — your first job, first project, or
+the moment it clicked.
+
+<Timeline />
+
+## What carried over
+
+The tools changed; the way of thinking didn't. Three ideas I use every week came straight from engineering school.
+
+<Bridges>
+    <Bridge from="Control systems & feedback" to="Observability">
+        A controller is only as good as its sensors: you can't regulate what you don't measure. A
+        running system is the same — logs, metrics and traces are the sensors that close the loop
+        between what I deploy and what people actually get.
+    </Bridge>
+    <Bridge from="State machines" to="Domain invariants">
+        A digital circuit is only ever in a defined state, and only some transitions are legal. I
+        model business entities the same way: a booking goes from reserved to paid to used, and the
+        code makes every other move impossible.
+    </Bridge>
+    <Bridge from="Designing within tolerances" to="Systems under hard constraints">
+        Real components drift, heat up and fail, so a good circuit works across its whole tolerance
+        range. I design software the same way: for slow networks, users acting at the same moment
+        and partial failures — not only the happy path.
+    </Bridge>
+</Bridges>
+
+## Today
+
+This site is part of that work: a Next.js front-end and an ASP.NET Core API on one origin, built as a real
+full-stack system. To see more, start with my [résumé](/resume) or the [engineering decisions](/decisions) behind
+my projects.
+
+You may also know me as Shahram Azghandi — same person; I now go by Mahdi, the name on my official documents.
+
+<Skills />

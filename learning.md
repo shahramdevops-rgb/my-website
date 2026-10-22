@@ -429,6 +429,21 @@ only display it and report input. Real keys use `event.code` (`KeyC`, the physic
 works on a Persian keyboard) and fire only while the pointer is over the keyboard or focus is in its list: always-on
 single-letter shortcuts break voice input (WCAG 2.1.4).
 
+### 4.19 MDX: Markdown that can hold components (P3-T4)
+**MDX** = Markdown + JSX. `@next/mdx` compiles each `.mdx` file **at build time** into an ordinary React component,
+so the page imports it like any module and no Markdown parser ships to the browser:
+```tsx
+import AboutEn from "@content/about.en.mdx";
+<AboutEn components={{ Timeline, Bridge }} />   // the prose writes <Timeline /> where the timeline goes
+```
+Two layers of components: `src/mdx-components.tsx` styles the *elements* every MDX file produces (`## x` → our
+`SectionHeader`, `[a](/resume)` → the locale-aware `Link`), and the page passes the *custom* ones (`Timeline`,
+`Bridge`). Keeping imports out of the `.mdx` files means the content holds only words — a translator can't break the
+code, and a test can compare the fa and en files' structure. **Why not messages JSON for prose?** Paragraphs with links
+and emphasis are awkward as JSON strings; MDX keeps them readable and still type-checked through the components.
+**Bidi in props:** an English term in parentheses inside Persian (`(Domain invariants)`) may break across lines in a
+confusing order; `&nbsp;` keeps it together and `&rlm;` after `)` ends it on the Persian side.
+
 ---
 
 ## Part 5 — Security

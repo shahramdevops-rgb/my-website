@@ -1,8 +1,14 @@
+import createMDX from "@next/mdx";
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
 
 // Points next-intl at the per-request config (locale + messages).
 const withNextIntl = createNextIntlPlugin("./src/lib/i18n/request.ts");
+
+// Compiles the localized prose in content/*.mdx (About, Services …; ADR-012) to React components at build time:
+// pages import them like any module, and no Markdown parser ships to the browser. Element styles come from
+// src/mdx-components.tsx. `pageExtensions` stays the default, so an .mdx file is never a route by itself.
+const withMDX = createMDX();
 
 const nextConfig: NextConfig = {
   // Self-contained server (.next/standalone) with only the files it needs: a small Docker image (P2-T5).
@@ -20,4 +26,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withNextIntl(nextConfig);
+export default withNextIntl(withMDX(nextConfig));

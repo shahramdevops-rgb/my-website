@@ -15,7 +15,7 @@ const siteInfo: SiteInfo = {
   features: { newsletterSignup: false, comments: false, analytics: false, semanticSearch: false },
 };
 
-// Must match e2e/home.spec.ts.
+// Must match e2e/home.spec.ts and e2e/about.spec.ts.
 function resume(lang: "fa" | "en"): Resume {
   return {
     basics: {
@@ -26,8 +26,26 @@ function resume(lang: "fa" | "en"): Resume {
     },
     links: [],
     experience: [],
-    education: [],
-    skills: [],
+    // Newest first, like the real résumé.
+    education: [
+      {
+        institution: "e2e university 2",
+        degree: "MSc",
+        field: "e2e field",
+        start: "2000-01",
+        end: "2002-01",
+      },
+      {
+        institution: "e2e university 1",
+        degree: "BSc",
+        field: "e2e field",
+        start: "1996-01",
+        end: "2000-01",
+      },
+    ],
+    skills: [
+      { category: lang === "fa" ? "گروه آزمایشی e2e" : "e2e group", items: ["C#", "React"] },
+    ],
     techStack: [
       { id: "csharp", name: "C#", description: "e2e" },
       { id: "dotnet", name: ".NET", description: "e2e" },

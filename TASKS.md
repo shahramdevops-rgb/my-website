@@ -163,7 +163,7 @@
   Done when: poster appears with the first paint (no layout shift); real key presses work; the accessible list exposes every card.
   Learn: 3D on the web, progressive enhancement, lazy loading.
 
-- [ ] **P3-T4 About — "From circuits to cloud"**
+- [x] **P3-T4 About — "From circuits to cloud"**
   Scope: `about.{fa,en}.mdx`, photo slot, skills grid from the résumé, timeline: BSc Electrical Engineering (University of Guilan) → MSc Electrical Engineering (Shahid Beheshti University) → software engineering, with 2–3 concrete bridges (control systems & feedback → observability; state machines → domain invariants); one line "also known as Shahram" (ADR-017).
   Done when: complete in both languages with real text or clearly marked placeholders.
 

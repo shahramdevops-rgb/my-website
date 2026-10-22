@@ -1,7 +1,15 @@
 import { expect, type Page, test } from "@playwright/test";
 
 // Every HTML route the site has today (the 404 page included). Add new routes here as they appear.
-const routes = ["/fa", "/en", "/fa/no-such-page", "/en/no-such-page", "/de"];
+const routes = [
+  "/fa",
+  "/en",
+  "/fa/about",
+  "/en/about",
+  "/fa/no-such-page",
+  "/en/no-such-page",
+  "/de",
+];
 
 declare global {
   interface Window {

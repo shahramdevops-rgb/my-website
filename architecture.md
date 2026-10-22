@@ -103,6 +103,8 @@ my-website/
       ├─ app/admin/                # admin UI (Persian only)
       ├─ app/internal/             # health/ (container healthcheck), revalidate/ (P7) — Caddy answers 404
       ├─ components/ ui/ layout/ (HtmlDocument) theme/ (ThemeScript, ThemeToggle) bento/ (home cards) demos/ xray/ keyboard/
+      │              about/ (Timeline, Bridges, Skills, PhotoSlot — the components content/about.*.mdx may use)
+      ├─ mdx-components.tsx        # @next/mdx: how every MDX element (h2, p, a …) renders; internal links via next-intl Link
       ├─ lib/ api/ (schema.d.ts generated; server.ts, browser.ts clients) env.ts
       │       i18n/ (config.ts: locales, cookie, time zone; request.ts; resolve-locale.ts) format/ (date, number)
       │       site/ (getSiteInfo) resume/ (getResume) theme/ (theme.ts: pre-paint script, switchTheme) fonts.ts security/nonce.ts
@@ -397,7 +399,10 @@ with a shared secret (`Revalidate__Secret`).
   on `Intl` (fa: `persian` calendar + `arabext` digits, en: `gregory` + `latn`, both in `Asia/Tehran`), rendered on the
   server so the browser's ICU never decides. UI strings in
   `messages/{locale}.json` (English dot-notation keys, same key set in both files — test). Long prose (About,
-  Services, Decisions) in `content/*.{locale}.mdx`.
+  Services, Decisions) in `content/*.{locale}.mdx`, compiled at build time by `@next/mdx` (P3-T4; `@content/*` path
+  alias, no frontmatter, no imports inside MDX — pages pass the allowed components in). `src/lib/content/content.test.ts`
+  checks every page exists in both languages with the same components, headings and internal links. Prettier skips
+  `*.mdx` (its MDX 1 parser corrupts MDX 3 comments).
 - **Styling:** Tailwind v4, tokens in `styles/globals.css` (`@theme`), default palette removed so only tokens exist.
   Logical utilities only (`ms-*`, `pe-*`, `start-*`), so RTL and LTR share every component.
 - **Fonts:** self-hosted via `next/font/local` in `src/lib/fonts.ts` (served from `/_next/static/media`, size-adjusted
@@ -433,6 +438,12 @@ with a shared secret (`Revalidate__Secret`).
   with an "In progress" badge instead of sample data (ADR-018). Each card is a `section` named by its heading
   (`Card`'s `labelledBy`). DOM order = reading order = the 1-column phone order. `e2e/home.spec.ts` checks the
   reflow (360/1440, RTL mirroring) and the path links.
+- **About (P3-T4):** `app/[locale]/about/page.tsx` renders a header (eyebrow, h1 "From circuits to cloud", lead from
+  `about.*` messages, `PhotoSlot` placeholder) and the language's MDX story with `{ Timeline, Bridges, Bridge, Skills }`.
+  `Timeline` and `Skills` are async Server Components that read the locale (`getLocale`) and the résumé (`getResume`,
+  cached per request): the timeline is the résumé's education reversed to oldest first (no dates shown) + a "today"
+  step; the skills grid is `resume.skills`. `Bridge from to` cards say "In electrical engineering: … / In software: …"
+  to screen readers; the arrow flips in RTL. The alternate name appears once, in the prose (ADR-017).
 - **Keyboard hero (P3-T3):** `lib/keyboard/keycaps.ts` turns the résumé into `Keycap`s on the server (`buildKeycaps`:
   each tech gets the first free letter/digit of its name as its key — C# → C, Next.js → X once N is taken — and the
   `experience` entries whose `tech` lists it; `keyboardLayout`: ≤ 4 per row). `components/keyboard/KeyboardHero`
