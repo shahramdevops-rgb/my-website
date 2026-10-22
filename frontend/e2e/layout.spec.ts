@@ -129,6 +129,15 @@ test.describe("404 pages", () => {
     await expect(page.locator("header")).toBeVisible();
   });
 
+  // The style guide is a development tool (P2-T10); e2e runs a production build, where it must not exist.
+  for (const locale of ["fa", "en"]) {
+    test(`the style guide is a 404 in production (${locale})`, async ({ request }) => {
+      const response = await request.get(`/${locale}/_styleguide`);
+
+      expect(response.status()).toBe(404);
+    });
+  }
+
   for (const [browserLocale, title] of [
     ["en-US", "Page not found"],
     ["fa-IR", "صفحه پیدا نشد"],

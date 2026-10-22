@@ -46,7 +46,9 @@ reveal something real about the back-end. Details and rejected ideas: `roadmap.m
   `P2-T9` (`[locale]` layout: skip link, `SiteHeader` + `MobileMenu`, `LanguageSwitcher` = plain `<a>` + `lang` cookie +
   cross-document View Transitions, `SiteFooter`; `[locale]/[...rest]` + `not-found.tsx` + `error.tsx`; `proxy.ts`
   rewrites unknown languages to a localized 404; `e2e/layout.spec.ts`).
-- **Next task:** `P2-T10` (UI kit & style guide).
+  `P2-T10` (`src/components/ui/`: Button/ButtonLink, Card, BentoGrid + BentoCard with cursor spotlight, Tag, Badge,
+  SectionHeader, FormField, Alert; dev-only `/{locale}/_styleguide` (folder `%5Fstyleguide`, 404 in production)).
+- **Next task:** `P3-T1` (Structured résumé in the API) — Phase 2 is complete.
 - **Accent color:** electric blue (`#4DB5FF` dark / `#0A63C9` light), picked by Claude at Mahdi's request; easy to change (`architecture.md §8.1`).
 - **Waiting on Mahdi:** contact links (`Site:Social:Email|GitHub|Telegram`); optional display face (P2-T8 left it out).
 - **Code today:** an API-only ASP.NET Core app (`/health`, `/health/ready`, `GET /api/site`; unknown paths → 404

@@ -409,6 +409,17 @@ with a shared secret (`Revalidate__Secret`).
   an unknown first segment (`/de/x`) to `/{visitor locale}/de/x`, so it gets the same page in the visitor's language.
   `app/[locale]/error.tsx` replaces only the page (digest shown in development only); errors in the layout itself
   (e.g. `/api/site` down) are not caught by it.
+- **UI kit (P2-T10):** `src/components/ui/` — `Button` (`<button>`, `type="button"` by default) and `ButtonLink`
+  (locale-aware `Link`) share `button-styles.ts` (primary/ghost/link); `Card`; `BentoGrid` (the only client
+  component: 1 → 2 → 4 columns, one `pointermove` listener writes `--x/--y` per `.bento-card` once per frame,
+  enabled by `matchMedia("(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)")` via
+  `data-spotlight`) + `BentoCard` (`columns`/`rows` spans; glow drawn in `globals.css`); `Tag` (`dir="auto"`, so
+  `C#` stays `C#` in RTL); `Badge` (`live`/`inProgress`/`archived`, labels from `ui.badge.*`); `SectionHeader`;
+  `FormField` (`useId`, `aria-describedby` → hint + error, `aria-invalid`); `Alert` (danger `role="alert"`, else
+  `status`). Classes joined by `src/lib/ui/cn.ts` (no tailwind-merge: a caller's `className` adds, never overrides).
+  Every color pair used is one `contrast.test.ts` checks. Dev-only style guide: `app/[locale]/%5Fstyleguide`
+  (`%5F` because `_folders` are private) → `/{locale}/_styleguide`, `notFound()` in production (e2e proves the 404);
+  its sample text is in `samples.ts`, not `messages/*.json` (those reach the browser on every page).
 - **Theme (P2-T8):** `data-theme="dark|light"` on `<html>`; no attribute = dark (the `dark:` variant matches "not
   light"). `components/layout/HtmlDocument.tsx` is the shared `<html>` shell (locale layout + 404). In `<head>`,
   `ThemeScript` writes the inline pre-paint script (`src/lib/theme/theme.ts`) with this request's nonce, which

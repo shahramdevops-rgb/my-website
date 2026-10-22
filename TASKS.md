@@ -141,7 +141,7 @@
   Done when: keyboard navigable; 360 px and 1440 px in both locales and themes; unknown URL → 404 page with status 404.
   Learn: logical properties for RTL/LTR, View Transitions.
 
-- [ ] **P2-T10 UI kit & style guide**
+- [x] **P2-T10 UI kit & style guide**
   Scope: `Button` (primary/ghost/link), `Card`, **`BentoGrid` + `BentoCard` with cursor spotlight** (one pointer listener writes `--x/--y`; radial glow on border/surface; disabled on touch and reduced motion), `Tag`, `Badge` (Live/InProgress/Archived), `SectionHeader`, `FormField` (label, input/textarea, error), `Alert`; component tests; `/[locale]/_styleguide` dev-only page (404 in production) showing everything.
   Done when: the style guide renders every component in both themes and both directions; spotlight off with reduced motion (test).
 

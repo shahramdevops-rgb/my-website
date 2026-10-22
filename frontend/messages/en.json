@@ -42,5 +42,12 @@
   },
   "theme": {
     "dark": "Dark theme"
+  },
+  "ui": {
+    "badge": {
+      "live": "Live",
+      "inProgress": "In progress",
+      "archived": "Archived"
+    }
   }
 }

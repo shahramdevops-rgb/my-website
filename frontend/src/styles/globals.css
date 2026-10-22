@@ -124,6 +124,63 @@
 }
 
 /*
+  Bento spotlight (architecture.md §8.2): BentoGrid writes the cursor position into --x/--y on each .bento-card and
+  sets data-spotlight only where the effect is allowed (fine pointer, no reduced motion). Two layers per card,
+  both drawn from the accent token and invisible until the cursor is over the grid:
+  ::before — a glow on the hairline border: a radial gradient cut down to a 1px ring by a mask;
+  ::after  — a faint wash on the surface, behind the content (isolation keeps z-index -1 inside the card).
+  The media query repeats the JS check, so a glow can't appear even if the attribute were set.
+*/
+@layer components {
+  .bento-card {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .bento-card::before,
+  .bento-card::after {
+    content: "";
+    position: absolute;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 300ms ease;
+  }
+
+  .bento-card::before {
+    /* Over the card's own 1px border. */
+    inset: -1px;
+    padding: 1px;
+    background: radial-gradient(
+      22rem circle at var(--x) var(--y),
+      var(--color-accent),
+      transparent 45%
+    );
+    /* Keep only the padding ring: the full box minus the content box. */
+    mask:
+      linear-gradient(#000 0 0) content-box exclude,
+      linear-gradient(#000 0 0);
+  }
+
+  .bento-card::after {
+    inset: 0;
+    z-index: -1;
+    background: radial-gradient(
+      30rem circle at var(--x) var(--y),
+      color-mix(in oklab, var(--color-accent) 7%, transparent),
+      transparent 45%
+    );
+  }
+
+  @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+    [data-spotlight]:hover .bento-card::before,
+    [data-spotlight]:hover .bento-card::after {
+      opacity: 1;
+    }
+  }
+}
+
+/*
   fa ↔ en switch (architecture.md §8.2): the language switcher is a full navigation to the other language's page,
   and both pages opt in to cross-document View Transitions, so the browser animates from one to the other. Parts
   with the same view-transition-name on both pages (the site-* names in SiteHeader/SiteFooter) move from their old

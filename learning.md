@@ -350,6 +350,24 @@ unique on the page (the mobile menu has none). e2e checks it through `pagereveal
 `app/[locale]/not-found.tsx` renders *inside* the layout (header, footer, `lang`). `/de` has no language at all, so
 `proxy.ts` rewrites it (the address bar keeps `/de`) to `/en/de` for an English browser, which lands in that catch-all.
 
+### 4.16 A small UI kit; the cursor spotlight (P2-T10)
+Components in `src/components/ui/` are Server Components unless they need the browser. Only `BentoGrid` is a client
+component: it owns **one** `pointermove` listener for the whole grid, and the cards (server-rendered) are its
+`children`. On each animation frame it writes the cursor position into CSS variables on every card:
+```ts
+card.style.setProperty("--x", `${clientX - rect.left}px`);   // CSSOM: never blocked by CSP
+```
+CSS does the drawing: `radial-gradient(… at var(--x) var(--y), accent, transparent)` on a pseudo-element, masked to
+a 1px ring over the border. React never re-renders on mouse move — the browser just repaints.
+"Off with reduced motion" = `useSyncExternalStore` reads `matchMedia("(hover: hover) and (pointer: fine) and
+(prefers-reduced-motion: no-preference)")`; when false, no listener and no `data-spotlight` for the CSS to match.
+
+Bidi gotcha: on a Persian page a tag reading `C#` shows as `#C`, because `#` has no direction and follows the page's
+RTL. `dir="auto"` on the tag lets its first letter decide. Same reason email inputs get `dir="ltr"`.
+
+Underscore URL: in the App Router a folder named `_x` is *private* (not a route). `%5Fstyleguide` (the encoded `_`)
+makes the URL `/fa/_styleguide`.
+
 ---
 
 ## Part 5 — Security
