@@ -6,6 +6,8 @@ const routes = [
   "/en",
   "/fa/about",
   "/en/about",
+  "/fa/services",
+  "/en/services",
   "/fa/no-such-page",
   "/en/no-such-page",
   "/de",

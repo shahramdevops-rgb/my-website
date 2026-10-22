@@ -1,0 +1,59 @@
+{/*
+  The Services page's prose (P3-T5). Draft by Claude for Mahdi to edit.
+  Components (passed in by app/[locale]/services/page.tsx): <ServiceList>, <Service title>, <Steps>, <Step title>.
+  services.fa.mdx must use the same components in the same order (src/lib/content/content.test.ts).
+  The call to action at the end of the page is not prose: it lives in messages/*.json (services.cta).
+*/}
+
+You work directly with the engineer who designs and builds your system — from the first conversation to
+deployment, with no hand-offs in between.
+
+## What I offer
+
+<ServiceList>
+    <Service title="Full-stack web applications">
+        A complete system from one person: the database schema, an ASP.NET Core API and a React
+        front-end, deployed with Docker. A good fit for internal tools, booking and membership
+        systems, dashboards and customer portals.
+    </Service>
+    <Service title=".NET APIs and back-ends">
+        REST APIs on ASP.NET Core and PostgreSQL: a clear domain model, validation, authentication,
+        an OpenAPI contract and integration tests on a real database — built so the next developer
+        can extend it, not only me.
+    </Service>
+    <Service title="React front-ends">
+        Fast, accessible interfaces in React, Next.js and TypeScript, typed against your API so a
+        contract change breaks the build, not production. Right-to-left Persian and English from the
+        start when you need both.
+    </Service>
+    <Service title="Performance and database optimization">
+        Slow pages, timeouts, a database that struggles under load: I measure first, find the real
+        bottleneck — queries, indexes, N+1 calls, caching — fix it, and show you the numbers before
+        and after.
+    </Service>
+    <Service title="Code review and consulting">
+        A second pair of eyes on an existing codebase or a plan: architecture, security, data model
+        and test strategy, with a written report of what to fix first and why.
+    </Service>
+</ServiceList>
+
+## How I work
+
+<Steps>
+    <Step title="Understand">
+        A short call or a written brief: the problem, the people who will use the system, the
+        constraints and the deadline — and what "done" means to you.
+    </Step>
+    <Step title="Plan">
+        A written proposal with the scope, milestones and a price or an estimate, so we agree on
+        everything before the first line of code.
+    </Step>
+    <Step title="Build in small steps">
+        Working software early and often: you see progress on a test server at every milestone and
+        can change direction while it is still cheap.
+    </Step>
+    <Step title="Deliver">
+        Deployment, documentation and the source code in your own repository. Support after launch
+        is agreed up front, not improvised.
+    </Step>
+</Steps>

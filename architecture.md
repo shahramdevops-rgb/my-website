@@ -104,6 +104,7 @@ my-website/
       ├─ app/internal/             # health/ (container healthcheck), revalidate/ (P7) — Caddy answers 404
       ├─ components/ ui/ layout/ (HtmlDocument) theme/ (ThemeScript, ThemeToggle) bento/ (home cards) demos/ xray/ keyboard/
       │              about/ (Timeline, Bridges, Skills, PhotoSlot — the components content/about.*.mdx may use)
+      │              services/ (ServiceList, Service, Steps, Step for content/services.*.mdx; ProjectCta)
       ├─ mdx-components.tsx        # @next/mdx: how every MDX element (h2, p, a …) renders; internal links via next-intl Link
       ├─ lib/ api/ (schema.d.ts generated; server.ts, browser.ts clients) env.ts
       │       i18n/ (config.ts: locales, cookie, time zone; request.ts; resolve-locale.ts) format/ (date, number)
@@ -444,6 +445,12 @@ with a shared secret (`Revalidate__Secret`).
   cached per request): the timeline is the résumé's education reversed to oldest first (no dates shown) + a "today"
   step; the skills grid is `resume.skills`. `Bridge from to` cards say "In electrical engineering: … / In software: …"
   to screen readers; the arrow flips in RTL. The alternate name appears once, in the prose (ADR-017).
+- **Services (P3-T5):** `app/[locale]/services/page.tsx` renders a header (`services.*` messages), the language's MDX
+  with `{ ServiceList, Service, Steps, Step }` (five service cards under "What I offer", four `<ol>` step cards under
+  "How I work") and `ProjectCta`, a `section` card whose button goes to `/contact?type=project` (same target as the
+  home page's project path). Step numbers are a CSS counter (`.steps`/`.step`/`.step-number` in `globals.css`), so the
+  prose never numbers steps and `:lang(fa)` switches to the built-in `persian` counter style (۱ ۲ ۳). The CTA's words
+  are UI strings in messages, not prose: the page owns them, so every language gets the same call to action.
 - **Keyboard hero (P3-T3):** `lib/keyboard/keycaps.ts` turns the résumé into `Keycap`s on the server (`buildKeycaps`:
   each tech gets the first free letter/digit of its name as its key — C# → C, Next.js → X once N is taken — and the
   `experience` entries whose `tech` lists it; `keyboardLayout`: ≤ 4 per row). `components/keyboard/KeyboardHero`

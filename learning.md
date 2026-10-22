@@ -444,6 +444,18 @@ and emphasis are awkward as JSON strings; MDX keeps them readable and still type
 **Bidi in props:** an English term in parentheses inside Persian (`(Domain invariants)`) may break across lines in a
 confusing order; `&nbsp;` keeps it together and `&rlm;` after `)` ends it on the Persian side.
 
+### 4.20 CSS counters: numbers the content never writes (P3-T5)
+The "How I work" steps are numbered by CSS, not by the text: the list resets a counter, each item increments it, and
+a `::before` prints it. A built-in **counter style** picks the digits, so Persian gets ۱ ۲ ۳ with one extra rule:
+```css
+.steps { counter-reset: step; }
+.step { counter-increment: step; }
+.step-number::before { content: counter(step); }                  /* 1 2 3 */
+:lang(fa) .step-number::before { content: counter(step, persian); } /* ۱ ۲ ۳ */
+```
+Why: reordering or adding a step in the MDX can't leave a wrong number behind, and the translator never types digits.
+The badge is `aria-hidden`; the `<ol>` already tells screen readers the order ("list, 4 items").
+
 ---
 
 ## Part 5 — Security

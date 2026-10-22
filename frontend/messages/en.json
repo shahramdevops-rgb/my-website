@@ -112,5 +112,18 @@
       "title": "Skills",
       "description": "The same list as on my résumé."
     }
+  },
+  "services": {
+    "meta": {
+      "title": "Services — {name}"
+    },
+    "eyebrow": "Services",
+    "title": "What I can build for you",
+    "lead": "Complete web systems, .NET APIs and React front-ends — or help with one part of a system you already run.",
+    "cta": {
+      "title": "Have a project in mind?",
+      "body": "Tell me what you're building. I'll reply with questions or a first plan.",
+      "action": "Start a project"
+    }
   }
 }

@@ -181,6 +181,28 @@
 }
 
 /*
+  Numbered steps (components/services/Steps.tsx): a CSS counter numbers each .step, so the content never writes
+  the numbers itself. Persian pages count with Persian digits (۱ ۲ ۳) through the built-in "persian" counter style.
+*/
+@layer components {
+  .steps {
+    counter-reset: step;
+  }
+
+  .step {
+    counter-increment: step;
+  }
+
+  .step-number::before {
+    content: counter(step);
+  }
+
+  :lang(fa) .step-number::before {
+    content: counter(step, persian);
+  }
+}
+
+/*
   fa ↔ en switch (architecture.md §8.2): the language switcher is a full navigation to the other language's page,
   and both pages opt in to cross-document View Transitions, so the browser animates from one to the other. Parts
   with the same view-transition-name on both pages (the site-* names in SiteHeader/SiteFooter) move from their old

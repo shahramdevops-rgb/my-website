@@ -167,7 +167,7 @@
   Scope: `about.{fa,en}.mdx`, photo slot, skills grid from the résumé, timeline: BSc Electrical Engineering (University of Guilan) → MSc Electrical Engineering (Shahid Beheshti University) → software engineering, with 2–3 concrete bridges (control systems & feedback → observability; state machines → domain invariants); one line "also known as Shahram" (ADR-017).
   Done when: complete in both languages with real text or clearly marked placeholders.
 
-- [ ] **P3-T5 Services page**
+- [x] **P3-T5 Services page**
   Scope: services as cards (full-stack web apps, .NET APIs, React front-ends, performance/DB optimization, code review/consulting), "how I work" steps, CTA to `/{locale}/contact?type=project`; prose in MDX.
   Done when: renders in both languages.
 
