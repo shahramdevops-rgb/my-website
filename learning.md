@@ -393,6 +393,18 @@ RTL. `dir="auto"` on the tag lets its first letter decide. Same reason email inp
 Underscore URL: in the App Router a folder named `_x` is *private* (not a route). `%5Fstyleguide` (the encoded `_`)
 makes the URL `/fa/_styleguide`.
 
+### 4.17 Parallel fetches, honest placeholders, reserved space (P3-T2)
+A Server Component can `await` data directly. Two independent requests should start together:
+```ts
+const site = await getSiteInfo();          // 40 ms
+const resume = await getResume(locale);    // + 40 ms = 80 ms (waterfall)
+const [site, resume] = await Promise.all([getSiteInfo(), getResume(locale)]);   // ≈ 40 ms
+```
+Cards whose data arrives in a later phase say what will be there plus an "In progress" badge — never sample numbers
+dressed up as real (ADR-018). Slots that will be filled later (keyboard hero, status line) already take their final
+size, so filling them moves nothing: no *layout shift* (CLS, a Core Web Vital).
+`.NET` inside Persian text needs an invisible LRM (`‎`) before the dot, for the same bidi reason as `C#` above.
+
 ---
 
 ## Part 5 — Security

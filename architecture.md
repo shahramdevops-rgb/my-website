@@ -102,10 +102,10 @@ my-website/
       ├─ app/[locale]/             # public routes (layout, page, about/, projects/, blog/ …)
       ├─ app/admin/                # admin UI (Persian only)
       ├─ app/internal/             # health/ (container healthcheck), revalidate/ (P7) — Caddy answers 404
-      ├─ components/ ui/ layout/ (HtmlDocument) theme/ (ThemeScript, ThemeToggle) bento/ demos/ xray/ keyboard/
+      ├─ components/ ui/ layout/ (HtmlDocument) theme/ (ThemeScript, ThemeToggle) bento/ (home cards) demos/ xray/ keyboard/
       ├─ lib/ api/ (schema.d.ts generated; server.ts, browser.ts clients) env.ts
       │       i18n/ (config.ts: locales, cookie, time zone; request.ts; resolve-locale.ts) format/ (date, number)
-      │       site/ (getSiteInfo) theme/ (theme.ts: pre-paint script, switchTheme) fonts.ts security/nonce.ts
+      │       site/ (getSiteInfo) resume/ (getResume) theme/ (theme.ts: pre-paint script, switchTheme) fonts.ts security/nonce.ts
       ├─ instrumentation.ts        # server start: validates env (instrumentation-node.ts exits on a bad value)
       ├─ fonts/                    # self-hosted woff2 + licences
       ├─ styles/globals.css        # Tailwind entry + tokens
@@ -425,6 +425,15 @@ with a shared secret (`Revalidate__Secret`).
   Every color pair used is one `contrast.test.ts` checks. Dev-only style guide: `app/[locale]/%5Fstyleguide`
   (`%5F` because `_folders` are private) → `/{locale}/_styleguide`, `notFound()` in production (e2e proves the 404);
   its sample text is in `samples.ts`, not `messages/*.json` (those reach the browser on every page).
+- **Home (P3-T2):** `app/[locale]/page.tsx` fetches `/api/site` and `/api/resume?lang=` in parallel (`getSiteInfo`,
+  `getResume`, both React-`cache()`d) and renders `components/bento/HomeBento` — a `BentoGrid` of, at lg:
+  hero 2×2 (résumé headline, name as the page's only h1, pitch from `home.hero.pitch`, the reserved status-line slot
+  for P11-T7) + keyboard slot 2×2 (`StackCard`: the résumé's `techStack` as a list until P3-T3 puts the poster and
+  3D keyboard there at the same size) / the two audience paths (`PathCard`: Resume + Decisions; Contact
+  `?type=project` + Services) / `UpcomingCard`s for featured projects (2 wide, P6), live demo (P6), latest posts (P7)
+  with an "In progress" badge instead of sample data (ADR-018). Each card is a `section` named by its heading
+  (`Card`'s `labelledBy`). DOM order = reading order = the 1-column phone order. `e2e/home.spec.ts` checks the
+  reflow (360/1440, RTL mirroring) and the path links.
 - **Theme (P2-T8):** `data-theme="dark|light"` on `<html>`; no attribute = dark (the `dark:` variant matches "not
   light"). `components/layout/HtmlDocument.tsx` is the shared `<html>` shell (locale layout + 404). In `<head>`,
   `ThemeScript` writes the inline pre-paint script (`src/lib/theme/theme.ts`) with this request's nonce, which

@@ -49,5 +49,41 @@
       "inProgress": "In progress",
       "archived": "Archived"
     }
+  },
+  "home": {
+    "hero": {
+      "pitch": "I build complete web systems — ASP.NET Core APIs, PostgreSQL data models and React front-ends — that keep working under real load and hard constraints.",
+      "status": "Live status — coming soon"
+    },
+    "stack": {
+      "title": "Tech stack",
+      "description": "What I build with, from the database to the browser."
+    },
+    "hiring": {
+      "eyebrow": "Hiring?",
+      "title": "See how I work",
+      "body": "My résumé, and the engineering decisions behind real projects: the challenge, what I chose and why.",
+      "resume": "Resume",
+      "decisions": "Engineering decisions"
+    },
+    "project": {
+      "eyebrow": "Have a project?",
+      "title": "Let's build it together",
+      "body": "Full-stack web apps, .NET APIs and React front-ends — from the first database schema to deployment.",
+      "contact": "Start a project",
+      "services": "Services"
+    },
+    "projects": {
+      "title": "Featured projects",
+      "body": "Case studies of systems I've built, starting with a gym management platform — each with its live status."
+    },
+    "demo": {
+      "title": "Live demo",
+      "body": "Pick a cinema seat while someone else tries to buy the same one — on a real API with sandbox data."
+    },
+    "posts": {
+      "title": "Latest posts",
+      "body": "Notes on .NET, React and building software under real constraints, in Persian and English."
+    }
   }
 }

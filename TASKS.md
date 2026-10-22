@@ -154,7 +154,7 @@
   Done when: an invalid or incomplete file fails startup (test); endpoint test for both languages.
   Learn: single source of truth, many renderings.
 
-- [ ] **P3-T2 Home — Bento grid**
+- [x] **P3-T2 Home — Bento grid**
   Scope: hero card (name, a **concrete** value proposition), **two audience paths** ("Hiring?" → Resume / Decisions, "Have a project?" → Services / Contact `?type=project`), slot for the keyboard hero (P3-T3), cards with placeholders wired later: featured projects (P6), live demo (P6), latest posts (P7), status line (P11); grid reflows from 1 column (360 px) to the full Bento layout.
   Done when: responsive, both themes, both languages, Lighthouse a11y ≥ 90.
 

@@ -50,14 +50,17 @@ reveal something real about the back-end. Details and rejected ideas: `roadmap.m
   SectionHeader, FormField, Alert; dev-only `/{locale}/_styleguide` (folder `%5Fstyleguide`, 404 in production)).
 - **Done in P3:** `P3-T1` (`Content/resume.{fa,en}.json` → `ResumeProfile` records, strict JSON + `ResumeContentValidator`
   on `ValidateOnStart`, fa/en must state the same facts; `GET /api/resume?lang=fa|en` via `LanguageParameter`; TS types regenerated).
-- **Next task:** `P3-T2` (Home — Bento grid).
+  `P3-T2` (Home Bento in `src/components/bento/`: hero with résumé headline + pitch + status-line slot, keyboard slot
+  listing `techStack`, two audience paths, "In progress" cards for projects/demo/posts; `getResume` in `src/lib/resume/`;
+  `e2e/home.spec.ts`; Lighthouse a11y 100 on fa/en mobile + desktop).
+- **Next task:** `P3-T3` (Keyboard hero, 3D).
 - **Accent color:** electric blue (`#4DB5FF` dark / `#0A63C9` light), picked by Claude at Mahdi's request; easy to change (`architecture.md §8.1`).
 - **Waiting on Mahdi:** contact links (`Site:Social:Email|GitHub|Telegram`); optional display face (P2-T8 left it out);
   real résumé facts — every `[placeholder]` and `2000-01` date in `src/PersonalSite.Api/Content/resume.*.json`.
 - **Code today:** an API-only ASP.NET Core app (`/health`, `/health/ready`, `GET /api/site`, `GET /api/resume?lang=`; unknown paths → 404
   ProblemDetails; CSP `default-src 'none'`). Every build rewrites `openapi/v1.json` — commit it with contract changes.
-  `frontend/` serves `/fa` and `/en` (header/footer shell + placeholder page: the site name from the API; nav links
-  to pages not built yet are 404 until their phase); fonts in `src/fonts/`. Contract change = `dotnet build` (→ `openapi/v1.json`) + `pnpm gen:api`, both committed.
+  `frontend/` serves `/fa` and `/en` (header/footer shell + the Bento home from `/api/site` and `/api/resume`; nav
+  and path links to pages not built yet are 404 until their phase); fonts in `src/fonts/`. Contract change = `dotnet build` (→ `openapi/v1.json`) + `pnpm gen:api`, both committed.
   P1's ideas that carry over: `architecture.md §8.4`.
 - **Dev DB** is published on host port **5433** (Mahdi has another project's PostgreSQL on 5432). For `dotnet watch`
   on the host, the connection string lives in **user-secrets** (`ConnectionStrings:Default`); in Docker, compose builds it from `.env`.
