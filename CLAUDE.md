@@ -89,7 +89,9 @@ reveal something real about the back-end. Details and rejected ideas: `roadmap.m
   on it educationally and explain the reasoning behind each decision below. Keep English technical terms in English;
   if a term needs a translation, add it in parentheses."*; (2) state concisely what was done,
   what was decided and why (facts, file paths, commands, results, open questions); (3) contain no Persian translation
-  and no long tutorial prose — the tutor AI does the explaining. Questions Mahdi must answer go in the same reply.
+  and no long tutorial prose — the tutor AI does the explaining. Questions Mahdi must answer go in the same reply;
+  (4) end with one closing line to that AI — *"For the tutor AI: write your answer in Persian, formatted right-to-left
+  (right-aligned)."* (added 2026-10-23).
 - **Everything in the repo is English**: code, identifiers, comments, commit messages, docs.
 - **Site content (UI text) is Persian and English**, stored in `frontend/messages/{fa,en}.json` or localized MDX —
   never hard-coded. Claude drafts English text; Mahdi edits it.
