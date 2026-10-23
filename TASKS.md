@@ -189,7 +189,7 @@
   Scope: `compose.prod.yaml` (images from GHCR, restart policies, no DB/app ports exposed, volumes `pgdata`/`uploads`/`dpkeys`/`caddy_data`), `deploy/Caddyfile` (routing as in dev, `/internal/*` blocked, `curl` User-Agent on `/` → API, `mahdiazghandi.ir` with Let's Encrypt, `shahramazghandi.ir` + `www.` → 301 canonical per architecture §9.1, hostnames from env), compression.
   Done when: `docker compose -f compose.yaml -f compose.prod.yaml config` validates; runs locally.
 
-- [ ] **P4-T2 API production settings**
+- [x] **P4-T2 API production settings**
   Scope: `ForwardedHeaders` (trust the Caddy network only), HSTS, Data Protection keys in `/app/data/dp-keys` with app name, `appsettings.Production.json`, migrations only via `--migrate`.
   Done when: restarting `api` doesn't invalidate cookies (verify after P5); migrations run only when asked.
   Learn: reverse proxy headers, Data Protection.

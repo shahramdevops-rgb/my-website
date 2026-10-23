@@ -72,9 +72,22 @@ The server stores the rendered HTML of a page and serves it again without hittin
 
 ### 2.8 Data Protection keys
 ASP.NET encrypts auth cookies and our anti-spam tokens with keys. By default in a container they live in memory → every restart creates new keys → you're logged out and pending form tokens fail. We persist keys to a Docker volume.
+Since P4-T2: `appsettings.Production.json` sets `DataProtection:KeysDirectory` to `/app/data/dp-keys` (the `dpkeys`
+volume) and the app name is fixed (`SetApplicationName("PersonalSite")`), because the default name is the content-root
+path — move the app and you silently get a new key ring. Proof it works: the first container writes one
+`key-<guid>.xml`; a recreated container reads it and creates none. On Linux the file is stored unencrypted (the log says
+"No XML encryptor configured" once); the volume is the protection boundary.
 
 ### 2.9 Reverse proxy & forwarded headers
 Caddy receives HTTPS and forwards plain HTTP to the app. Without `ForwardedHeaders` the app thinks every request is `http://` from Caddy's IP — breaking redirects, secure cookies and rate limiting by IP.
+But the headers are just text any client can send, so the app believes them only from addresses it trusts:
+```
+request from 172.30.0.3 (Caddy, inside ReverseProxy:TrustedNetworks)  X-Forwarded-Proto: https  → Scheme = https
+request from 192.0.2.10 (anyone else)                                  X-Forwarded-Proto: https  → ignored, stays http
+```
+compose.prod.yaml pins the stack's network to `172.30.0.0/24` so that "trusted" has a fixed value (P4-T2). HSTS
+(`Strict-Transport-Security`) is only sent on HTTPS requests — so it is also the test that the forwarded scheme was
+believed (`ForwardedHeadersTests`).
 
 ### 2.10 Structured logging (Serilog) & health checks
 A plain log line is just text; a **structured** log keeps the values as fields:

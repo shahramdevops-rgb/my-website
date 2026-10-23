@@ -46,6 +46,8 @@ public static class DependencyInjection
             .ValidateOnStart();
 
         services.AddResumeContent();
+        services.AddReverseProxyHeaders();
+        services.AddPersistentDataProtection();
 
         services.AddRouting(options => options.LowercaseUrls = true);
         services.AddProblemDetails();

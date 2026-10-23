@@ -2,6 +2,7 @@ using System.Globalization;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using PersonalSite.Api;
+using PersonalSite.Api.Configuration;
 using PersonalSite.Api.Endpoints;
 using PersonalSite.Api.Infrastructure;
 using PersonalSite.Application;
@@ -15,6 +16,9 @@ if (args is [HealthProbe.Argument])
     return await HealthProbe.RunAsync();
 }
 
+// Deploy step: apply migrations and exit (see MigrationCommand). Not passed on as a command-line config value.
+var migrateOnly = args is [MigrationCommand.Argument];
+
 // Bootstrap logger: records failures that happen before the host's real logger exists
 // (e.g. invalid options caught by ValidateOnStart). AddApi() replaces it once the host is built.
 Log.Logger = new LoggerConfiguration()
@@ -23,7 +27,7 @@ Log.Logger = new LoggerConfiguration()
 
 try
 {
-    var builder = WebApplication.CreateBuilder(args);
+    var builder = WebApplication.CreateBuilder(migrateOnly ? [] : args);
 
     builder.Services
         .AddApplication()
@@ -34,9 +38,22 @@ try
     {
         // The build has no connection string or secrets: skip ValidateOnStart, nothing connects anyway.
         builder.Services.RemoveAll<IStartupValidator>();
+
+        // The tool runs as Production (appsettings.Production.json), but the build machine has no /app/data volume:
+        // keep the framework's per-user key location instead of creating the production directory.
+        builder.Services.PostConfigure<DataProtectionKeyOptions>(options => options.KeysDirectory = null);
     }
 
     var app = builder.Build();
+
+    if (migrateOnly)
+    {
+        // The host is built (configuration, DbContext) but never started: no web server, no startup validation of
+        // unrelated options. Only the connection string is needed.
+        await app.Services.MigrateDatabaseAsync(CancellationToken.None);
+        Log.Information("Migration step finished");
+        return 0;
+    }
 
     if (app.Environment.IsDevelopment() && !OpenApiGeneration.IsRunning)
     {
@@ -45,11 +62,19 @@ try
     }
 
     // Middleware order matters: each component only sees what runs after it.
-    // The exception handler goes first so it can catch failures from everything below; with AddProblemDetails it
+    // Forwarded headers first: everything below (HSTS, logging, later rate limits and cookies) must see the client's
+    // real IP and the https scheme Caddy received, not Caddy's own address and plain http.
+    app.UseForwardedHeaders();
+
+    // The exception handler comes next so it can catch failures from everything below; with AddProblemDetails it
     // answers with a ProblemDetails JSON body (no stack trace). Development shows the developer exception page.
     if (!app.Environment.IsDevelopment())
     {
         app.UseExceptionHandler();
+
+        // Strict-Transport-Security on HTTPS responses (default max-age 30 days, no includeSubDomains/preload, so
+        // it is easy to back out of). No UseHttpsRedirection: Caddy redirects http → https before the API is reached.
+        app.UseHsts();
     }
 
     // Empty 4xx/5xx responses (e.g. an unknown route's 404) get a ProblemDetails body too.

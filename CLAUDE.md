@@ -78,7 +78,10 @@ reveal something real about the back-end. Details and rejected ideas: `roadmap.m
   Caddy on 80/443(+udp), `uploads`/`dpkeys` volumes on `/app/data/*`, `.env` as the api `env_file`; `deploy/Caddyfile`
   with `SITE_HOST`/`REDIRECT_HOSTS`/`ACME_EMAIL` from env, curl-UA `/` → API, `/internal/*` + `/health/*` blocked;
   checked locally as `localhost` on Caddy's local CA).
-- **Next task:** `P4-T2` (API production settings).
+  `P4-T2` (`UseForwardedHeaders` trusting loopback + `ReverseProxy:TrustedNetworks` = the prod compose network pinned
+  to `172.30.0.0/24`; `UseHsts` outside Development; Data Protection keys in `/app/data/dp-keys` via
+  `appsettings.Production.json`, app name `PersonalSite`; `--migrate` = migrate and exit (`MigrationCommand`)).
+- **Next task:** `P4-T3` (Release workflow).
 - **Accent color:** electric blue (`#4DB5FF` dark / `#0A63C9` light), picked by Claude at Mahdi's request; easy to change (`architecture.md §8.1`).
 - **Waiting on Mahdi:** contact links (`Site:Social:Email|GitHub|Telegram`); optional display face (P2-T8 left it out);
   real résumé facts — every `[placeholder]` and `2000-01` date in `src/PersonalSite.Api/Content/resume.*.json`;

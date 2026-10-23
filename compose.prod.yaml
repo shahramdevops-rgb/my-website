@@ -12,6 +12,11 @@ x-logging: &logging
     max-size: "10m"
     max-file: "3"
 
+# Fixed address range of the stack's network, so the API can trust forwarded headers from this network only
+# (ReverseProxy:TrustedNetworks, P4-T2). Docker would otherwise pick a different range on each server. If it
+# clashes with a network that already exists on the host, `up` fails with a clear error: pick another /24 here.
+x-subnet: &subnet 172.30.0.0/24
+
 services:
   caddy:
     restart: unless-stopped
@@ -54,6 +59,8 @@ services:
       ASPNETCORE_ENVIRONMENT: Production
       # One source for the hostname: the canonical URL is built from SITE_HOST (architecture.md §9.1).
       Site__BaseUrl: https://${SITE_HOST:?SITE_HOST is not set}
+      # Caddy's X-Forwarded-For/-Proto are believed only from this network (client IP, https scheme → HSTS).
+      ReverseProxy__TrustedNetworks__0: *subnet
     volumes:
       # Mount paths are fixed by the image (src/PersonalSite.Api; Dockerfile creates them owned by the app user).
       # uploads: admin-uploaded files (P6). dpkeys: Data Protection keys, so restarts keep cookies valid (P4-T2).
@@ -64,6 +71,12 @@ services:
     restart: unless-stopped
     logging: *logging
     # No ports: PostgreSQL is reachable only from the docker network (the dev override's 5433 is not loaded).
+
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: *subnet
 
 volumes:
   uploads:

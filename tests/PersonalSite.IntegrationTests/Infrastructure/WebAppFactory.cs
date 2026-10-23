@@ -25,6 +25,9 @@ public sealed class WebAppFactory : WebApplicationFactory<Program>, IAsyncLifeti
     public const bool NewsletterSignupEnabled = false;
     public const bool SemanticSearchEnabled = true;
 
+    // Stands in for the compose network Caddy sits on (compose.prod.yaml pins 172.30.0.0/24).
+    public const string TrustedProxyNetwork = "10.20.30.0/24";
+
     private readonly PostgresFixture _postgres = new();
 
     public async ValueTask InitializeAsync()
@@ -56,6 +59,7 @@ public sealed class WebAppFactory : WebApplicationFactory<Program>, IAsyncLifeti
                 ["Site:Social:Telegram"] = SocialTelegram,
                 [$"FeatureManagement:{FeatureFlags.NewsletterSignup}"] = NewsletterSignupEnabled.ToString(),
                 [$"FeatureManagement:{FeatureFlags.AiSemanticSearch}"] = SemanticSearchEnabled.ToString(),
+                ["ReverseProxy:TrustedNetworks:0"] = TrustedProxyNetwork,
             }));
     }
 }
