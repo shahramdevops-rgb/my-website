@@ -11,7 +11,7 @@
 4. **No external runtime dependencies** (CDNs, Google Fonts, hosted APIs, Iranian-only services). npm/NuGet packages are fine — they are bundled into our images at build time; fonts and other assets live in the repo.
 5. **Docs follow code.** A change to structure, data model or a decision updates `architecture.md`; a new concept worth learning gets a short entry in `learning.md`.
 6. Code, identifiers, comments, commit messages and docs: **English**. User-facing strings: **`frontend/messages/{fa,en}.json`** (or localized MDX for prose) — never hard-coded in components or C#.
-7. **No hard-coded hostnames.** The site domains (`mahdiazghandi.ir` canonical, `shahramazghandi.ir` redirect) and the canonical base URL come from config (`Site__BaseUrl`, `SITE_URL`, `deploy/Caddyfile`, `.env`) — never from C# or TypeScript. See `architecture.md §9.1`.
+7. **No hard-coded hostnames.** The site domains (`mahdiazghandi.ir` canonical, `shahramazghandi.ir` redirect) and the canonical base URL come from config (`Site__BaseUrl`, `SITE_URL`, `.env` — filled into `deploy/personalsite.caddy` at deploy time) — never from C# or TypeScript. See `architecture.md §9.1`.
 
 ## 2. C# style
 

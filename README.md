@@ -121,27 +121,31 @@ Documented in `.env.example`. Key ones (some arrive in later phases):
 
 ## Deployment
 
-The production stack is `compose.yaml` + `compose.prod.yaml` with `deploy/Caddyfile`: images pulled from GHCR (never
-built on the server), only Caddy publishes ports (80/443, HTTPS via Let's Encrypt), every service restarts on its own,
-data lives in the volumes `pgdata`, `uploads`, `dpkeys`, `caddy_data`. On the server, `.env` needs the "Production
-only" values from `.env.example` (`SITE_HOST`, `REDIRECT_HOSTS`, `ACME_EMAIL`, `IMAGE_TAG`).
+The production stack is `compose.yaml` + `compose.prod.yaml`: images pulled from GHCR (never built on the server),
+`frontend` and `api` published on `127.0.0.1` only, CPU/memory limits, every service restarts on its own, data in the
+volumes `pgdata`, `uploads`, `dpkeys`. HTTPS comes from the server's **shared edge proxy** (`deploy/edge/`, ADR-028):
+one Caddy that owns 80/443 for every app on the machine; `deploy.sh` installs this site's routes
+(`deploy/personalsite.caddy`) in it. The production server also runs the gym system — see
+[`deploy/SHARED-SERVER.md`](deploy/SHARED-SERVER.md). On the server, `.env` needs the "Production only" values from
+`.env.example` (`SITE_HOST`, `REDIRECT_HOSTS`; `deploy.sh` writes `IMAGE_TAG`).
 
 ```bash
 docker compose -f compose.yaml -f compose.prod.yaml config    # validate the merged file
-docker compose -f compose.yaml -f compose.prod.yaml pull
-docker compose -f compose.yaml -f compose.prod.yaml up -d
 ```
 
-To try it on Windows: build both images under a local tag, set `SITE_HOST=localhost`, `REDIRECT_HOSTS=www.localhost`,
-`IMAGE_REGISTRY=local`, `IMAGE_TAG=check` in a separate env file (`--env-file`), and use a small extra override that
-publishes Caddy on other host ports (e.g. `127.0.0.1:18443:443`). Caddy then serves `localhost` with a certificate from
-its own local CA (use `curl -k`), so Let's Encrypt is never contacted.
+To try the whole flow locally, the edge needs the host network, which Docker Desktop offers only with *Settings →
+Resources → Network → Enable host networking*. Otherwise run `deploy.sh` from a Linux container that shares the
+Docker socket and the host network (`docker:29-cli` + `bash git curl`, `COMPOSE_PROJECT_NAME` set to something other
+than `personalsite` so the dev stack is untouched) with `SITE_HOST=localhost`, `REDIRECT_HOSTS=www.localhost`: the
+edge serves `localhost` from Caddy's local CA, so Let's Encrypt is never contacted.
 
-1. Tag a release: `git tag v0.1.0 && git push origin v0.1.0` → the Release workflow (`.github/workflows/release.yml`)
+1. Tag a release: `git tag v0.2.0 && git push origin v0.2.0` → the Release workflow (`.github/workflows/release.yml`)
    runs CI, then builds both images and pushes them to GHCR as `ghcr.io/<owner>/personalsite-{api,frontend}` with the
-   tags `v0.1.0` and `sha-<commit>`. A manual run (Actions → Release → Run workflow) pushes `sha-<commit>` only.
-2. From your PC: `ssh site /opt/personalsite/deploy/scripts/deploy.sh v0.1.0` (check out the tag → pull → migrate →
-   up → HTTPS health check → prune old images). Rollback = the same command with the previous tag.
+   tags `v0.2.0` and `sha-<commit>`. A manual run (Actions → Release → Run workflow) pushes `sha-<commit>` only.
+   (`v0.1.0` predates the edge proxy and can't be deployed.)
+2. From your PC: `ssh site /opt/personalsite/deploy/scripts/deploy.sh v0.2.0` (check out the tag → pull → migrate →
+   up → install the routes in the edge → HTTPS health check → prune old images). Rollback = the same command with the
+   previous tag.
 3. Backups run nightly via cron (`deploy/scripts/backup.sh`; restore with `deploy/scripts/restore.sh`), and your PC
    pulls a copy — see `deploy/README.md §10`.
 

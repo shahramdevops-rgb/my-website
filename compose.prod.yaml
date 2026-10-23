@@ -2,8 +2,10 @@
 #   docker compose -f compose.yaml -f compose.prod.yaml pull
 #   docker compose -f compose.yaml -f compose.prod.yaml up -d
 # Values come from the git-ignored .env next to this file (template: .env.example, "Production" section).
-# Differences from dev: images are pulled from GHCR (never built on the server), only Caddy publishes ports,
-# every service restarts on its own, and data lives in the named volumes pgdata/uploads/dpkeys/caddy_data.
+# Differences from dev: images are pulled from GHCR (never built on the server), there is no Caddy in this stack —
+# the server's shared edge proxy (deploy/edge, ADR-028) terminates HTTPS and reaches frontend/api on loopback ports —
+# every service restarts on its own and has CPU/memory limits, and data lives in the named volumes
+# pgdata/uploads/dpkeys.
 
 # Container logs are capped (3 x 10 MB per service), so a chatty service can't fill the server's disk.
 x-logging: &logging
@@ -12,29 +14,24 @@ x-logging: &logging
     max-size: "10m"
     max-file: "3"
 
-# Fixed address range of the stack's network, so the API can trust forwarded headers from this network only
-# (ReverseProxy:TrustedNetworks, P4-T2). Docker would otherwise pick a different range on each server. If it
-# clashes with a network that already exists on the host, `up` fails with a clear error: pick another /24 here.
+# The server is shared with another production app (deploy/SHARED-SERVER.md), so this stack may never starve it:
+# each service gets at most one of the two cores and a memory cap, and oom_score_adj makes the kernel's OOM killer
+# pick this site's processes before the other app's (default 0) if the machine runs out of memory anyway.
+# Starting values — compare with `docker stats` on the server and adjust. .NET and Node size their heaps from the
+# container limit; PostgreSQL's defaults (shared_buffers 128 MB) fit inside it.
+x-limits: &limits
+  cpus: 1.0
+  mem_limit: 384m
+  oom_score_adj: 500
+
+# Fixed address range of the stack's network. The edge reaches frontend/api through their published loopback ports,
+# so Docker hands those connections to the containers from this network's gateway (172.30.0.1): the API trusts
+# forwarded headers from this network only (ReverseProxy:TrustedNetworks, P4-T2). Docker would otherwise pick a
+# different range on each server. If it clashes with a network that already exists on the host, `up` fails with a
+# clear error: pick another /24 here.
 x-subnet: &subnet 172.30.0.0/24
 
 services:
-  caddy:
-    restart: unless-stopped
-    logging: *logging
-    volumes:
-      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
-    environment:
-      # Read by deploy/Caddyfile as {$SITE_HOST} etc. Hostnames live only here and in .env (rules.md §7).
-      SITE_HOST: ${SITE_HOST:?SITE_HOST is not set (canonical hostname, e.g. mahdiazghandi.ir)}
-      REDIRECT_HOSTS: ${REDIRECT_HOSTS:?REDIRECT_HOSTS is not set (hostnames that 301 to SITE_HOST)}
-      ACME_EMAIL: ${ACME_EMAIL:?ACME_EMAIL is not set (Let's Encrypt account email)}
-    ports:
-      # The only published ports of the whole stack. 80 = Let's Encrypt HTTP-01 challenge + redirect to HTTPS.
-      - "80:80"
-      - "443:443"
-      # HTTP/3 (QUIC) runs over UDP.
-      - "443:443/udp"
-
   frontend:
     # GHCR image built by the release workflow (P4-T3); IMAGE_TAG is a release tag, never "latest".
     image: ${IMAGE_REGISTRY:-ghcr.io/shahramdevops-rgb}/personalsite-frontend:${IMAGE_TAG:?IMAGE_TAG is not set (release tag, e.g. v0.1.0)}
@@ -42,12 +39,21 @@ services:
     build: !reset null
     restart: unless-stopped
     logging: *logging
+    <<: *limits
+    ports:
+      # Loopback only: reachable by the edge proxy on this machine, never from outside (Docker's published ports
+      # bypass ufw, so a 0.0.0.0 binding here would be open to the internet). The edge finds the port with
+      # `docker compose port` (deploy.sh), so changing it is an .env change only.
+      - "127.0.0.1:${FRONTEND_HOST_PORT:-13000}:3000"
 
   api:
     image: ${IMAGE_REGISTRY:-ghcr.io/shahramdevops-rgb}/personalsite-api:${IMAGE_TAG:?IMAGE_TAG is not set (release tag, e.g. v0.1.0)}
     build: !reset null
     restart: unless-stopped
     logging: *logging
+    <<: *limits
+    ports:
+      - "127.0.0.1:${API_HOST_PORT:-18080}:8080"
     # The API's own settings (Site__Social__*, FeatureManagement__*, later Admin__*, ...) come from .env.
     # A file instead of a list here, because keys like FeatureManagement__Ai.Mcp can't be ${...} variables.
     # Optional so `docker compose ... config` can validate with another --env-file (e.g. in CI); a real deploy
@@ -59,7 +65,7 @@ services:
       ASPNETCORE_ENVIRONMENT: Production
       # One source for the hostname: the canonical URL is built from SITE_HOST (architecture.md §9.1).
       Site__BaseUrl: https://${SITE_HOST:?SITE_HOST is not set}
-      # Caddy's X-Forwarded-For/-Proto are believed only from this network (client IP, https scheme → HSTS).
+      # The edge's X-Forwarded-For/-Proto are believed only from this network (client IP, https scheme → HSTS).
       ReverseProxy__TrustedNetworks__0: *subnet
     volumes:
       # Mount paths are fixed by the image (src/PersonalSite.Api; Dockerfile creates them owned by the app user).
@@ -70,6 +76,7 @@ services:
   db:
     restart: unless-stopped
     logging: *logging
+    <<: *limits
     # No ports: PostgreSQL is reachable only from the docker network (the dev override's 5433 is not loaded).
 
 networks:

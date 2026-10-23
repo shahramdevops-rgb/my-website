@@ -92,8 +92,17 @@ reveal something real about the back-end. Details and rejected ideas: `roadmap.m
   renamed from `.partial` together, 14-day rotation after success, cron 03:15; PC pulls copies with `scp`;
   `restore.sh <time>|latest --yes`: safety backup → stop → dropdb/createdb → `pg_restore --single-transaction` →
   uploads → up; drill done locally into a fresh stack, server drill after the first deploy — `deploy/README.md §10`).
+  `P4-T6` repo side done, **not yet on the server**: the VPS is shared with the gym system (real data; its Caddy holds
+  80/443) → shared edge Caddy (`deploy/edge/`, host network, `import sites/*.caddy`, admin on a unix socket) in
+  `/opt/edge`; no Caddy in `compose.prod.yaml` (dev Caddy now in `compose.override.yaml`); `frontend`/`api` on
+  `127.0.0.1:13000/18080`; limits `cpus 1`/`384m`/`oom_score_adj 500`; `deploy.sh` renders `deploy/personalsite.caddy`
+  (was `deploy/Caddyfile`) into the edge and reloads it, refuses pre-edge tags (`v0.1.0`). Plan, conflicts and
+  server checklist: `deploy/SHARED-SERVER.md`. Tested locally end to end.
 - **GitHub:** `main` pushed on 2026-10-23 (fast-forward to the stacked branches); CI green there for the first time.
-- **Next task:** Mahdi: server setup + first deploy of `v0.1.0` (`P4-T4`, `deploy/README.md`); Claude: `P5-T1` (Identity setup).
+- **Server rules:** the VPS runs the gym system in production — gym backup before any change, every server command
+  explained and approved first, never touch the gym's containers/volumes, nothing but the edge on 80/443.
+- **Next task:** Mahdi: server checklist A–B in `deploy/SHARED-SERVER.md §4` (read-only checks + prep), then the gym
+  repo's part (§3) and the cut-over; then tag `v0.2.0` and deploy (`P4-T4`). Claude: `P5-T1` (Identity setup).
 - **Accent color:** electric blue (`#4DB5FF` dark / `#0A63C9` light), picked by Claude at Mahdi's request; easy to change (`architecture.md §8.1`).
 - **Waiting on Mahdi:** contact links (`Site:Social:Email|GitHub|Telegram`); optional display face (P2-T8 left it out);
   real résumé facts — every `[placeholder]` and `2000-01` date in `src/PersonalSite.Api/Content/resume.*.json`;
@@ -187,7 +196,7 @@ React Three Fiber · openapi-typescript + openapi-fetch · Vitest + Testing Libr
 Infrastructure / Api) · PostgreSQL 17 + EF Core 10 (snake_case) · ASP.NET Identity (cookie, single admin) ·
 Markdig + HtmlSanitizer · FluentValidation · Microsoft.FeatureManagement · Serilog · xUnit v3 + Shouldly +
 NSubstitute + Testcontainers.
-**Ops:** Docker Compose (frontend, api, db, caddy) · Caddy · Umami · GitHub Actions → GHCR (two images).
+**Ops:** Docker Compose (frontend, api, db; Caddy in dev, shared edge Caddy in prod) · Umami · GitHub Actions → GHCR (two images).
 Planned for P12 (approve per task): Microsoft.Extensions.AI · ONNX Runtime · pgvector · MCP C# SDK.
 
 ## 7. Architecture decisions (summary — full ADRs in `architecture.md §11`)
@@ -221,6 +230,7 @@ Planned for P12 (approve per task): Microsoft.Extensions.AI · ONNX Runtime · p
 | 025 | **CSP nonce per request; data cached, HTML dynamic** | Next.js inline scripts vary per page |
 | 026 | **Typed API contract from OpenAPI** | Contract drift breaks the build, not production |
 | 027 | **Live demos on real endpoints with sandbox data** | Show the back-end working, not a video |
+| 028 | **One shared edge proxy per server; site beside the gym system** | One owner of 80/443; apps deploy and fail independently |
 
 **Layering:** `frontend ─HTTP→ Api → Application → Domain`; `Infrastructure → Application`. Endpoints are thin and
 call Application services only — never `AppDbContext`. The front-end uses only the generated API client.
@@ -265,9 +275,9 @@ InMemory; Vitest + Playwright for the front-end.
 | Rate-limit policies | `public-forms`, `login`, `public-api` (JSON/MCP/search/curl/demos) |
 | Cache tags | `blog`, `post:{id}`, `projects`, `project:{id}` |
 | Locales | `fa` (default now), `en` |
-| Compose services | `frontend`, `api`, `db`, `caddy` (+ `umami` in P11) |
+| Compose services | `frontend`, `api`, `db`, `caddy` (dev only) (+ `umami` in P11); prod edge: project `edge`, container `edge-caddy` |
 | Public name | `Mahdi Azghandi` (fa: `مهدی ازقندی`); alternate `Shahram Azghandi` (JSON-LD only + one About line) |
-| Volumes | `pgdata`, `uploads`, `dpkeys`, `caddy_data` |
+| Volumes | `pgdata`, `uploads`, `dpkeys`, `caddy_data` (dev Caddy; the edge has its own) |
 | Domains | now `mahdiazghandi.ir` (canonical), `shahramazghandi.ir` (301 → canonical); later a `.com` (ADR-023) |
 
 ## 11. How to execute a task

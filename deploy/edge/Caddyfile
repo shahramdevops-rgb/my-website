@@ -1,0 +1,14 @@
+# Shared edge proxy (deploy/edge/compose.yaml, ADR-028). This file holds no app logic and no hostname: every app
+# owns one file in sites/ (this site: deploy/personalsite.caddy, installed by deploy.sh) and the edge imports them
+# all. Apply a changed site file with:
+#   docker exec edge-caddy caddy reload --config /etc/caddy/Caddyfile
+# Caddy checks the whole new config before switching to it: a broken site file is refused and the old config keeps
+# serving, so one app can't take the others down with a typo.
+{
+	email {$ACME_EMAIL}
+	# Admin API on a root-only unix socket inside the container, reachable through `docker exec` only. Not the
+	# default localhost:2019: with the host network that port would be open to every local user of the server.
+	admin unix//config/caddy/admin.sock
+}
+
+import sites/*.caddy

@@ -53,7 +53,7 @@ main() {
 	log "Backing up the current state first"
 	"$scripts/backup.sh" || echo "warning: the current state could not be backed up; restoring anyway" >&2
 
-	# Nothing may write to the database or the files while they are replaced. Caddy keeps answering (502).
+	# Nothing may write to the database or the files while they are replaced. The edge keeps answering (502).
 	log "Stopping frontend and api"
 	compose stop frontend api
 
@@ -71,7 +71,7 @@ main() {
 	if [[ -f $uploads_file ]]; then
 		log "Replacing the uploaded files"
 		local volume=${COMPOSE_PROJECT_NAME:-personalsite}_uploads image
-		image=$(compose config --images | grep -E '(^|/)caddy:')
+		image=$(compose config --images | grep -E '(^|/)postgres:')
 		# tar keeps the numeric owner from the backup (the api's non-root user), so the api can still write.
 		docker run --rm -i --volume "$volume:/data" --entrypoint sh "$image" \
 			-c 'find /data -mindepth 1 -delete && tar -xzf - -C /data' <"$uploads_file"

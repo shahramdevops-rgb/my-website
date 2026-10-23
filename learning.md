@@ -709,3 +709,21 @@ the file. For a real hostname it fetches a Let's Encrypt certificate by itself (
 it uses its own local CA — that is how the production stack can be tried on a laptop. A named volume mounted on a
 path that doesn't exist in the image is created owned by root, so the Dockerfile creates `/app/data/*` owned by the
 non-root app user first.
+
+### 7.14 One server, two apps: a shared edge proxy (P4-T6, ADR-028)
+Only one process can listen on port 443. With two apps on one server, neither app's own proxy may face the internet;
+a third one (the **edge**) does, and routes by hostname:
+```
+mahdiazghandi.ir        → 127.0.0.1:13000 / :18080   (this site, published on loopback only)
+panel.pasargadgymplus.ir → 127.0.0.1:<gym port>      (the gym system)
+```
+- **Host network** (`network_mode: host`): the edge container uses the server's own network stack, so `127.0.0.1` is
+  the server, not the container. Apps never share a docker network, so two services called `api` can't collide.
+- **Loopback publishing** (`127.0.0.1:18080:8080`): Docker's published ports skip ufw, but a port bound to loopback
+  is unreachable from outside anyway.
+- **Who is the client?** The edge adds `X-Forwarded-For: <real IP>`; the connection reaches the API from the docker
+  network's gateway (`172.30.0.1`), which the API trusts — so rate limits see the real visitor, not the proxy.
+- **Safe reloads:** `caddy reload` validates the whole new config first; a broken site file is refused and the old
+  config keeps serving, so one app's typo can't take the other app down.
+- **OOM score:** `oom_score_adj: 500` tells the kernel which processes to kill first when memory runs out — this site,
+  not the gym.

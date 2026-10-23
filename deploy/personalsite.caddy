@@ -1,21 +1,17 @@
-# Production reverse proxy (architecture.md §1, §6, §9.1): HTTPS, one canonical host, routing by path.
-# Mounted by compose.prod.yaml. Hostnames are never written here: {$VAR} placeholders are filled from the caddy
-# service's environment (set in .env) before this file is parsed, so moving domains is a config change only.
-#   SITE_HOST       canonical hostname, e.g. mahdiazghandi.ir
-#   REDIRECT_HOSTS  comma-separated hostnames that 301 to it, e.g. www.mahdiazghandi.ir, shahramazghandi.ir, ...
-#   ACME_EMAIL      contact address for the Let's Encrypt account
-# Certificates: Caddy obtains them from Let's Encrypt automatically (HTTP-01 on port 80, TLS-ALPN on 443) and keeps
-# them in the caddy_data volume. "localhost"/"*.localhost" get certificates from Caddy's own local CA instead —
-# that is how the stack is tried out locally without contacting Let's Encrypt (README.md).
+# This site's routes on the shared edge proxy (architecture.md §1, §6, §9.1; ADR-028; deploy/edge/).
+# A template, not a Caddyfile: deploy.sh fills the tokens in double braces, writes the result to the edge's
+# sites/personalsite.caddy and reloads the edge. Hostnames are never written here, so moving domains stays a config
+# change. Tokens (and deploy.sh refuses to install a file with an unfilled one):
+#   SITE_HOST          canonical hostname from .env, e.g. mahdiazghandi.ir
+#   REDIRECT_HOSTS     hostnames from .env that 301 to it, e.g. www.mahdiazghandi.ir, shahramazghandi.ir, ...
+#   API_UPSTREAM       where compose published the api on the host, e.g. 127.0.0.1:18080
+#   FRONTEND_UPSTREAM  the same for the frontend, e.g. 127.0.0.1:13000
+# Certificates: the edge obtains them from Let's Encrypt automatically (HTTP-01 on port 80, TLS-ALPN on 443).
+# "localhost"/"*.localhost" get certificates from Caddy's own local CA instead, for trying the stack out locally.
 # Security headers (CSP, nosniff, ...) are set by the apps themselves (proxy.ts, SecurityHeadersMiddleware).
 # The one exception is HSTS (below): only the TLS terminator knows every response went out over HTTPS.
-{
-	email {$ACME_EMAIL}
-	# The admin API (live config changes over HTTP) is not used: config changes = edit this file + restart.
-	admin off
-}
 
-{$SITE_HOST} {
+{{SITE_HOST}} {
 	# Compress text responses (HTML, JSON, JS, CSS). Responses that are already compressed are left alone.
 	encode zstd gzip
 
@@ -36,7 +32,7 @@
 		not header Accept *text/html*
 	}
 	handle @terminal {
-		reverse_proxy api:8080
+		reverse_proxy {{API_UPSTREAM}}
 	}
 
 	# Internal-only paths: the front-end's /internal/* (container healthcheck, P7 revalidation hook) and the
@@ -49,18 +45,18 @@
 	# Machine and API paths → ASP.NET Core. /health (liveness) stays public for uptime checks.
 	@api path /api/* /media/* /health /llms.txt /mcp /mcp/*
 	handle @api {
-		reverse_proxy api:8080
+		reverse_proxy {{API_UPSTREAM}}
 	}
 
 	# Everything else → Next.js (pages, /_next/static assets, the `/` language redirect).
 	handle {
-		reverse_proxy frontend:3000
+		reverse_proxy {{FRONTEND_UPSTREAM}}
 	}
 }
 
 # Every other hostname: 301 to the same path on the canonical host (architecture.md §9.1).
-# Caddy gets certificates for these too, so https://www.<domain>/... redirects without a browser warning.
-{$REDIRECT_HOSTS} {
+# The edge gets certificates for these too, so https://www.<domain>/... redirects without a browser warning.
+{{REDIRECT_HOSTS}} {
 	header Strict-Transport-Security "max-age=2592000"
-	redir https://{$SITE_HOST}{uri} permanent
+	redir https://{{SITE_HOST}}{uri} permanent
 }

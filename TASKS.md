@@ -204,13 +204,28 @@
   Scope: `deploy/README.md` (Ubuntu LTS, Docker, firewall 22/80/443, deploy user, SSH keys, registry login), `deploy/scripts/deploy.sh` (pull → migrate → up -d → health check → prune), `docker save | ssh docker load` fallback.
   Done when: Mahdi deploys with one command and the site loads over HTTPS.
   Status: guide + script written; `deploy.sh` linted (shellcheck) and run end to end locally (`--offline`, `localhost`
-  on Caddy's local CA: migrate, healthy, HTTPS check, prune, rollback hint, failure paths). Tick after the first real deploy.
+  on Caddy's local CA: migrate, healthy, HTTPS check, prune, rollback hint, failure paths).
+  2026-10-23: reworked for the shared server (P4-T6): no own Caddy, routes installed in the edge; first deployable
+  release is `v0.2.0`. Tick after the first real deploy.
 
 - [x] **P4-T5 Backups**
   Scope: `backup.sh` (`pg_dump -Fc` + tar of `uploads`, 14-day rotation), cron, `restore.sh`, off-server copy step.
   Done when: a restore into a fresh DB has been performed once and documented.
   Status: drill done locally on 2026-10-23 (every volume deleted, fresh deploy, restore — `deploy/README.md §10`);
   repeat it on the server after the first deploy and add the row there.
+
+- [ ] **P4-T6 Shared server: edge proxy**
+  Scope: the production VPS also runs the gym system (real data), whose Caddy holds 80/443 (ADR-028,
+  `deploy/SHARED-SERVER.md`). `deploy/edge/` (Caddy in the host network, `import sites/*.caddy`, admin on a unix
+  socket), `deploy/Caddyfile` → `deploy/personalsite.caddy` template, no Caddy in `compose.prod.yaml` (dev Caddy moves
+  to `compose.override.yaml`), `frontend`/`api` on loopback ports, CPU/memory limits + `oom_score_adj`, `deploy.sh`
+  installs the site file and reloads the edge (restores it if refused), refuses pre-edge tags; backup/restore use the
+  postgres image for tar; docs.
+  Done when: on the server, the gym and this site both answer over HTTPS through `/opt/edge`, with real client IPs.
+  Status: repository side done 2026-10-23 and tested locally end to end (edge in host mode, `deploy.sh` from a Linux
+  container: routes, 301, blocked paths, HSTS, refused reload → old file restored, `v0.1.0` refused). Open: the gym
+  repo's part, the server checklist and the cut-over (`deploy/SHARED-SERVER.md §3–4`), then tag `v0.2.0`.
+  Learn: host vs bridge networking, loopback-published ports and ufw, Caddy reload semantics, OOM score.
 
 ## Phase 5 — Admin panel & authentication
 

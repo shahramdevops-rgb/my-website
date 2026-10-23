@@ -2,7 +2,7 @@
 # Backup on the server, run nightly by cron (deploy/README.md §10): the database and the uploaded files.
 #   deploy/scripts/backup.sh   → $BACKUP_DIR/<UTC time>.db.dump + <UTC time>.uploads.tar.gz, older than 14 days removed
 # BACKUP_DIR defaults to /var/backups/personalsite. Restore: deploy/scripts/restore.sh <UTC time>|latest --yes.
-# Not included: .env (secrets — keep a copy in a password manager), certificates (Caddy gets new ones),
+# Not included: .env (secrets — keep a copy in a password manager), certificates (the edge proxy gets new ones),
 # Data Protection keys (losing them only signs the admin out).
 set -euo pipefail
 
@@ -33,10 +33,10 @@ main() {
 	# A dump that pg_restore can't read is not a backup.
 	compose exec -T db pg_restore --list <"$db_file.partial" >/dev/null
 
-	# The uploads volume is read through a throwaway container of the Caddy image (Alpine with tar, already on the
+	# The uploads volume is read through a throwaway container of the postgres image (Alpine with tar, already on the
 	# server — the api image has no shell). Read-only mount: a backup can never change the files.
 	local volume=${COMPOSE_PROJECT_NAME:-personalsite}_uploads image
-	image=$(compose config --images | grep -E '(^|/)caddy:')
+	image=$(compose config --images | grep -E '(^|/)postgres:')
 	docker run --rm --volume "$volume:/data:ro" --entrypoint tar "$image" -czf - -C /data . >"$uploads_file.partial"
 
 	mv "$uploads_file.partial" "$uploads_file"

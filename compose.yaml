@@ -1,21 +1,12 @@
 # Shared service definitions for every environment.
-#   Dev:  docker compose up --build            (auto-merges compose.override.yaml)
-#   Prod: docker compose -f compose.yaml -f compose.prod.yaml up -d   (images from GHCR, HTTPS on 80/443)
+#   Dev:  docker compose up --build            (auto-merges compose.override.yaml, which adds Caddy on :8080)
+#   Prod: docker compose -f compose.yaml -f compose.prod.yaml up -d   (images from GHCR, behind the shared edge proxy)
 # Values like ${POSTGRES_PASSWORD} come from the git-ignored .env file (template: .env.example).
 name: personalsite
 
+# One origin for both apps comes from a Caddy in front of them: in dev the `caddy` service of compose.override.yaml
+# (deploy/Caddyfile.dev), in production the server's shared edge proxy (deploy/edge, deploy/personalsite.caddy).
 services:
-  # The only way in: one origin for both apps (routing: deploy/Caddyfile.dev in dev, deploy/Caddyfile in prod).
-  caddy:
-    image: caddy:2.11-alpine
-    volumes:
-      - caddy_data:/data
-    depends_on:
-      frontend:
-        condition: service_healthy
-      api:
-        condition: service_healthy
-
   frontend:
     build:
       context: ./frontend
@@ -62,5 +53,3 @@ volumes:
   # Named volume: lives outside the container, survives `docker compose down`.
   # Only `docker compose down -v` deletes it.
   pgdata:
-  # Caddy's certificates and state (Let's Encrypt certificates in production).
-  caddy_data:

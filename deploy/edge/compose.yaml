@@ -1,0 +1,36 @@
+# The server's shared edge proxy (ADR-028, deploy/SHARED-SERVER.md). Not part of this site's stack: it is copied
+# once to /opt/edge on the server and runs as its own compose project, in front of every app on the machine (this
+# site and the gym system). It owns ports 80/443 and every certificate; each app adds one site file to sites/ and
+# reloads it (deploy.sh does that for this site). Deploying an app never restarts the edge.
+#   cd /opt/edge && docker compose up -d
+name: edge
+
+services:
+  caddy:
+    image: caddy:2.11-alpine
+    # A fixed name, so the apps' deploy scripts can run `docker exec edge-caddy caddy reload ...`.
+    container_name: edge-caddy
+    # Host network: Caddy binds 80/443 (and 443/udp for HTTP/3) on the host directly and reaches each app at
+    # 127.0.0.1:<port>, where the app publishes on loopback only. No docker network is shared between the apps, so
+    # their service names (two projects may both have an `api`) can never resolve to the other project's container.
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      ACME_EMAIL: ${ACME_EMAIL:?ACME_EMAIL is not set (Let's Encrypt account email) - copy .env.example to .env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      # A directory, not single files: a site file replaced with `mv` (new inode) is seen at the next reload.
+      - ./sites:/etc/caddy/sites:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  # Certificates and ACME account (Let's Encrypt). Losing it only means Caddy fetches new certificates.
+  caddy_data:
+  # Autosaved config and the admin socket.
+  caddy_config:
