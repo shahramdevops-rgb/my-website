@@ -81,9 +81,9 @@ reveal something real about the back-end. Details and rejected ideas: `roadmap.m
   `P4-T2` (`UseForwardedHeaders` trusting loopback + `ReverseProxy:TrustedNetworks` = the prod compose network pinned
   to `172.30.0.0/24`; `UseHsts` outside Development; Data Protection keys in `/app/data/dp-keys` via
   `appsettings.Production.json`, app name `PersonalSite`; `--migrate` = migrate and exit (`MigrationCommand`)).
-  `P4-T3` written, **not yet verified** (`.github/workflows/release.yml`: on `v*` tag or manual → calls `ci.yml`
-  via `workflow_call` → matrix builds both images for linux/amd64, pushes to GHCR tagged `vX.Y.Z` + `sha-<short>`,
-  never `latest`); tick it once a tag push shows both images in GHCR.
+  `P4-T3` (`.github/workflows/release.yml`: on `v*` tag or manual → calls `ci.yml` via `workflow_call` → matrix
+  builds both images for linux/amd64, pushes to GHCR tagged `vX.Y.Z` + `sha-<short>`, never `latest`; verified by
+  `v0.1.0` on 2026-10-23; packages are public, the server needs no registry login).
   `P4-T4` written, **not yet verified** (`deploy/README.md` server setup; `deploy/scripts/deploy.sh vX.Y.Z [--offline]`:
   checkout tag → pull → `--migrate` → `up --wait` → HTTPS check via `--resolve` → prune; tested locally end to end);
   tick it after the first real deploy. Compose's connection string has `GSS Encryption Mode=Disable` (chiseled image
@@ -93,7 +93,7 @@ reveal something real about the back-end. Details and rejected ideas: `roadmap.m
   `restore.sh <time>|latest --yes`: safety backup → stop → dropdb/createdb → `pg_restore --single-transaction` →
   uploads → up; drill done locally into a fresh stack, server drill after the first deploy — `deploy/README.md §10`).
 - **GitHub:** `main` pushed on 2026-10-23 (fast-forward to the stacked branches); CI green there for the first time.
-- **Next task:** watch the `v0.1.0` release run → tick `P4-T3`; Mahdi: server setup + first deploy (`P4-T4`); then `P5-T1`.
+- **Next task:** Mahdi: server setup + first deploy of `v0.1.0` (`P4-T4`, `deploy/README.md`); Claude: `P5-T1` (Identity setup).
 - **Accent color:** electric blue (`#4DB5FF` dark / `#0A63C9` light), picked by Claude at Mahdi's request; easy to change (`architecture.md §8.1`).
 - **Waiting on Mahdi:** contact links (`Site:Social:Email|GitHub|Telegram`); optional display face (P2-T8 left it out);
   real résumé facts — every `[placeholder]` and `2000-01` date in `src/PersonalSite.Api/Content/resume.*.json`;

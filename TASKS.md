@@ -194,10 +194,10 @@
   Done when: restarting `api` doesn't invalidate cookies (verify after P5); migrations run only when asked.
   Learn: reverse proxy headers, Data Protection.
 
-- [ ] **P4-T3 Release workflow**
+- [x] **P4-T3 Release workflow**
   Scope: `.github/workflows/release.yml` — on tag `v*` or manual: build **both** images (`api`, `frontend`), tag version + `sha`, push to GHCR.
   Done when: both images appear in GHCR.
-  Status: workflow written and linted (actionlint); tick after Mahdi's first `v*` tag push shows both images in GHCR.
+  Status: verified 2026-10-23 — tag `v0.1.0` → CI + both image jobs green; `personalsite-{api,frontend}:v0.1.0` in GHCR (public).
   Learn: why build outside Iran; image tagging.
 
 - [ ] **P4-T4 Server setup & deploy script**

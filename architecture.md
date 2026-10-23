@@ -579,8 +579,8 @@ blocked, `/health` public. Security headers stay in the apps, except HSTS: Caddy
 via `workflow_call`), then a two-entry matrix builds `personalsite-api` (`Dockerfile`) and `personalsite-frontend`
 (`frontend/Dockerfile`) for `linux/amd64` with Buildx + the GitHub Actions layer cache and pushes them to
 `ghcr.io/<owner>/` with the job's `GITHUB_TOKEN` (`packages: write`). Tags from `docker/metadata-action`: the git tag
-(`v0.1.0`) and `sha-<short>`; never `latest`. New GHCR packages are private: the server logs in with a token that has
-`read:packages` (P4-T4) — or the packages are made public (`deploy/README.md §6`).
+(`v0.1.0`) and `sha-<short>`; never `latest`. The packages are public (linked to the public repository via the
+`org.opencontainers.image.source` label), so the server pulls without logging in; first release `v0.1.0` on 2026-10-23.
 
 **Deploy (P4-T4):** the server holds a git clone in `/opt/personalsite` plus the git-ignored `.env`.
 `deploy/scripts/deploy.sh vX.Y.Z` (one command from the PC over SSH): refuses if tracked files changed → `git fetch`

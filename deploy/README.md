@@ -125,15 +125,14 @@ belongs in `.env`; anything else is a commit and a new release.
 
 ## 6. Pulling from GHCR
 
-The packages `personalsite-api` and `personalsite-frontend` appear under the GitHub account after the first release,
-and GitHub creates them **private**. Pick one:
+The packages `ghcr.io/shahramdevops-rgb/personalsite-api` and `…/personalsite-frontend` were created by the first
+release (`v0.1.0`, 2026-10-23). They are **public** — linked to this public repository through the image's
+`org.opencontainers.image.source` label — so the server pulls them **without any login** (checked: an anonymous pull
+of the `v0.1.0` manifest returns 200). The images contain no secrets; config comes from `.env` at run time.
 
-- **Make both public** (recommended: the repository is public, and the images contain no secrets — config comes from
-  `.env` at run time). GitHub → your profile → Packages → each package → Package settings → Change visibility.
-  The server then needs no login.
-- **Keep them private:** create a classic personal access token with only the `read:packages` scope, then on the
-  server `docker login ghcr.io -u shahramdevops-rgb` and paste the token. Docker stores it base64-encoded (not
-  encrypted) in `~/.docker/config.json`.
+If the packages are ever made private (GitHub → your profile → Packages → package → Package settings), the server
+needs a classic personal access token with only the `read:packages` scope: `docker login ghcr.io -u
+shahramdevops-rgb`, then paste the token. Docker stores it base64-encoded (not encrypted) in `~/.docker/config.json`.
 
 ## 7. Deploy a release
 
