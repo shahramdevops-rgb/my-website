@@ -8,6 +8,7 @@
 # them in the caddy_data volume. "localhost"/"*.localhost" get certificates from Caddy's own local CA instead —
 # that is how the stack is tried out locally without contacting Let's Encrypt (README.md).
 # Security headers (CSP, nosniff, ...) are set by the apps themselves (proxy.ts, SecurityHeadersMiddleware).
+# The one exception is HSTS (below): only the TLS terminator knows every response went out over HTTPS.
 {
 	email {$ACME_EMAIL}
 	# The admin API (live config changes over HTTP) is not used: config changes = edit this file + restart.
@@ -17,6 +18,14 @@
 {$SITE_HOST} {
 	# Compress text responses (HTML, JSON, JS, CSS). Responses that are already compressed are left alone.
 	encode zstd gzip
+
+	# HSTS on every response — pages from Next.js too, not only the API's (which also sends it, P4-T2).
+	# 30 days, no includeSubDomains/preload: easy to back out of. `defer` applies it after the upstream answered,
+	# so it replaces the API's copy instead of sending the header twice.
+	header {
+		Strict-Transport-Security "max-age=2592000"
+		defer
+	}
 
 	# `curl https://<site>/` from a terminal → the API's plain-text résumé card (architecture.md §5.4).
 	# The card itself arrives in P10-T5; until then the API answers this with a 404 ProblemDetails.
@@ -52,5 +61,6 @@
 # Every other hostname: 301 to the same path on the canonical host (architecture.md §9.1).
 # Caddy gets certificates for these too, so https://www.<domain>/... redirects without a browser warning.
 {$REDIRECT_HOSTS} {
+	header Strict-Transport-Security "max-age=2592000"
 	redir https://{$SITE_HOST}{uri} permanent
 }

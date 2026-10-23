@@ -77,7 +77,7 @@ reveal something real about the back-end. Details and rejected ideas: `roadmap.m
 - **Done in P4:** `P4-T1` (`compose.prod.yaml`: GHCR images by `IMAGE_TAG`, `build: !reset`, restart + log caps, only
   Caddy on 80/443(+udp), `uploads`/`dpkeys` volumes on `/app/data/*`, `.env` as the api `env_file`; `deploy/Caddyfile`
   with `SITE_HOST`/`REDIRECT_HOSTS`/`ACME_EMAIL` from env, curl-UA `/` → API, `/internal/*` + `/health/*` blocked;
-  checked locally as `localhost` on Caddy's local CA).
+  checked locally as `localhost` on Caddy's local CA; HSTS on every response set by Caddy).
   `P4-T2` (`UseForwardedHeaders` trusting loopback + `ReverseProxy:TrustedNetworks` = the prod compose network pinned
   to `172.30.0.0/24`; `UseHsts` outside Development; Data Protection keys in `/app/data/dp-keys` via
   `appsettings.Production.json`, app name `PersonalSite`; `--migrate` = migrate and exit (`MigrationCommand`)).

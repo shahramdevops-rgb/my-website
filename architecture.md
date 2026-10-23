@@ -379,7 +379,7 @@ with a shared secret (`Revalidate__Secret`).
 | Logging | API: Serilog, request logging, correlation via `TraceIdentifier`. No PII (emails, IPs) in logs. |
 | Security | HTTPS/HSTS (prod); HTML responses: CSP with per-request nonce from `proxy.ts` (ADR-025), `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, `frame-ancestors 'none'`; API: same headers + `Cache-Control: no-store` on auth/admin; rate limiting (`public-forms`, `login`, `public-api`); Identity lockout; admin 2FA in P13. |
 | Data Protection | API keys persisted to `/app/data/dp-keys` (volume `dpkeys`; `DataProtection:KeysDirectory` in `appsettings.Production.json`), application name `PersonalSite` — otherwise every restart logs the admin out and invalidates form tokens. Unset in dev/tests (per-user default). |
-| Reverse proxy | `UseForwardedHeaders` first in the pipeline (`X-Forwarded-For`, `X-Forwarded-Proto`); trusted only from loopback + `ReverseProxy:TrustedNetworks` (prod: the compose network pinned to `172.30.0.0/24` in `compose.prod.yaml`). HSTS (`UseHsts`, defaults: 30 days, no subdomains/preload) outside Development; no HTTPS redirection in the API — Caddy does it. |
+| Reverse proxy | `UseForwardedHeaders` first in the pipeline (`X-Forwarded-For`, `X-Forwarded-Proto`); trusted only from loopback + `ReverseProxy:TrustedNetworks` (prod: the compose network pinned to `172.30.0.0/24` in `compose.prod.yaml`). HSTS (`UseHsts`, defaults: 30 days, no subdomains/preload) outside Development (Caddy also sets it on every response, incl. Next.js pages); no HTTPS redirection in the API — Caddy does it. |
 | Caching | Next data cache with tags for API fetches; the API calls the revalidate hook after writes. HTML is rendered per request (nonce), data is cached. Static assets (`/_next/static`, fonts) are fingerprinted and `immutable`. |
 | Files | `IFileStorage` → `LocalFileStorage` (volume). Allow-list of content types + magic bytes, max size, random storage key. |
 | Email | `IEmailSender` → `LoggingEmailSender` by default; `SmtpEmailSender` when a mail flag is on. |
@@ -573,7 +573,7 @@ Caddy (80, 443, 443/udp for HTTP/3), mounts `uploads` → `/app/data/uploads` an
 `api` (the Dockerfile creates both owned by the app user), sets `Site__BaseUrl=https://${SITE_HOST}` and hands `.env`
 to `api` as an `env_file`. `deploy/Caddyfile` reads `SITE_HOST`, `REDIRECT_HOSTS` and `ACME_EMAIL` from the
 environment; its routes match `Caddyfile.dev` plus: `curl`/`Wget`/`HTTPie` on `/` → API, `/health/*` (readiness)
-blocked, `/health` public. Security headers stay in the apps.
+blocked, `/health` public. Security headers stay in the apps, except HSTS: Caddy sets `Strict-Transport-Security: max-age=2592000` on every response (`defer`, so it replaces the API's copy) — Next.js pages included.
 
 **Release (P4-T3):** `.github/workflows/release.yml` runs on a `v*` tag or by hand. It first calls `ci.yml` (reusable
 via `workflow_call`), then a two-entry matrix builds `personalsite-api` (`Dockerfile`) and `personalsite-frontend`

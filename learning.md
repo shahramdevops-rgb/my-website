@@ -87,7 +87,7 @@ request from 192.0.2.10 (anyone else)                                  X-Forward
 ```
 compose.prod.yaml pins the stack's network to `172.30.0.0/24` so that "trusted" has a fixed value (P4-T2). HSTS
 (`Strict-Transport-Security`) is only sent on HTTPS requests — so it is also the test that the forwarded scheme was
-believed (`ForwardedHeadersTests`).
+believed (`ForwardedHeadersTests`). In production Caddy also sets HSTS on every response, because pages come from Next.js, not the API.
 
 ### 2.10 Structured logging (Serilog) & health checks
 A plain log line is just text; a **structured** log keeps the values as fields:
