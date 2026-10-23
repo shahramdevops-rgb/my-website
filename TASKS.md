@@ -197,6 +197,7 @@
 - [ ] **P4-T3 Release workflow**
   Scope: `.github/workflows/release.yml` — on tag `v*` or manual: build **both** images (`api`, `frontend`), tag version + `sha`, push to GHCR.
   Done when: both images appear in GHCR.
+  Status: workflow written and linted (actionlint); tick after Mahdi's first `v*` tag push shows both images in GHCR.
   Learn: why build outside Iran; image tagging.
 
 - [ ] **P4-T4 Server setup & deploy script**

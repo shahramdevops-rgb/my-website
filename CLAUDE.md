@@ -81,7 +81,10 @@ reveal something real about the back-end. Details and rejected ideas: `roadmap.m
   `P4-T2` (`UseForwardedHeaders` trusting loopback + `ReverseProxy:TrustedNetworks` = the prod compose network pinned
   to `172.30.0.0/24`; `UseHsts` outside Development; Data Protection keys in `/app/data/dp-keys` via
   `appsettings.Production.json`, app name `PersonalSite`; `--migrate` = migrate and exit (`MigrationCommand`)).
-- **Next task:** `P4-T3` (Release workflow).
+  `P4-T3` written, **not yet verified** (`.github/workflows/release.yml`: on `v*` tag or manual → calls `ci.yml`
+  via `workflow_call` → matrix builds both images for linux/amd64, pushes to GHCR tagged `vX.Y.Z` + `sha-<short>`,
+  never `latest`); tick it once a tag push shows both images in GHCR.
+- **Next task:** `P4-T3` verification (Mahdi pushes the first tag), then `P4-T4` (Server setup & deploy script).
 - **Accent color:** electric blue (`#4DB5FF` dark / `#0A63C9` light), picked by Claude at Mahdi's request; easy to change (`architecture.md §8.1`).
 - **Waiting on Mahdi:** contact links (`Site:Social:Email|GitHub|Telegram`); optional display face (P2-T8 left it out);
   real résumé facts — every `[placeholder]` and `2000-01` date in `src/PersonalSite.Api/Content/resume.*.json`;

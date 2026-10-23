@@ -1,0 +1,88 @@
+# Release: build both images (api, frontend) on GitHub's runners abroad and push them to GHCR. The server never
+# builds — it only pulls (architecture.md §9; Docker Hub/NuGet/npm may be throttled from Iran).
+#   git tag v0.1.0 && git push origin v0.1.0   → images tagged v0.1.0 and sha-<7 chars>
+#   Actions → Release → Run workflow           → images tagged sha-<7 chars> only (a test build of any branch)
+# On the server: IMAGE_TAG=v0.1.0 in .env, then `docker compose -f compose.yaml -f compose.prod.yaml pull` (P4-T4).
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+# Two releases of the same ref never race; a running release is finished, not cancelled.
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  # The full CI first (build, format, OpenAPI/TS staleness, unit + integration + e2e tests): a tag on a commit that
+  # fails CI must not produce an image the server could pull.
+  ci:
+    name: CI
+    uses: ./.github/workflows/ci.yml
+
+  images:
+    name: Image (${{ matrix.image }})
+    needs: ci
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      # Push to ghcr.io/<owner>/... with the workflow's own short-lived token: no personal token stored as a secret.
+      packages: write
+    strategy:
+      # One failed image fails the release, and the other one is not pushed half-way through on its own.
+      fail-fast: true
+      matrix:
+        include:
+          - image: personalsite-api
+            context: .
+            dockerfile: Dockerfile
+          - image: personalsite-frontend
+            context: frontend
+            dockerfile: frontend/Dockerfile
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      # Tags: the git tag as is (v0.1.0, matches IMAGE_TAG in .env) + sha-<short> (always unique, traceable to a
+      # commit). Never "latest" (rules.md §6): the server must name the exact release it runs.
+      # Also adds OCI labels; org.opencontainers.image.source links the package to this repository on GitHub.
+      - name: Image tags and labels
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}
+          flavor: latest=false
+          tags: |
+            type=ref,event=tag
+            type=sha
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # BuildKit with the GitHub Actions cache: unchanged layers (restore, pnpm install) are reused between releases.
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build and push
+        uses: docker/build-push-action@v7
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
+          # The VPS is x86-64; one platform keeps the build fast.
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=${{ matrix.image }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.image }}

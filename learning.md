@@ -631,6 +631,15 @@ Copying the `.csproj` files and running `dotnet restore` *before* copying the co
 
 ### 7.4 Why build images outside Iran
 Docker Hub, NuGet and some GitHub downloads can be blocked or throttled from Iranian IPs. GitHub Actions builds the image abroad and pushes it to GHCR; the server only pulls a finished image. Fallback: `docker save` locally and `docker load` on the server over SSH.
+**Image tags (P4-T3, `.github/workflows/release.yml`):** a tag is a *name* pointing at an image; one image can have
+several. Each release gets two: the git tag (`v0.1.0`, what `IMAGE_TAG` in `.env` names) and `sha-<7 chars>` (always
+unique, tells you the exact commit). No `latest`: "latest" moves, so two pulls of it can give two different apps and a
+rollback has no name to go back to. Both images of a release share the same tags, so `IMAGE_TAG` picks a matching pair.
+```
+git tag v0.1.0 && git push origin v0.1.0
+→ ghcr.io/<owner>/personalsite-api:v0.1.0  (+ :sha-1a2b3c4)    ghcr.io/<owner>/personalsite-frontend:v0.1.0  (+ :sha-1a2b3c4)
+```
+The workflow runs the whole CI first (`uses: ./.github/workflows/ci.yml`), so an untested commit never becomes an image.
 
 ### 7.5 Designing for server migration
 Everything that makes the site "this site" is in: git (code), env vars (config), volumes (DB, uploads, keys). Moving = new server + copy `.env` + restore backup + change DNS. No code changes.

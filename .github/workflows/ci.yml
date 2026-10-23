@@ -1,6 +1,6 @@
 # CI: every push and pull request must build, be formatted, and pass all tests — two jobs in parallel:
 # the .NET API (incl. Testcontainers) and the Next.js front-end.
-# Image build + push to GHCR is a separate workflow (release.yml, P4).
+# Image build + push to GHCR is a separate workflow (release.yml), which runs this one first.
 name: CI
 
 on:
@@ -8,6 +8,8 @@ on:
     branches: ["**"]
   pull_request:
     branches: [main]
+  # Called by release.yml before it builds images (a tag push doesn't trigger the branch rule above).
+  workflow_call:
 
 # A newer push to the same branch cancels the run that is still going: only the latest commit matters.
 concurrency:

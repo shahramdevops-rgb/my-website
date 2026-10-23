@@ -137,7 +137,9 @@ To try it on Windows: build both images under a local tag, set `SITE_HOST=localh
 publishes Caddy on other host ports (e.g. `127.0.0.1:18443:443`). Caddy then serves `localhost` with a certificate from
 its own local CA (use `curl -k`), so Let's Encrypt is never contacted.
 
-1. Tag a release: `git tag v0.1.0 && git push --tags` → GitHub Actions builds and pushes the image to GHCR.
+1. Tag a release: `git tag v0.1.0 && git push origin v0.1.0` → the Release workflow (`.github/workflows/release.yml`)
+   runs CI, then builds both images and pushes them to GHCR as `ghcr.io/<owner>/personalsite-{api,frontend}` with the
+   tags `v0.1.0` and `sha-<commit>`. A manual run (Actions → Release → Run workflow) pushes `sha-<commit>` only.
 2. On the server: `./deploy/scripts/deploy.sh v0.1.0` (pull → migrate → restart → health check).
 3. Backups run nightly via cron (`deploy/scripts/backup.sh`).
 
