@@ -35,7 +35,9 @@ services:
     image: personalsite-api:dev
     environment:
       # Built from the same .env values as the db service; "db" is the service name on the compose network.
-      ConnectionStrings__Default: Host=db;Port=5432;Database=${POSTGRES_DB:-site};Username=${POSTGRES_USER:-site};Password=${POSTGRES_PASSWORD}
+      # GSS Encryption Mode=Disable: Npgsql would first try Kerberos encryption, whose native library the chiseled
+      # image doesn't have ("Cannot load library libgssapi_krb5.so.2" on every new connection). Not used here.
+      ConnectionStrings__Default: Host=db;Port=5432;Database=${POSTGRES_DB:-site};Username=${POSTGRES_USER:-site};Password=${POSTGRES_PASSWORD};GSS Encryption Mode=Disable
     depends_on:
       db:
         condition: service_healthy
