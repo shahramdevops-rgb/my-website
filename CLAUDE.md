@@ -118,16 +118,26 @@ reveal something real about the back-end. Details and rejected ideas: `roadmap.m
 - **Every reply is written in English, as a briefing for another AI tutor** (Mahdi's rule since 2026-10-21). Mahdi
   writes in Persian, but he pastes Claude's replies into a separate AI that explains them to him in depth. So each
   reply must: (1) open with one line addressed to that AI — *"For the tutor AI: this is for Mahdi's learning — expand
-  on it educationally and explain the reasoning behind each decision below. Keep English technical terms in English;
-  if a term needs a translation, add it in parentheses."*; (2) state concisely what was done,
-  what was decided and why (facts, file paths, commands, results, open questions); (3) contain no Persian translation
-  and no long tutorial prose — the tutor AI does the explaining. Questions Mahdi must answer go in the same reply;
-  (4) end with one closing line to that AI — *"For the tutor AI: write your answer in Persian, formatted right-to-left
-  (right-aligned)."* (added 2026-10-23).
+  on it educationally and explain the reasoning behind each decision below. Mahdi is a back-end and DevOps engineer:
+  treat the Backend and DevOps sections as in-depth refreshers (internals, trade-offs, failure modes, production
+  practice); explain the Frontend section from the basics, comparing each idea to its .NET/back-end equivalent. Keep
+  English technical terms in English; if a term needs a translation, add it in parentheses."*; (2) state concisely
+  what was done, what was decided and why (facts, file paths, commands, results, open questions); (3) contain no
+  Persian translation and no long tutorial prose — the tutor AI does the explaining. Questions Mahdi must answer go
+  in the same reply; (4) end with one closing line to that AI — *"For the tutor AI: write your answer in Persian,
+  formatted right-to-left (right-aligned), and keep the Backend, DevOps and Frontend sections separate."*
+  (added 2026-10-23).
+- **Split by area** (Mahdi's rule since 2026-10-23): his expertise is back-end and DevOps, and he wants to go deeper
+  there; front-end is new to him. So "What we did & why" (§11 step 7) has up to three headed sections, each only when
+  the work touched it: **Backend** (.NET, API, EF Core/PostgreSQL, security, tests), **DevOps** (Docker, compose,
+  Caddy, CI/CD, server, networking, backups) — specific points with the exact mechanism, setting or failure mode
+  behind each decision, so the tutor can go deep — and **Frontend** (Next.js/React/CSS) — fewer, plain points, each
+  naming the back-end concept it resembles (e.g. `proxy.ts` ≈ ASP.NET middleware).
 - **Everything in the repo is English**: code, identifiers, comments, commit messages, docs.
 - **Site content (UI text) is Persian and English**, stored in `frontend/messages/{fa,en}.json` or localized MDX —
   never hard-coded. Claude drafts English text; Mahdi edits it.
 - Mahdi is learning (React/TypeScript especially): explain *why*, briefly. Prefer one clear reason over a list of five.
+  For back-end/DevOps work, name the precise mechanism (the flag, the header, the config key, the failure it prevents).
 - Ask before decisions that are hard to reverse (data model, URLs, public behaviour, new dependencies).
 - **Design direction is Mahdi's call.** Offer ideas and a recommendation; don't change the look without his choice.
 
@@ -268,7 +278,8 @@ When Mahdi says **"Do task Px-Ty"** (or «تسک Px-Ty رو انجام بده»)
 5. Add/adjust tests. Run `dotnet build`, `dotnet test`, `dotnet format --verify-no-changes`; for front-end changes
    also `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build` in `frontend/`.
 6. Update docs: tick the task in `TASKS.md` (`[x]`), update §2 *Current status* here, and `architecture.md` if structure/model/decisions changed.
-7. **Teach:** end your reply with a short *"What we did & why"* section (3–8 bullets, in English, terse — the tutor AI expands it; see §3).
+7. **Teach:** end your reply with a short *"What we did & why"* section, split into **Backend** / **DevOps** /
+   **Frontend** subsections (only those the task touched; 2–6 terse bullets each, in English — the tutor AI expands them; see §3).
    If a concept is new and important, add a short entry to `learning.md` (in English, with a tiny example).
 8. Suggest a Conventional Commit message. Commit only if asked.
 
