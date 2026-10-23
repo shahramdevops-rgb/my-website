@@ -592,6 +592,16 @@ text from `formatToParts` (month, then year) because Intl's own Persian pattern 
 
 ---
 
+### 6.9 A link inside a translated sentence: `t.rich` (P3-T8)
+Word order differs between languages, so a sentence with a link must not be glued from pieces ("Beyond the list: the" +
+link + "behind my projects"). The whole sentence lives in one message with a tag around the linked words, and the
+component decides what the tag becomes:
+```tsx
+// en.json: "decisions": "Beyond the list: the <link>engineering decisions</link> behind my projects …"
+t.rich("decisions", { link: (chunks) => <Link href="/decisions">{chunks}</Link> })
+```
+The translator can move `<link>…</link>` anywhere in the Persian sentence; the code doesn't change.
+
 ## Part 7 — DevOps
 
 ### 7.1 Docker image vs container vs volume

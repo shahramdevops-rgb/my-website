@@ -179,7 +179,7 @@
   Scope: email (obfuscated `mailto`), GitHub, Telegram cards from `/api/site`; placeholder for the form (P9).
   Done when: links correct; both languages.
 
-- [ ] **P3-T8 Engineering decisions page**
+- [x] **P3-T8 Engineering decisions page**
   Scope: `/{locale}/decisions` with 5–6 cards **Challenge → Decision → Why** across projects (this site's front-end/API split, gym system, cinema reservation, microservices platform — e.g. modular monolith for an MVP, no generic repository over EF Core, PostgreSQL + MongoDB split); MDX per locale; linked from the hiring path, About and Resume.
   Done when: both languages and themes; readable without interaction.
 

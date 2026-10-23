@@ -9,6 +9,7 @@ import { ResumeExperience } from "@/components/resume/ResumeExperience";
 import { ResumeSkills } from "@/components/resume/ResumeSkills";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { locales } from "@/lib/i18n/config";
+import { Link } from "@/lib/i18n/navigation";
 import { getResume } from "@/lib/resume/get-resume";
 import { getSiteInfo } from "@/lib/site/get-site-info";
 
@@ -88,6 +89,20 @@ export default async function ResumePage({ params }: PageProps<"/[locale]/resume
       />
       <ResumeEducation education={resume.education} locale={locale} />
       <ResumeSkills skills={resume.skills} locale={locale} />
+
+      {/* A pointer for employers to the reasoning behind the list (P3-T8). Not on paper: it can't be followed. */}
+      <p className="mt-14 max-w-2xl text-muted print:hidden">
+        {t.rich("decisions", {
+          link: (chunks) => (
+            <Link
+              href="/decisions"
+              className="font-medium text-accent underline underline-offset-4 hover:no-underline"
+            >
+              {chunks}
+            </Link>
+          ),
+        })}
+      </p>
     </div>
   );
 }

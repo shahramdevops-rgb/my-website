@@ -13,6 +13,8 @@ const routes = [
   "/fa/contact",
   "/en/contact",
   "/en/contact?type=project",
+  "/fa/decisions",
+  "/en/decisions",
   "/fa/no-such-page",
   "/en/no-such-page",
   "/de",

@@ -1,0 +1,112 @@
+{/*
+  The Engineering decisions page's cards (P3-T8). Draft by Claude for Mahdi to edit.
+  The first three are this site's own decisions (ADR-021, ADR-026, ADR-004 in architecture.md). The other three are
+  written in general terms: every "[placeholder]" marks a project fact Mahdi must confirm or replace — no invented
+  facts or numbers (ADR-018).
+  Components (passed in by app/[locale]/decisions/page.tsx): <DecisionList>, <Decision project title>, and inside
+  each Decision <Challenge>, <Choice>, <Why> in that order. The part labels come from messages (decisions.parts).
+  decisions.fa.mdx must use the same components in the same order (src/lib/content/content.test.ts).
+*/}
+
+Each card is one decision from a real project: the problem I faced, what I chose and why — including what it cost.
+The first three are from this site, so you can see them at work right here.
+
+<DecisionList>
+    <Decision project="This site" title="One origin for a Next.js front-end and an ASP.NET Core API">
+        <Challenge>
+            The site has to show real React and real .NET in production-shaped code, and the admin
+            login must stay a secure cookie — without CORS rules or tokens kept in JavaScript.
+        </Challenge>
+        <Choice>
+            Two applications behind one domain: Caddy sends the API's requests to ASP.NET Core and
+            everything else to the Next.js front-end.
+        </Choice>
+        <Why>
+            To the browser it is one site, so the login cookie simply works and no script can ever
+            read a token. The cost I accepted: two runtimes to build, deploy and watch instead of one.
+        </Why>
+    </Decision>
+    <Decision project="This site" title="A typed contract between the front-end and the API">
+        <Challenge>
+            Two applications in two languages drift apart: rename a field in the back-end and a React
+            page breaks — in production, in front of a visitor.
+        </Challenge>
+        <Choice>
+            The API writes its OpenAPI document on every build. The front-end generates its
+            TypeScript types and its API client from that document, and CI fails when either is out
+            of date.
+        </Choice>
+        <Why>
+            A contract change now breaks the build, where I see it, instead of the page, where a
+            visitor sees it. And there are no hand-written types left to keep in sync.
+        </Why>
+    </Decision>
+    <Decision project="This site" title="No generic repository over EF Core">
+        <Challenge>
+            Many .NET templates wrap Entity Framework Core in a generic repository and a unit of
+            work: one more layer in front of every query.
+        </Challenge>
+        <Choice>
+            The application layer works with the DbContext directly, through a small interface.
+            Reads are no-tracking projections that select only the columns a page needs.
+        </Choice>
+        <Why>
+            EF Core's DbContext already is a repository and a unit of work. A generic wrapper either
+            hides the query power I need or leaks it back out — pass-through code either way. The
+            trade-off I accepted: the application layer depends on EF Core.
+        </Why>
+    </Decision>
+    <Decision project="Gym management system" title="A modular monolith for the MVP">
+        <Challenge>
+            An MVP whose features — memberships, check-in, lockers — were still changing, built by a
+            small team that also had to run it. [placeholder] Confirm the modules and the size of the
+            team.
+        </Challenge>
+        <Choice>
+            One application and one database, split inside into modules with clear boundaries: each
+            module owns its tables and offers the others only a small public interface.
+        </Choice>
+        <Why>
+            One deployment and plain database transactions while the domain was still being learned
+            — no network calls or distributed failures between parts that change together. The
+            boundaries keep a later split into services possible, if the load ever asks for it.
+        </Why>
+    </Decision>
+    <Decision project="Cinema reservation" title="The database decides who gets the seat">
+        <Challenge>
+            Two people pick the same seat in the same second. Both see it as free; only one of them
+            may get it — and the other must find out at once, not at the cinema door.
+        </Challenge>
+        <Choice>
+            Holding a seat is one atomic change in the database, inside a transaction: it succeeds
+            only while the seat is still free. The second request finds the seat taken and gets a
+            clear answer to pick another. [placeholder] Confirm the mechanism the project used — a
+            row lock, a version column or a unique constraint.
+        </Choice>
+        <Why>
+            A check in application code (“is it free? then save it”) leaves a gap between its two
+            steps, and with more than one server it can't even see the other requests. The database
+            is the one place every request passes through, so that is where the rule belongs.
+        </Why>
+    </Decision>
+    <Decision project="Microservices platform" title="PostgreSQL and MongoDB, each where it fits">
+        <Challenge>
+            Some of the platform's data needed transactions and strict relations; other data changed
+            shape from record to record and was read as a whole. [placeholder] Name the services and
+            the data each one held.
+        </Challenge>
+        <Choice>
+            Each service owns its database: PostgreSQL for the services with transactional,
+            relational data; MongoDB for the services whose records are documents with a varying
+            shape.
+        </Choice>
+        <Why>
+            A database per service keeps the services independent — no service reads another's
+            tables. And each store plays to its strength: constraints and joins in PostgreSQL,
+            flexible documents read in one go in MongoDB. The cost: two databases to run, back up and
+            know well.
+        </Why>
+    </Decision>
+</DecisionList>
+
+Want the full picture? See my [résumé](/resume), or [tell me about the role](/contact?type=hiring) you are hiring for.

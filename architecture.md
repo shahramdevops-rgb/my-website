@@ -95,7 +95,7 @@ my-website/
 └─ frontend/                       # Next.js app (pnpm)
    ├─ package.json  pnpm-lock.yaml  next.config.ts  tsconfig.json  Dockerfile
    ├─ messages/ fa.json en.json    # UI strings (next-intl)
-   ├─ content/                     # localized prose (MDX): about.fa.mdx, about.en.mdx, services.*.mdx …
+   ├─ content/                     # localized prose (MDX): about.fa.mdx, about.en.mdx, services.*.mdx, decisions.*.mdx
    ├─ public/                      # fonts are NOT here (next/font/local reads src/fonts)
    ├─ e2e/                         # Playwright tests
    └─ src/
@@ -107,6 +107,7 @@ my-website/
       │              services/ (ServiceList, Service, Steps, Step for content/services.*.mdx; ProjectCta)
       │              resume/ (ResumeExperience, ResumeEducation, ResumeSkills, DownloadPdf; period.ts)
       │              contact/ (ContactLinks, EmailLink — obfuscated mailto, FormPlaceholder)
+      │              decisions/ (DecisionList, Decision, Challenge/Choice/Why for content/decisions.*.mdx)
       ├─ mdx-components.tsx        # @next/mdx: how every MDX element (h2, p, a …) renders; internal links via next-intl Link
       ├─ lib/ api/ (schema.d.ts generated; server.ts, browser.ts clients) env.ts
       │       i18n/ (config.ts: locales, cookie, time zone; request.ts; resolve-locale.ts) format/ (date, number)
@@ -471,6 +472,15 @@ with a shared secret (`Revalidate__Secret`).
   leaf that renders the fallback on the server and during hydration (`user [at] domain`, or the footer's "Email"
   label linking to the contact page) and the real `mailto:` right after (`useSyncExternalStore`, no effect). The
   footer uses the same component, so no page's HTML contains the address. Text in the `contact.*` messages.
+- **Decisions (P3-T8):** `app/[locale]/decisions/page.tsx` renders a header (`decisions.*` messages) and the
+  language's MDX with `{ DecisionList, Decision, Challenge, Choice, Why }`: six `Decision project title` cards (two
+  across from md), each an `article` named by its h2, its three parts a `<dl>` whose `<dt>` labels (Challenge /
+  Decision / Why) come from `decisions.parts` — so every language has the same structure, and three named part
+  components let `content.test.ts` catch a translation that drops or swaps one. Nothing is collapsed (readable
+  without interaction). Three cards are this site's ADRs (021, 026, 004); the gym, cinema and microservices cards
+  carry visible `[placeholder]` facts for Mahdi to confirm (ADR-018). Linked from the home hiring path, the About
+  prose and the end of the Resume page (`resume.decisions`, a `t.rich` sentence with a `Link`; hidden in print);
+  not in the main navigation.
 - **Keyboard hero (P3-T3):** `lib/keyboard/keycaps.ts` turns the résumé into `Keycap`s on the server (`buildKeycaps`:
   each tech gets the first free letter/digit of its name as its key — C# → C, Next.js → X once N is taken — and the
   `experience` entries whose `tech` lists it; `keyboardLayout`: ≤ 4 per row). `components/keyboard/KeyboardHero`

@@ -70,11 +70,16 @@ reveal something real about the back-end. Details and rejected ideas: `roadmap.m
   intro via `parseContactRequestType` (unknown → general, never echoed); email obfuscated by `EmailLink` (client leaf,
   reversed char codes from `src/lib/contact/email.ts`, `mailto:` built after hydration; also in the footer);
   `e2e/contact.spec.ts`).
-- **Next task:** `P3-T8` (Engineering decisions page).
+  `P3-T8` (`/{locale}/decisions`: six cards in `content/decisions.{fa,en}.mdx` with `DecisionList`/`Decision` +
+  `Challenge`/`Choice`/`Why` from `src/components/decisions/` (each an `article`, parts a `<dl>`, labels from
+  `decisions.parts`); three from this site's ADRs, three project ones with `[placeholder]` facts; linked from the
+  hiring path, About and Resume (`t.rich` link); `e2e/decisions.spec.ts`).
+- **Next task:** `P4-T1` (Production compose & Caddy).
 - **Accent color:** electric blue (`#4DB5FF` dark / `#0A63C9` light), picked by Claude at Mahdi's request; easy to change (`architecture.md §8.1`).
 - **Waiting on Mahdi:** contact links (`Site:Social:Email|GitHub|Telegram`); optional display face (P2-T8 left it out);
   real résumé facts — every `[placeholder]` and `2000-01` date in `src/PersonalSite.Api/Content/resume.*.json`;
-  About story — the `[placeholder]` sentence and a review of the drafted text in `frontend/content/about.*.mdx`; a photo.
+  About story — the `[placeholder]` sentence and a review of the drafted text in `frontend/content/about.*.mdx`; a photo;
+  Decisions page — confirm every `[placeholder]` project fact (gym, cinema, microservices) in `frontend/content/decisions.*.mdx`.
 - **Code today:** an API-only ASP.NET Core app (`/health`, `/health/ready`, `GET /api/site`, `GET /api/resume?lang=`; unknown paths → 404
   ProblemDetails; CSP `default-src 'none'`). Every build rewrites `openapi/v1.json` — commit it with contract changes.
   `frontend/` serves `/fa` and `/en` (header/footer shell + the Bento home from `/api/site` and `/api/resume`; nav

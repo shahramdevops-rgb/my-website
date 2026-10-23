@@ -151,7 +151,8 @@
     },
     "skills": {
       "title": "Skills"
-    }
+    },
+    "decisions": "Beyond the list: the <link>engineering decisions</link> behind my projects — the challenge, what I chose and why."
   },
   "contact": {
     "meta": {
@@ -184,6 +185,20 @@
     "form": {
       "title": "Contact form",
       "body": "A form for sending me a message right from this page, with the kind of request, is being built."
+    }
+  },
+  "decisions": {
+    "meta": {
+      "title": "Engineering decisions — {name}"
+    },
+    "eyebrow": "How I work",
+    "title": "Engineering decisions",
+    "lead": "The challenge, what I chose and why — from this site and from projects I have built.",
+    "project": "Project:",
+    "parts": {
+      "challenge": "Challenge",
+      "decision": "Decision",
+      "why": "Why"
     }
   }
 }
