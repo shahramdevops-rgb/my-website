@@ -105,6 +105,7 @@ test.describe("footer", () => {
     await page.goto("/fa");
     const footer = page.locator("footer");
 
+    // The address is obfuscated in the HTML (EmailLink); the mailto appears once the page has hydrated.
     await expect(footer.getByRole("link", { name: "ایمیل" })).toHaveAttribute(
       "href",
       "mailto:e2e@example.com",

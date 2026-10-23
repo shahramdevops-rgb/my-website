@@ -175,7 +175,7 @@
   Scope: renders `/api/resume`, print-friendly basics, download button placeholder (disabled until P9).
   Done when: clean in both languages and prints legibly.
 
-- [ ] **P3-T7 Contact page (links only)**
+- [x] **P3-T7 Contact page (links only)**
   Scope: email (obfuscated `mailto`), GitHub, Telegram cards from `/api/site`; placeholder for the form (P9).
   Done when: links correct; both languages.
 

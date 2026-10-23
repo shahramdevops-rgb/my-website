@@ -106,10 +106,11 @@ my-website/
       │              about/ (Timeline, Bridges, Skills, PhotoSlot — the components content/about.*.mdx may use)
       │              services/ (ServiceList, Service, Steps, Step for content/services.*.mdx; ProjectCta)
       │              resume/ (ResumeExperience, ResumeEducation, ResumeSkills, DownloadPdf; period.ts)
+      │              contact/ (ContactLinks, EmailLink — obfuscated mailto, FormPlaceholder)
       ├─ mdx-components.tsx        # @next/mdx: how every MDX element (h2, p, a …) renders; internal links via next-intl Link
       ├─ lib/ api/ (schema.d.ts generated; server.ts, browser.ts clients) env.ts
       │       i18n/ (config.ts: locales, cookie, time zone; request.ts; resolve-locale.ts) format/ (date, number)
-      │       site/ (getSiteInfo) resume/ (getResume) theme/ (theme.ts: pre-paint script, switchTheme) fonts.ts security/nonce.ts
+      │       site/ (getSiteInfo) resume/ (getResume) contact/ (request-type, email, display-url) theme/ (theme.ts: pre-paint script, switchTheme) fonts.ts security/nonce.ts
       ├─ instrumentation.ts        # server start: validates env (instrumentation-node.ts exits on a bad value)
       ├─ fonts/                    # self-hosted woff2 + licences
       ├─ styles/globals.css        # Tailwind entry + tokens
@@ -461,6 +462,15 @@ with a shared secret (`Revalidate__Secret`).
   → "Present"). Print: `@media print` in `globals.css` sets the light palette on `:root` (a test keeps it equal to the
   light theme) + `@page` margins; `print:hidden` on `SiteHeader`, `SiteFooter` and the download button;
   `break-inside-avoid` on entries. Text in the `resume.*` messages.
+- **Contact (P3-T7):** `app/[locale]/contact/page.tsx` renders a header whose intro line depends on `?type=` —
+  `parseContactRequestType` (`lib/contact/request-type.ts`) accepts only `hiring`/`project`, anything else gets the
+  general line and is never echoed — then `components/contact/` `ContactLinks` (a `section` with one `Card` per
+  configured `site.social` link, `auto-fit` grid; none configured → an info `Alert`) and `FormPlaceholder` (the P9
+  form's slot, "In progress" `Badge`, no fake form). Email obfuscation: the server passes `encodeEmail(address)`
+  (reversed character codes, so neither the HTML nor the RSC payload holds the address) to `EmailLink`, a client
+  leaf that renders the fallback on the server and during hydration (`user [at] domain`, or the footer's "Email"
+  label linking to the contact page) and the real `mailto:` right after (`useSyncExternalStore`, no effect). The
+  footer uses the same component, so no page's HTML contains the address. Text in the `contact.*` messages.
 - **Keyboard hero (P3-T3):** `lib/keyboard/keycaps.ts` turns the résumé into `Keycap`s on the server (`buildKeycaps`:
   each tech gets the first free letter/digit of its name as its key — C# → C, Next.js → X once N is taken — and the
   `experience` entries whose `tech` lists it; `keyboardLayout`: ≤ 4 per row). `components/keyboard/KeyboardHero`

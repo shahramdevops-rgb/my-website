@@ -152,5 +152,38 @@
     "skills": {
       "title": "Skills"
     }
+  },
+  "contact": {
+    "meta": {
+      "title": "Contact — {name}"
+    },
+    "eyebrow": "Contact",
+    "title": "Get in touch",
+    "lead": {
+      "general": "A question, an offer or just a hello — here is how to reach me.",
+      "hiring": "Hiring? Tell me about the role, the team and the stack, and I'll get back to you.",
+      "project": "Tell me about your project: what you're building, for whom and roughly when. I'll reply with questions or a first plan."
+    },
+    "links": {
+      "title": "Ways to reach me",
+      "none": "Contact links will be added here soon."
+    },
+    "email": {
+      "title": "Email",
+      "body": "Best for work enquiries and project details.",
+      "obfuscated": "{user} [at] {domain}"
+    },
+    "gitHub": {
+      "title": "GitHub",
+      "body": "My code and open-source work."
+    },
+    "telegram": {
+      "title": "Telegram",
+      "body": "For a short, quick message."
+    },
+    "form": {
+      "title": "Contact form",
+      "body": "A form for sending me a message right from this page, with the kind of request, is being built."
+    }
   }
 }

@@ -514,6 +514,21 @@ browser:   runs a script only if its nonce matches the header of *this* response
 ```
 An injected `<script>` has no (or an old) nonce, so it never runs; a new nonce per page view means a stolen one is useless. The price: a nonce must be fresh, so pages can't be built once and served from a cache — every page renders per request (`await connection()` in the layout); API data is still cached. **`'strict-dynamic'`** says: "trust scripts loaded *by* a trusted (nonced) script". Next's runtime loads its chunks dynamically; without `'strict-dynamic'` every chunk URL would have to be listed. With it, `'self'` and host lists are ignored for scripts — only the nonce chain counts. `e2e/csp.spec.ts` proves it on every route: header correct, every `<script>` carries the nonce, Next's inline scripts actually ran, zero violations — and it was checked to fail when the nonce is removed.
 
+### 5.9 Email obfuscation (P3-T7)
+Spam bots ("harvesters") download pages and grep the HTML for `name@domain` and `mailto:`; almost none run
+JavaScript. So the server never writes the address: it sends reversed character codes, and a tiny client
+component turns them back into a link after hydration:
+```ts
+encodeEmail("a@b.ir");          // [114, 105, 46, 98, 64, 97]  ("ri.b@a")
+decodeEmail([114, 105, 46, 98, 64, 97]); // "a@b.ir" → <a href="mailto:a@b.ir">
+```
+Why not other ways: an inline `onclick` or a `<script>` that writes the link is blocked by our nonce CSP;
+`dangerouslySetInnerHTML` is banned (rules.md §9); a CSS trick (reversed text + `direction: rtl`) breaks copy-paste
+and screen readers. Note the props of a client component are serialized into the page (the RSC payload), so they
+must be encoded too — passing the plain address as a prop would put it right back into the HTML. Trade-off:
+without JavaScript the visitor sees `a [at] b.ir` and types it by hand. It stops cheap bots, not a person — the
+address is public on purpose. `e2e/contact.spec.ts` checks the raw HTML has neither the address nor `mailto:`.
+
 ---
 
 ## Part 6 — Internationalization (i18n)
