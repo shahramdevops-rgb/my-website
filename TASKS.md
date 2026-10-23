@@ -203,6 +203,8 @@
 - [ ] **P4-T4 Server setup & deploy script**
   Scope: `deploy/README.md` (Ubuntu LTS, Docker, firewall 22/80/443, deploy user, SSH keys, registry login), `deploy/scripts/deploy.sh` (pull → migrate → up -d → health check → prune), `docker save | ssh docker load` fallback.
   Done when: Mahdi deploys with one command and the site loads over HTTPS.
+  Status: guide + script written; `deploy.sh` linted (shellcheck) and run end to end locally (`--offline`, `localhost`
+  on Caddy's local CA: migrate, healthy, HTTPS check, prune, rollback hint, failure paths). Tick after the first real deploy.
 
 - [ ] **P4-T5 Backups**
   Scope: `backup.sh` (`pg_dump -Fc` + tar of `uploads`, 14-day rotation), cron, `restore.sh`, off-server copy step.

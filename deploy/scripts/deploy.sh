@@ -25,7 +25,7 @@ env_value() {
 	local value
 	value=$(grep -E "^$1=" .env | tail -n 1 | cut -d= -f2- || true)
 	# A .env saved on Windows has CRLF line ends.
-	value=${value%$''}
+	value=${value%$'\r'}
 	value=${value%\"}
 	value=${value#\"}
 	printf '%s' "$value"
@@ -103,8 +103,9 @@ main() {
 
 	# Compose files and Caddyfile must belong to the same release as the images.
 	log "Checking out $tag"
-	git diff --quiet && git diff --cached --quiet ||
+	if ! git diff --quiet || ! git diff --cached --quiet; then
 		die "tracked files were changed on the server (git status); config belongs in .env, not in the repo"
+	fi
 	if [[ $offline == false ]]; then
 		git fetch --quiet --tags --force origin
 	fi

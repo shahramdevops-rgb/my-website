@@ -119,7 +119,7 @@ Documented in `.env.example`. Key ones (some arrive in later phases):
 | `FeatureManagement__Newsletter.Sending` | `false` | Keep off until an email provider is chosen |
 | `Smtp__Host`, `Smtp__User`, `Smtp__Password` | | Only needed when email flags are on |
 
-## Deployment (available after Phase 3)
+## Deployment
 
 The production stack is `compose.yaml` + `compose.prod.yaml` with `deploy/Caddyfile`: images pulled from GHCR (never
 built on the server), only Caddy publishes ports (80/443, HTTPS via Let's Encrypt), every service restarts on its own,
@@ -140,10 +140,12 @@ its own local CA (use `curl -k`), so Let's Encrypt is never contacted.
 1. Tag a release: `git tag v0.1.0 && git push origin v0.1.0` → the Release workflow (`.github/workflows/release.yml`)
    runs CI, then builds both images and pushes them to GHCR as `ghcr.io/<owner>/personalsite-{api,frontend}` with the
    tags `v0.1.0` and `sha-<commit>`. A manual run (Actions → Release → Run workflow) pushes `sha-<commit>` only.
-2. On the server: `./deploy/scripts/deploy.sh v0.1.0` (pull → migrate → restart → health check).
-3. Backups run nightly via cron (`deploy/scripts/backup.sh`).
+2. From your PC: `ssh site /opt/personalsite/deploy/scripts/deploy.sh v0.1.0` (check out the tag → pull → migrate →
+   up → HTTPS health check → prune old images). Rollback = the same command with the previous tag.
+3. Backups run nightly via cron (`deploy/scripts/backup.sh`, P4-T5).
 
-Full server setup and the Iran-specific notes (image pulls, mirrors, `docker save/load` fallback) will be in `deploy/README.md`.
+Server setup (user, SSH, firewall, Docker, `.env`, GHCR access) and the fallback without GitHub
+(`docker save | ssh docker load`, `--offline`) are in [`deploy/README.md`](deploy/README.md).
 
 ## Working with Claude
 

@@ -84,7 +84,13 @@ reveal something real about the back-end. Details and rejected ideas: `roadmap.m
   `P4-T3` written, **not yet verified** (`.github/workflows/release.yml`: on `v*` tag or manual → calls `ci.yml`
   via `workflow_call` → matrix builds both images for linux/amd64, pushes to GHCR tagged `vX.Y.Z` + `sha-<short>`,
   never `latest`); tick it once a tag push shows both images in GHCR.
-- **Next task:** `P4-T3` verification (Mahdi pushes the first tag), then `P4-T4` (Server setup & deploy script).
+  `P4-T4` written, **not yet verified** (`deploy/README.md` server setup; `deploy/scripts/deploy.sh vX.Y.Z [--offline]`:
+  checkout tag → pull → `--migrate` → `up --wait` → HTTPS check via `--resolve` → prune; tested locally end to end);
+  tick it after the first real deploy. Compose's connection string has `GSS Encryption Mode=Disable` (chiseled image
+  has no libgssapi).
+- **Note:** GitHub `main` is at `fe205aa` (docs) — the 23 commits from P2-T1 on have never been pushed, so CI has
+  never run on them. They must reach GitHub (`main` can fast-forward to the tip) before the first tag.
+- **Next task:** Mahdi: push the code + first tag (`P4-T3`), then the first deploy (`P4-T4`); Claude: `P4-T5` (Backups).
 - **Accent color:** electric blue (`#4DB5FF` dark / `#0A63C9` light), picked by Claude at Mahdi's request; easy to change (`architecture.md §8.1`).
 - **Waiting on Mahdi:** contact links (`Site:Social:Email|GitHub|Telegram`); optional display face (P2-T8 left it out);
   real résumé facts — every `[placeholder]` and `2000-01` date in `src/PersonalSite.Api/Content/resume.*.json`;

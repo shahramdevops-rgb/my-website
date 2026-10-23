@@ -580,7 +580,16 @@ via `workflow_call`), then a two-entry matrix builds `personalsite-api` (`Docker
 (`frontend/Dockerfile`) for `linux/amd64` with Buildx + the GitHub Actions layer cache and pushes them to
 `ghcr.io/<owner>/` with the job's `GITHUB_TOKEN` (`packages: write`). Tags from `docker/metadata-action`: the git tag
 (`v0.1.0`) and `sha-<short>`; never `latest`. New GHCR packages are private: the server logs in with a token that has
-`read:packages` (P4-T4).
+`read:packages` (P4-T4) — or the packages are made public (`deploy/README.md §6`).
+
+**Deploy (P4-T4):** the server holds a git clone in `/opt/personalsite` plus the git-ignored `.env`.
+`deploy/scripts/deploy.sh vX.Y.Z` (one command from the PC over SSH): refuses if tracked files changed → `git fetch`
++ `checkout` of the tag (compose files and Caddyfile match the images) → `compose pull` → `compose run --rm api
+--migrate` → writes `IMAGE_TAG` to `.env` → `up -d --wait` (image HEALTHCHECKs) → `curl` of `/health` and `/fa`
+through Caddy with `--resolve` to 127.0.0.1 (valid certificate required) → removes this app's images except the
+current and previous release. `--offline` skips fetch and pull for the fallback (tag pushed to the clone over SSH,
+images via `docker save | ssh docker load`). Rollback = deploy the previous tag; migrations are never undone.
+Server setup: `deploy/README.md`.
 
 **Operational notes for the Iranian server (kept out of application code):** Docker Hub / NuGet / npm / GitHub may
 be throttled from Iranian IPs → images are built in CI abroad; the server only *pulls* (GHCR) or receives
