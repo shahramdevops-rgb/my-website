@@ -206,9 +206,11 @@
   Status: guide + script written; `deploy.sh` linted (shellcheck) and run end to end locally (`--offline`, `localhost`
   on Caddy's local CA: migrate, healthy, HTTPS check, prune, rollback hint, failure paths). Tick after the first real deploy.
 
-- [ ] **P4-T5 Backups**
+- [x] **P4-T5 Backups**
   Scope: `backup.sh` (`pg_dump -Fc` + tar of `uploads`, 14-day rotation), cron, `restore.sh`, off-server copy step.
   Done when: a restore into a fresh DB has been performed once and documented.
+  Status: drill done locally on 2026-10-23 (every volume deleted, fresh deploy, restore — `deploy/README.md §10`);
+  repeat it on the server after the first deploy and add the row there.
 
 ## Phase 5 — Admin panel & authentication
 

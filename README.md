@@ -142,9 +142,10 @@ its own local CA (use `curl -k`), so Let's Encrypt is never contacted.
    tags `v0.1.0` and `sha-<commit>`. A manual run (Actions → Release → Run workflow) pushes `sha-<commit>` only.
 2. From your PC: `ssh site /opt/personalsite/deploy/scripts/deploy.sh v0.1.0` (check out the tag → pull → migrate →
    up → HTTPS health check → prune old images). Rollback = the same command with the previous tag.
-3. Backups run nightly via cron (`deploy/scripts/backup.sh`, P4-T5).
+3. Backups run nightly via cron (`deploy/scripts/backup.sh`; restore with `deploy/scripts/restore.sh`), and your PC
+   pulls a copy — see `deploy/README.md §10`.
 
-Server setup (user, SSH, firewall, Docker, `.env`, GHCR access) and the fallback without GitHub
+Server setup (user, SSH, firewall, Docker, `.env`, GHCR access, backups) and the fallback without GitHub
 (`docker save | ssh docker load`, `--offline`) are in [`deploy/README.md`](deploy/README.md).
 
 ## Working with Claude

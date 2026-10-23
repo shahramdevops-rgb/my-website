@@ -591,6 +591,14 @@ current and previous release. `--offline` skips fetch and pull for the fallback 
 images via `docker save | ssh docker load`). Rollback = deploy the previous tag; migrations are never undone.
 Server setup: `deploy/README.md`.
 
+**Backups (P4-T5):** `deploy/scripts/backup.sh` (cron, nightly) → `/var/backups/personalsite/<UTC time>.db.dump`
+(`pg_dump -Fc` inside the db container, verified with `pg_restore --list`) + `<UTC time>.uploads.tar.gz` (the
+`uploads` volume read-only through a throwaway container of the Caddy image); both renamed from `.partial` only when
+both succeeded; 14-day rotation after a successful run. Off-server copy = the PC pulls with `scp` (pull, not push:
+the server holds no credentials elsewhere). `restore.sh <time>|latest --yes`: safety backup → stop frontend/api →
+`dropdb --force` + `createdb` → `pg_restore --single-transaction --exit-on-error` → replace uploads → `up --wait`.
+Not backed up: `.env`, `caddy_data`, `dpkeys`.
+
 **Operational notes for the Iranian server (kept out of application code):** Docker Hub / NuGet / npm / GitHub may
 be throttled from Iranian IPs → images are built in CI abroad; the server only *pulls* (GHCR) or receives
 `docker save | docker load` over SSH as a fallback. Moving servers = copy volumes + `pg_dump` restore + DNS change.

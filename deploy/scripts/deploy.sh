@@ -4,7 +4,7 @@
 #   deploy/scripts/deploy.sh v0.1.0 --offline   same, but never contacts GitHub/GHCR: the tag was pushed to this
 #                                               clone and the images were loaded with `docker load` (deploy/README.md)
 # Rollback = run it again with the previous tag (printed at the end). Migrations only go forward: rolling back over
-# a release that changed the database needs the backup (P4-T5).
+# a release that changed the database needs a restore (restore.sh, deploy/README.md §10).
 set -euo pipefail
 
 compose() {

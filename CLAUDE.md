@@ -88,9 +88,12 @@ reveal something real about the back-end. Details and rejected ideas: `roadmap.m
   checkout tag → pull → `--migrate` → `up --wait` → HTTPS check via `--resolve` → prune; tested locally end to end);
   tick it after the first real deploy. Compose's connection string has `GSS Encryption Mode=Disable` (chiseled image
   has no libgssapi).
-- **Note:** GitHub `main` is at `fe205aa` (docs) — the 23 commits from P2-T1 on have never been pushed, so CI has
-  never run on them. They must reach GitHub (`main` can fast-forward to the tip) before the first tag.
-- **Next task:** Mahdi: push the code + first tag (`P4-T3`), then the first deploy (`P4-T4`); Claude: `P4-T5` (Backups).
+  `P4-T5` (`deploy/scripts/backup.sh`: `pg_dump -Fc` + uploads tar → `/var/backups/personalsite/<UTC time>.*`, both
+  renamed from `.partial` together, 14-day rotation after success, cron 03:15; PC pulls copies with `scp`;
+  `restore.sh <time>|latest --yes`: safety backup → stop → dropdb/createdb → `pg_restore --single-transaction` →
+  uploads → up; drill done locally into a fresh stack, server drill after the first deploy — `deploy/README.md §10`).
+- **GitHub:** `main` pushed on 2026-10-23 (fast-forward to the stacked branches); CI green there for the first time.
+- **Next task:** watch the `v0.1.0` release run → tick `P4-T3`; Mahdi: server setup + first deploy (`P4-T4`); then `P5-T1`.
 - **Accent color:** electric blue (`#4DB5FF` dark / `#0A63C9` light), picked by Claude at Mahdi's request; easy to change (`architecture.md §8.1`).
 - **Waiting on Mahdi:** contact links (`Site:Social:Email|GitHub|Telegram`); optional display face (P2-T8 left it out);
   real résumé facts — every `[placeholder]` and `2000-01` date in `src/PersonalSite.Api/Content/resume.*.json`;

@@ -157,7 +157,7 @@ The script stops at the first failing step:
 | prune | removes this app's images except the current and the previous release, and dangling layers |
 
 **Rollback:** run the script with the previous tag (it prints it at the end). Migrations only go forward, so a
-rollback over a release that changed the database needs the backup (P4-T5) — `deploy.sh` never undoes a migration.
+rollback over a release that changed the database needs a restore (§10) — `deploy.sh` never undoes a migration.
 
 **First deploy:** if the health check fails, the usual cause is the certificate: DNS doesn't point at the server
 yet, or port 80 is blocked. `docker compose -f compose.yaml -f compose.prod.yaml logs caddy` says which.
@@ -192,7 +192,59 @@ dc restart frontend           # restart one service
 df -h /var/lib/docker         # disk (logs are capped at 3 × 10 MB per service)
 ```
 
-## 10. Domain renewals
+## 10. Backups and restore
+
+`deploy/scripts/backup.sh` writes two files per run to `/var/backups/personalsite` (override with `BACKUP_DIR`),
+named by UTC time: `<time>.db.dump` (`pg_dump -Fc`, checked with `pg_restore --list`) and `<time>.uploads.tar.gz`
+(the `uploads` volume). Both get their final names only when both are complete, so a failed run leaves nothing
+half-written. Backups older than 14 days are removed — only after a successful run, so the newest always survives.
+Not in the backup: `.env` (keep a copy in your password manager), certificates (Caddy fetches new ones), Data
+Protection keys (losing them only signs the admin out).
+
+**Set up once:**
+
+```bash
+sudo install -d -m 700 -o deploy -g deploy /var/backups/personalsite
+crontab -e      # as deploy; add the line below: every night at 03:15 server time
+```
+
+```text
+15 3 * * * /opt/personalsite/deploy/scripts/backup.sh >> /var/backups/personalsite/backup.log 2>&1
+```
+
+Run it once by hand (`deploy/scripts/backup.sh`) and check that the two files appear.
+
+**Off-server copy:** a backup on the same disk doesn't survive losing the server. Your PC pulls the files (the
+server holds no credentials for other machines, so a hacked server can't delete the copies):
+
+```powershell
+New-Item -ItemType Directory -Force "$env:USERPROFILE\Backups\personalsite" | Out-Null
+scp -p "site:/var/backups/personalsite/*.db.dump" "site:/var/backups/personalsite/*.uploads.tar.gz" "$env:USERPROFILE\Backups\personalsite"
+```
+
+Do it weekly at least (Windows Task Scheduler can run the `scp` line). Delete old copies on the PC by hand; the files
+contain personal data once comments and messages exist (P8/P9).
+
+**Restore:**
+
+```bash
+deploy/scripts/restore.sh latest                      # shows which backup, changes nothing
+deploy/scripts/restore.sh 20261023T031500Z --yes      # restores that one
+```
+
+It first backs up the current state (a safety net if the wrong backup was picked), stops `frontend` and `api`,
+drops and re-creates the database, runs `pg_restore --single-transaction` (all or nothing), replaces the `uploads`
+volume, and starts the stack. On a **new server**: steps 1–7 first (the deploy creates the volumes), copy the backup
+files to `/var/backups/personalsite` with `scp`, then `restore.sh <time> --yes`.
+
+**Restore drills** (a backup that was never restored is a hope, not a backup):
+
+| Date | Where | What | Result |
+|---|---|---|---|
+| 2026-10-23 | local (Docker Desktop, prod compose with `localhost`) | seeded a table (incl. Persian text) + an uploaded file → `backup.sh` → `docker compose down -v` (every volume deleted) → fresh deploy → `restore.sh --yes` | rows, EF migration history and the file (owner uid 1654 kept) back; `/health` and `/fa` 200 |
+| | server, after the first deploy | the same with real data | |
+
+## 11. Domain renewals
 
 `.ir` domains are renewed at IRNIC (nic.ir). Keep the dates here so a renewal is never missed.
 
