@@ -121,6 +121,22 @@ Documented in `.env.example`. Key ones (some arrive in later phases):
 
 ## Deployment (available after Phase 3)
 
+The production stack is `compose.yaml` + `compose.prod.yaml` with `deploy/Caddyfile`: images pulled from GHCR (never
+built on the server), only Caddy publishes ports (80/443, HTTPS via Let's Encrypt), every service restarts on its own,
+data lives in the volumes `pgdata`, `uploads`, `dpkeys`, `caddy_data`. On the server, `.env` needs the "Production
+only" values from `.env.example` (`SITE_HOST`, `REDIRECT_HOSTS`, `ACME_EMAIL`, `IMAGE_TAG`).
+
+```bash
+docker compose -f compose.yaml -f compose.prod.yaml config    # validate the merged file
+docker compose -f compose.yaml -f compose.prod.yaml pull
+docker compose -f compose.yaml -f compose.prod.yaml up -d
+```
+
+To try it on Windows: build both images under a local tag, set `SITE_HOST=localhost`, `REDIRECT_HOSTS=www.localhost`,
+`IMAGE_REGISTRY=local`, `IMAGE_TAG=check` in a separate env file (`--env-file`), and use a small extra override that
+publishes Caddy on other host ports (e.g. `127.0.0.1:18443:443`). Caddy then serves `localhost` with a certificate from
+its own local CA (use `curl -k`), so Let's Encrypt is never contacted.
+
 1. Tag a release: `git tag v0.1.0 && git push --tags` → GitHub Actions builds and pushes the image to GHCR.
 2. On the server: `./deploy/scripts/deploy.sh v0.1.0` (pull → migrate → restart → health check).
 3. Backups run nightly via cron (`deploy/scripts/backup.sh`).

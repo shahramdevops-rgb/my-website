@@ -670,3 +670,20 @@ A reverse proxy is the one door the browser knocks on; it looks at each request 
 everything else               →  reverse_proxy frontend:3000  (Next.js)
 ```
 `api` and `frontend` are compose **service names**: Docker's internal DNS resolves them on the compose network, and only Caddy publishes a port to your machine. Two kinds of traffic, two routes: the *browser* always goes through Caddy (`localhost:8080/api/site`); the *Next.js server* calls `http://api:8080` directly, container to container — no detour through the proxy. On the host (`pnpm dev`) there is no Caddy, so a development-only `rewrites` rule in `next.config.ts` plays its part for `/api/*`. Why one origin removes CORS: see 4.10.
+
+### 7.13 Production compose: same services, different overrides (P4-T1)
+Production reuses `compose.yaml` and layers `compose.prod.yaml` on top (`-f compose.yaml -f compose.prod.yaml`; the
+dev `compose.override.yaml` is then *not* loaded). The prod file only states what differs:
+```yaml
+api:
+  image: ghcr.io/<owner>/personalsite-api:${IMAGE_TAG:?IMAGE_TAG is not set}   # pull a finished image…
+  build: !reset null                                                         # …and never build on the server
+  restart: unless-stopped                                                    # come back after a crash or reboot
+```
+`${VAR:?message}` makes compose refuse to start when a required value is missing, instead of running with an empty
+one. Only Caddy publishes ports (80/443); the DB and both apps are reachable only on the compose network.
+Caddy reads `{$SITE_HOST}` from its environment *before* parsing the Caddyfile, so the domain lives in `.env`, not in
+the file. For a real hostname it fetches a Let's Encrypt certificate by itself (HTTP-01 on port 80); for `localhost`
+it uses its own local CA — that is how the production stack can be tried on a laptop. A named volume mounted on a
+path that doesn't exist in the image is created owned by root, so the Dockerfile creates `/app/data/*` owned by the
+non-root app user first.

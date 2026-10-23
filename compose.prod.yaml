@@ -1,0 +1,70 @@
+# Production overrides, merged on top of compose.yaml (compose.override.yaml is NOT loaded when -f is given):
+#   docker compose -f compose.yaml -f compose.prod.yaml pull
+#   docker compose -f compose.yaml -f compose.prod.yaml up -d
+# Values come from the git-ignored .env next to this file (template: .env.example, "Production" section).
+# Differences from dev: images are pulled from GHCR (never built on the server), only Caddy publishes ports,
+# every service restarts on its own, and data lives in the named volumes pgdata/uploads/dpkeys/caddy_data.
+
+# Container logs are capped (3 x 10 MB per service), so a chatty service can't fill the server's disk.
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  caddy:
+    restart: unless-stopped
+    logging: *logging
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+    environment:
+      # Read by deploy/Caddyfile as {$SITE_HOST} etc. Hostnames live only here and in .env (rules.md §7).
+      SITE_HOST: ${SITE_HOST:?SITE_HOST is not set (canonical hostname, e.g. mahdiazghandi.ir)}
+      REDIRECT_HOSTS: ${REDIRECT_HOSTS:?REDIRECT_HOSTS is not set (hostnames that 301 to SITE_HOST)}
+      ACME_EMAIL: ${ACME_EMAIL:?ACME_EMAIL is not set (Let's Encrypt account email)}
+    ports:
+      # The only published ports of the whole stack. 80 = Let's Encrypt HTTP-01 challenge + redirect to HTTPS.
+      - "80:80"
+      - "443:443"
+      # HTTP/3 (QUIC) runs over UDP.
+      - "443:443/udp"
+
+  frontend:
+    # GHCR image built by the release workflow (P4-T3); IMAGE_TAG is a release tag, never "latest".
+    image: ${IMAGE_REGISTRY:-ghcr.io/shahramdevops-rgb}/personalsite-frontend:${IMAGE_TAG:?IMAGE_TAG is not set (release tag, e.g. v0.1.0)}
+    # `!reset` drops the dev `build:` from compose.yaml: the server never builds, it only pulls.
+    build: !reset null
+    restart: unless-stopped
+    logging: *logging
+
+  api:
+    image: ${IMAGE_REGISTRY:-ghcr.io/shahramdevops-rgb}/personalsite-api:${IMAGE_TAG:?IMAGE_TAG is not set (release tag, e.g. v0.1.0)}
+    build: !reset null
+    restart: unless-stopped
+    logging: *logging
+    # The API's own settings (Site__Social__*, FeatureManagement__*, later Admin__*, ...) come from .env.
+    # A file instead of a list here, because keys like FeatureManagement__Ai.Mcp can't be ${...} variables.
+    # Optional so `docker compose ... config` can validate with another --env-file (e.g. in CI); a real deploy
+    # without .env stops anyway, because POSTGRES_PASSWORD, SITE_HOST and IMAGE_TAG have no defaults.
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      # One source for the hostname: the canonical URL is built from SITE_HOST (architecture.md §9.1).
+      Site__BaseUrl: https://${SITE_HOST:?SITE_HOST is not set}
+    volumes:
+      # Mount paths are fixed by the image (src/PersonalSite.Api; Dockerfile creates them owned by the app user).
+      # uploads: admin-uploaded files (P6). dpkeys: Data Protection keys, so restarts keep cookies valid (P4-T2).
+      - uploads:/app/data/uploads
+      - dpkeys:/app/data/dp-keys
+
+  db:
+    restart: unless-stopped
+    logging: *logging
+    # No ports: PostgreSQL is reachable only from the docker network (the dev override's 5433 is not loaded).
+
+volumes:
+  uploads:
+  dpkeys:

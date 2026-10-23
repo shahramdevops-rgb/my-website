@@ -18,11 +18,16 @@ COPY src/ src/
 RUN dotnet publish src/PersonalSite.Api/PersonalSite.Api.csproj \
     --configuration Release --no-restore --output /app/publish -p:UseAppHost=false -p:OpenApiGenerateDocuments=false
 
+# Mount points for the named volumes (compose.prod.yaml: uploads, dpkeys). Created here because the runtime image
+# has no shell; copied with the app user as owner, so Docker initialises a new empty volume writable by the app.
+RUN mkdir -p /app/data/uploads /app/data/dp-keys
+
 # ---------- Runtime stage: small, no shell, non-root ----------
 # "chiseled" = Ubuntu with only what .NET needs; "extra" adds ICU + tzdata (Persian calendar, Asia/Tehran).
 FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble-chiseled-extra AS runtime
 WORKDIR /app
 COPY --from=build /app/publish .
+COPY --from=build --chown=$APP_UID:$APP_UID /app/data /app/data
 
 # Chiseled images already default to the non-root "app" user; stated explicitly so it can't silently change.
 USER $APP_UID

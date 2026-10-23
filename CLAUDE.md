@@ -74,7 +74,11 @@ reveal something real about the back-end. Details and rejected ideas: `roadmap.m
   `Challenge`/`Choice`/`Why` from `src/components/decisions/` (each an `article`, parts a `<dl>`, labels from
   `decisions.parts`); three from this site's ADRs, three project ones with `[placeholder]` facts; linked from the
   hiring path, About and Resume (`t.rich` link); `e2e/decisions.spec.ts`).
-- **Next task:** `P4-T1` (Production compose & Caddy).
+- **Done in P4:** `P4-T1` (`compose.prod.yaml`: GHCR images by `IMAGE_TAG`, `build: !reset`, restart + log caps, only
+  Caddy on 80/443(+udp), `uploads`/`dpkeys` volumes on `/app/data/*`, `.env` as the api `env_file`; `deploy/Caddyfile`
+  with `SITE_HOST`/`REDIRECT_HOSTS`/`ACME_EMAIL` from env, curl-UA `/` → API, `/internal/*` + `/health/*` blocked;
+  checked locally as `localhost` on Caddy's local CA).
+- **Next task:** `P4-T2` (API production settings).
 - **Accent color:** electric blue (`#4DB5FF` dark / `#0A63C9` light), picked by Claude at Mahdi's request; easy to change (`architecture.md §8.1`).
 - **Waiting on Mahdi:** contact links (`Site:Social:Email|GitHub|Telegram`); optional display face (P2-T8 left it out);
   real résumé facts — every `[placeholder]` and `2000-01` date in `src/PersonalSite.Api/Content/resume.*.json`;

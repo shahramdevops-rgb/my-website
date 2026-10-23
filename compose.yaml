@@ -1,11 +1,11 @@
 # Shared service definitions for every environment.
 #   Dev:  docker compose up --build            (auto-merges compose.override.yaml)
-#   Prod: docker compose -f compose.yaml -f compose.prod.yaml up -d   (P4-T1)
+#   Prod: docker compose -f compose.yaml -f compose.prod.yaml up -d   (images from GHCR, HTTPS on 80/443)
 # Values like ${POSTGRES_PASSWORD} come from the git-ignored .env file (template: .env.example).
 name: personalsite
 
 services:
-  # The only way in: one origin for both apps (routing in deploy/Caddyfile.dev; prod Caddyfile in P4).
+  # The only way in: one origin for both apps (routing: deploy/Caddyfile.dev in dev, deploy/Caddyfile in prod).
   caddy:
     image: caddy:2.11-alpine
     volumes:
@@ -60,5 +60,5 @@ volumes:
   # Named volume: lives outside the container, survives `docker compose down`.
   # Only `docker compose down -v` deletes it.
   pgdata:
-  # Caddy's certificates and state (used for real in production).
+  # Caddy's certificates and state (Let's Encrypt certificates in production).
   caddy_data:

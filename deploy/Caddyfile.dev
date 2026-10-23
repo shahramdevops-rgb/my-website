@@ -1,5 +1,5 @@
 # Development reverse proxy: one origin (http://localhost:8080) in front of both apps (architecture.md §1, §6).
-# Production gets its own deploy/Caddyfile (HTTPS, domains, redirects) in P4.
+# Production uses deploy/Caddyfile (HTTPS, domains, redirects); keep the routes of both files in sync.
 {
 	# Plain HTTP only: no certificates for localhost. The admin API is not needed.
 	auto_https off

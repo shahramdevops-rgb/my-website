@@ -185,7 +185,7 @@
 
 ## Phase 4 — First deployment (walking skeleton)
 
-- [ ] **P4-T1 Production compose & Caddy**
+- [x] **P4-T1 Production compose & Caddy**
   Scope: `compose.prod.yaml` (images from GHCR, restart policies, no DB/app ports exposed, volumes `pgdata`/`uploads`/`dpkeys`/`caddy_data`), `deploy/Caddyfile` (routing as in dev, `/internal/*` blocked, `curl` User-Agent on `/` → API, `mahdiazghandi.ir` with Let's Encrypt, `shahramazghandi.ir` + `www.` → 301 canonical per architecture §9.1, hostnames from env), compression.
   Done when: `docker compose -f compose.yaml -f compose.prod.yaml config` validates; runs locally.
 

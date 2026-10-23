@@ -1,0 +1,56 @@
+# Production reverse proxy (architecture.md §1, §6, §9.1): HTTPS, one canonical host, routing by path.
+# Mounted by compose.prod.yaml. Hostnames are never written here: {$VAR} placeholders are filled from the caddy
+# service's environment (set in .env) before this file is parsed, so moving domains is a config change only.
+#   SITE_HOST       canonical hostname, e.g. mahdiazghandi.ir
+#   REDIRECT_HOSTS  comma-separated hostnames that 301 to it, e.g. www.mahdiazghandi.ir, shahramazghandi.ir, ...
+#   ACME_EMAIL      contact address for the Let's Encrypt account
+# Certificates: Caddy obtains them from Let's Encrypt automatically (HTTP-01 on port 80, TLS-ALPN on 443) and keeps
+# them in the caddy_data volume. "localhost"/"*.localhost" get certificates from Caddy's own local CA instead —
+# that is how the stack is tried out locally without contacting Let's Encrypt (README.md).
+# Security headers (CSP, nosniff, ...) are set by the apps themselves (proxy.ts, SecurityHeadersMiddleware).
+{
+	email {$ACME_EMAIL}
+	# The admin API (live config changes over HTTP) is not used: config changes = edit this file + restart.
+	admin off
+}
+
+{$SITE_HOST} {
+	# Compress text responses (HTML, JSON, JS, CSS). Responses that are already compressed are left alone.
+	encode zstd gzip
+
+	# `curl https://<site>/` from a terminal → the API's plain-text résumé card (architecture.md §5.4).
+	# The card itself arrives in P10-T5; until then the API answers this with a 404 ProblemDetails.
+	# Browsers never match: they send a browser User-Agent and `text/html` in Accept.
+	@terminal {
+		path /
+		header_regexp User-Agent (?i)^(curl|wget|httpie)/
+		not header Accept *text/html*
+	}
+	handle @terminal {
+		reverse_proxy api:8080
+	}
+
+	# Internal-only paths: the front-end's /internal/* (container healthcheck, P7 revalidation hook) and the
+	# API's readiness probe /health/ready (DB state). Reachable inside the docker network, never from outside.
+	@internal path /internal /internal/* /health/*
+	handle @internal {
+		respond 404
+	}
+
+	# Machine and API paths → ASP.NET Core. /health (liveness) stays public for uptime checks.
+	@api path /api/* /media/* /health /llms.txt /mcp /mcp/*
+	handle @api {
+		reverse_proxy api:8080
+	}
+
+	# Everything else → Next.js (pages, /_next/static assets, the `/` language redirect).
+	handle {
+		reverse_proxy frontend:3000
+	}
+}
+
+# Every other hostname: 301 to the same path on the canonical host (architecture.md §9.1).
+# Caddy gets certificates for these too, so https://www.<domain>/... redirects without a browser warning.
+{$REDIRECT_HOSTS} {
+	redir https://{$SITE_HOST}{uri} permanent
+}
