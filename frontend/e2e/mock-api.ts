@@ -15,7 +15,7 @@ const siteInfo: SiteInfo = {
   features: { newsletterSignup: false, comments: false, analytics: false, semanticSearch: false },
 };
 
-// Must match e2e/home.spec.ts and e2e/about.spec.ts.
+// Must match e2e/home.spec.ts, e2e/about.spec.ts and e2e/resume.spec.ts.
 function resume(lang: "fa" | "en"): Resume {
   return {
     basics: {
@@ -25,7 +25,18 @@ function resume(lang: "fa" | "en"): Resume {
       location: "e2e",
     },
     links: [],
-    experience: [],
+    experience: [
+      {
+        organization: lang === "fa" ? "سازمان آزمایشی e2e" : "e2e organization",
+        role: lang === "fa" ? "نقش آزمایشی e2e" : "e2e role",
+        start: "2020-09",
+        end: null,
+        location: null,
+        summary: "e2e summary",
+        highlights: ["e2e highlight 1", "e2e highlight 2"],
+        tech: ["csharp", "react"],
+      },
+    ],
     // Newest first, like the real résumé.
     education: [
       {

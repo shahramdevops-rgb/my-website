@@ -125,5 +125,32 @@
       "body": "بگویید چه می‌سازید؛ با چند سؤال یا یک برنامهٔ اولیه جواب می‌دهم.",
       "action": "شروع یک پروژه"
     }
+  },
+  "resume": {
+    "meta": {
+      "title": "رزومه — {name}"
+    },
+    "eyebrow": "رزومه",
+    "location": "ساکن {location}",
+    "links": "پیوندها",
+    "download": {
+      "label": "دانلود PDF",
+      "hint": "نسخهٔ PDF به‌زودی اضافه می‌شود."
+    },
+    "period": {
+      "range": "{start} تا {end}",
+      "present": "اکنون"
+    },
+    "experience": {
+      "title": "سوابق کاری",
+      "tech": "فناوری‌ها"
+    },
+    "education": {
+      "title": "تحصیلات",
+      "degree": "{degree} {field}"
+    },
+    "skills": {
+      "title": "مهارت‌ها"
+    }
   }
 }

@@ -43,6 +43,24 @@ export function formatYear(value: DateInput, locale: Locale): string {
   return dateFormat(locale, { year: "numeric" }).format(new Date(value));
 }
 
+const yearMonthPattern = /^(\d{4})-(0[1-9]|1[0-2])$/;
+
+/**
+ * A month as the résumé stores it (`"2020-09"`, Gregorian) → fa: `شهریور ۱۳۹۹` · en: `September 2020`.
+ * A Gregorian month overlaps two Persian months; the 15th falls in the one that covers most of it (Persian months
+ * start around the 21st). Month before year in both languages: Intl's Persian pattern puts the year first.
+ */
+export function formatYearMonth(value: string, locale: Locale): string {
+  const match = yearMonthPattern.exec(value);
+  if (!match) throw new Error(`Expected a month like "2020-09", got "${value}".`);
+
+  const middle = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, 15, 12));
+  const parts = dateFormat(locale, { year: "numeric", month: "long" }).formatToParts(middle);
+  const part = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((p) => p.type === type)?.value ?? "";
+  return `${part("month")} ${part("year")}`;
+}
+
 export type RelativeOptions = {
   locale: Locale;
   /** The current time; passed in so the result is testable and the same across one render. */

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatDate, formatDateTime, formatRelative, formatYear } from "./date";
+import { formatDate, formatDateTime, formatRelative, formatYear, formatYearMonth } from "./date";
 
 // Vectors carried over from P1's DateDisplayTests (commit fe205aa).
 const now = new Date("2026-07-01T12:00:00Z");
@@ -30,6 +30,21 @@ describe("formatYear", () => {
   it("returns the year of the locale's calendar", () => {
     expect(formatYear(now, "fa")).toBe("۱۴۰۵");
     expect(formatYear(now, "en")).toBe("2026");
+  });
+});
+
+describe("formatYearMonth", () => {
+  it.each([
+    ["2020-09", "شهریور ۱۳۹۹", "September 2020"],
+    ["2000-01", "دی ۱۳۷۸", "January 2000"],
+    ["2026-03", "اسفند ۱۴۰۴", "March 2026"],
+  ])("%s → %s / %s", (value, fa, en) => {
+    expect(formatYearMonth(value, "fa")).toBe(fa);
+    expect(formatYearMonth(value, "en")).toBe(en);
+  });
+
+  it.each(["2020", "2020-13", "2020-9", "2020-09-01"])("rejects %s", (value) => {
+    expect(() => formatYearMonth(value, "en")).toThrow();
   });
 });
 

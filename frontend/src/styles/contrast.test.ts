@@ -26,9 +26,18 @@ const textPairs: [foreground: string, background: string][] = [
 // Vitest runs from frontend/ (jsdom gives import.meta.url an http: scheme, so no path relative to this file).
 const css = readFileSync(join(process.cwd(), "src", "styles", "globals.css"), "utf8");
 
-/** Dark values live in `@theme static { … }`, light overrides in `:root[data-theme="light"] { … }`. */
-function tokens(theme: Theme): Map<string, string> {
-  const blockStart = theme === "dark" ? "@theme static {" : ':root[data-theme="light"] {';
+const blockStarts: Record<Theme | "print", string> = {
+  dark: "@theme static {",
+  light: ':root[data-theme="light"] {',
+  print: "@media print {",
+};
+
+/**
+ * Dark values live in `@theme static { … }`, light overrides in `:root[data-theme="light"] { … }`, the print
+ * palette in `@media print { :root { … } }` (the first `}` closes its :root block).
+ */
+function tokens(theme: Theme | "print"): Map<string, string> {
+  const blockStart = blockStarts[theme];
   const start = css.indexOf(blockStart);
   if (start < 0) throw new Error(`'${blockStart}' not found in globals.css`);
   const block = css.slice(start, css.indexOf("}", start));
@@ -77,6 +86,10 @@ describe.each(themes)("%s theme", (theme) => {
 
 it("the light theme overrides every dark token", () => {
   expect([...tokens("light").keys()].sort()).toEqual([...tokens("dark").keys()].sort());
+});
+
+it("printing uses exactly the light theme's colors", () => {
+  expect(Object.fromEntries(tokens("print"))).toEqual(Object.fromEntries(tokens("light")));
 });
 
 it("the contrast formula matches the WCAG reference values", () => {

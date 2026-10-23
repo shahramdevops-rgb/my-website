@@ -171,7 +171,7 @@
   Scope: services as cards (full-stack web apps, .NET APIs, React front-ends, performance/DB optimization, code review/consulting), "how I work" steps, CTA to `/{locale}/contact?type=project`; prose in MDX.
   Done when: renders in both languages.
 
-- [ ] **P3-T6 Resume page**
+- [x] **P3-T6 Resume page**
   Scope: renders `/api/resume`, print-friendly basics, download button placeholder (disabled until P9).
   Done when: clean in both languages and prints legibly.
 

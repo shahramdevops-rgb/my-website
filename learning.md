@@ -456,6 +456,22 @@ a `::before` prints it. A built-in **counter style** picks the digits, so Persia
 Why: reordering or adding a step in the MDX can't leave a wrong number behind, and the translator never types digits.
 The badge is `aria-hidden`; the `<ol>` already tells screen readers the order ("list, 4 items").
 
+### 4.21 Print stylesheets: paper is a third theme (P3-T6)
+`@media print` rules apply only when the page is printed or saved as PDF. The Resume page needs two things there:
+the **light palette** (a near-black page wastes ink and many browsers drop backgrounds anyway, leaving light text on
+white) and **no site chrome**. Because every color is a CSS variable, the first is one block; the second is
+Tailwind's `print:` variant:
+```css
+@media print { :root { color-scheme: light; --color-bg: #f6f7f9; --color-text: #111419; /* … */ } }
+@page { margin: 1.5cm; }
+```
+```tsx
+<header className="sticky top-0 print:hidden">…</header>
+<li className="break-inside-avoid">…</li> {/* a job never splits across two pages */}
+```
+A unit test keeps the print values equal to the light theme's, and Playwright's `page.emulateMedia({ media: "print" })`
+checks the printed look without a printer.
+
 ---
 
 ## Part 5 — Security
@@ -549,6 +565,12 @@ new Intl.NumberFormat("fa").format(1234567);                            // "۱٬
 new Intl.RelativeTimeFormat("fa", { numeric: "always" }).format(-3, "day"); // "۳ روز پیش"
 ```
 No digit is ever swapped by hand: `arabext` *is* the Persian digit set, and the Persian separators (`٬` `٫`) come with it. Everything goes through `src/lib/format/`, so one change (e.g. a different time zone after the international move) changes the whole site. We format on the **server**: a client component would use the visitor's browser ICU, which can differ from Node's and cause a hydration mismatch.
+
+### 6.7.1 A Gregorian month in the Persian calendar (P3-T6)
+The résumé stores months as `"2020-09"` — no day. A Gregorian month overlaps **two** Persian months (Persian months
+start around the 21st), so "September 2020" is partly شهریور and partly مهر. `formatYearMonth` picks the 15th, which
+falls in the Persian month covering most of it: `formatYearMonth("2020-09", "fa")` → `شهریور ۱۳۹۹`. It builds the
+text from `formatToParts` (month, then year) because Intl's own Persian pattern puts the year first.
 
 ### 6.8 Locale routing in Next.js (P2-T6)
 `app/[locale]/` makes the language a URL segment; `generateStaticParams()` lists `fa` and `en`, and `dynamicParams = false` turns every other value (`/de`) into a 404 — the router itself enforces "only these two languages". `/` has no language, so `proxy.ts` (Next 16's request hook) picks one — `lang` cookie, then `Accept-Language`, then `fa` — and answers **302** (temporary: the answer depends on who asks, so nobody may cache it; `Vary: Cookie, Accept-Language` says the same to caches). Messages are typed: `src/types/next-intl.d.ts` registers `en.json` as the message shape, so `t("notFound.titel")` fails `pnpm typecheck`, and a test fails if `fa.json` and `en.json` ever have different keys.

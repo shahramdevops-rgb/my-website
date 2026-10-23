@@ -18,7 +18,7 @@ export async function SiteFooter({ locale, site }: { locale: Locale; site: SiteI
   ].filter((link) => !!link);
 
   return (
-    <footer className="border-t border-border">
+    <footer className="border-t border-border print:hidden">
       <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-8 text-sm text-muted sm:flex-row sm:items-center sm:justify-between">
         <p className="[view-transition-name:site-copyright]">
           {t("copyright", { year: formatYear(new Date(), locale), name: site.name[locale] })}

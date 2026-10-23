@@ -20,7 +20,7 @@ export async function SiteHeader({ locale, siteName }: { locale: Locale; siteNam
   }));
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-bg/85 backdrop-blur">
+    <header className="sticky top-0 print:hidden z-40 border-b border-border bg-bg/85 backdrop-blur">
       <div className="relative mx-auto flex h-16 max-w-6xl items-center gap-6 px-4">
         <Link
           href="/"

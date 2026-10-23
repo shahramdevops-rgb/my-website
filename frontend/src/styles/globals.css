@@ -93,6 +93,28 @@
     --color-danger: #c42b2b;
   }
 
+  /*
+    Paper is white: printing uses the light palette whatever theme is on screen (same values as the light block
+    above; src/styles/contrast.test.ts keeps the two equal). Pages hide what makes no sense on paper with print:hidden
+    (site header and footer, buttons).
+  */
+  @media print {
+    :root {
+      color-scheme: light;
+
+      --color-bg: #f6f7f9;
+      --color-surface: #ffffff;
+      --color-surface-2: #eceff4;
+      --color-border: #d9dee6;
+      --color-text: #111419;
+      --color-muted: #566070;
+      --color-accent: #0a63c9;
+      --color-accent-soft: #dcebfc;
+      --color-success: #137a45;
+      --color-danger: #c42b2b;
+    }
+  }
+
   html {
     background-color: var(--color-bg);
     color: var(--color-text);
@@ -121,6 +143,11 @@
     direction: ltr;
     unicode-bidi: isolate;
   }
+}
+
+/* Page margins on paper; the browser prints its own header/footer (URL, page number) inside them if asked to. */
+@page {
+  margin: 1.5cm;
 }
 
 /*

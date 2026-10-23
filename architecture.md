@@ -105,6 +105,7 @@ my-website/
       ├─ components/ ui/ layout/ (HtmlDocument) theme/ (ThemeScript, ThemeToggle) bento/ (home cards) demos/ xray/ keyboard/
       │              about/ (Timeline, Bridges, Skills, PhotoSlot — the components content/about.*.mdx may use)
       │              services/ (ServiceList, Service, Steps, Step for content/services.*.mdx; ProjectCta)
+      │              resume/ (ResumeExperience, ResumeEducation, ResumeSkills, DownloadPdf; period.ts)
       ├─ mdx-components.tsx        # @next/mdx: how every MDX element (h2, p, a …) renders; internal links via next-intl Link
       ├─ lib/ api/ (schema.d.ts generated; server.ts, browser.ts clients) env.ts
       │       i18n/ (config.ts: locales, cookie, time zone; request.ts; resolve-locale.ts) format/ (date, number)
@@ -451,6 +452,15 @@ with a shared secret (`Revalidate__Secret`).
   home page's project path). Step numbers are a CSS counter (`.steps`/`.step`/`.step-number` in `globals.css`), so the
   prose never numbers steps and `:lang(fa)` switches to the built-in `persian` counter style (۱ ۲ ۳). The CTA's words
   are UI strings in messages, not prose: the page owns them, so every language gets the same call to action.
+- **Resume (P3-T6):** `app/[locale]/resume/page.tsx` fetches the résumé once (`getResume`) and renders one column
+  (`max-w-4xl`): header (eyebrow, h1 = `basics.name`, headline, summary, "Based in …", `links` only when non-empty) +
+  `DownloadPdf` (a disabled `Button` described by a hint until P9) + `components/resume/` `ResumeExperience` (role h3,
+  organization, period, location, highlights, `tech` ids → techStack names as `Tag`s), `ResumeEducation`,
+  `ResumeSkills`, each a `section` named by its h2 and given its part as props (an empty part renders nothing).
+  Periods come from `formatPeriod` (`components/resume/period.ts`: `formatYearMonth` → fa `شهریور ۱۳۹۹`, end `null`
+  → "Present"). Print: `@media print` in `globals.css` sets the light palette on `:root` (a test keeps it equal to the
+  light theme) + `@page` margins; `print:hidden` on `SiteHeader`, `SiteFooter` and the download button;
+  `break-inside-avoid` on entries. Text in the `resume.*` messages.
 - **Keyboard hero (P3-T3):** `lib/keyboard/keycaps.ts` turns the résumé into `Keycap`s on the server (`buildKeycaps`:
   each tech gets the first free letter/digit of its name as its key — C# → C, Next.js → X once N is taken — and the
   `experience` entries whose `tech` lists it; `keyboardLayout`: ≤ 4 per row). `components/keyboard/KeyboardHero`

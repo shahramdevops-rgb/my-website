@@ -125,5 +125,32 @@
       "body": "Tell me what you're building. I'll reply with questions or a first plan.",
       "action": "Start a project"
     }
+  },
+  "resume": {
+    "meta": {
+      "title": "Resume — {name}"
+    },
+    "eyebrow": "Resume",
+    "location": "Based in {location}",
+    "links": "Links",
+    "download": {
+      "label": "Download PDF",
+      "hint": "The PDF version is coming soon."
+    },
+    "period": {
+      "range": "{start} – {end}",
+      "present": "Present"
+    },
+    "experience": {
+      "title": "Experience",
+      "tech": "Technologies"
+    },
+    "education": {
+      "title": "Education",
+      "degree": "{degree} in {field}"
+    },
+    "skills": {
+      "title": "Skills"
+    }
   }
 }

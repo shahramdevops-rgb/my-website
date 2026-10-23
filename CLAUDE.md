@@ -62,7 +62,10 @@ reveal something real about the back-end. Details and rejected ideas: `roadmap.m
   `P3-T5` (`/{locale}/services`: prose in `content/services.{fa,en}.mdx` with `ServiceList`/`Service` + `Steps`/`Step`
   from `src/components/services/`; step numbers = CSS counter in `globals.css` (`persian` counter style on fa);
   `ProjectCta` → `/contact?type=project`, text in `services.cta`; `e2e/services.spec.ts`).
-- **Next task:** `P3-T6` (Resume page).
+  `P3-T6` (`/{locale}/resume` from `/api/resume`: `src/components/resume/` Experience/Education/Skills + disabled
+  `DownloadPdf` until P9; `formatPeriod` on `formatYearMonth` (Persian months on fa); print = light palette in
+  `@media print` (test = light values) + `print:hidden` header/footer; `e2e/resume.spec.ts` incl. print emulation).
+- **Next task:** `P3-T7` (Contact page).
 - **Accent color:** electric blue (`#4DB5FF` dark / `#0A63C9` light), picked by Claude at Mahdi's request; easy to change (`architecture.md §8.1`).
 - **Waiting on Mahdi:** contact links (`Site:Social:Email|GitHub|Telegram`); optional display face (P2-T8 left it out);
   real résumé facts — every `[placeholder]` and `2000-01` date in `src/PersonalSite.Api/Content/resume.*.json`;

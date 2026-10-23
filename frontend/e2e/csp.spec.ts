@@ -8,6 +8,8 @@ const routes = [
   "/en/about",
   "/fa/services",
   "/en/services",
+  "/fa/resume",
+  "/en/resume",
   "/fa/no-such-page",
   "/en/no-such-page",
   "/de",
