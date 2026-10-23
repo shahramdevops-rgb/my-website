@@ -188,7 +188,8 @@ main() {
 		((missing == 0)) || die "load the missing images first (deploy/README.md, 'Without GitHub')"
 	fi
 
-	# Starts db if needed (depends_on), applies pending EF Core migrations with the new api image, then exits.
+	# Starts db if needed (depends_on), applies pending EF Core migrations with the new api image, creates the admin
+	# account if the database has none (Admin__* in .env, P5-T2), then exits. A half-filled Admin__* stops here.
 	log "Migrating the database"
 	compose run --rm api --migrate
 

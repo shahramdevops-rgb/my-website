@@ -21,6 +21,9 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       Site__BaseUrl: http://localhost:8080
+      # The dev admin account, created at startup if the database has none (P5-T2). Empty = no admin, a warning.
+      Admin__Email: ${Admin__Email:-}
+      Admin__Password: ${Admin__Password:-}
     # No published port: the API is reached only through Caddy (or at :5080 when run on the host).
 
   db:

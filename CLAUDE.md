@@ -103,11 +103,15 @@ reveal something real about the back-end. Details and rejected ideas: `roadmap.m
   `Persistence/Configurations/IdentityConfigurations.cs`; `Api/Configuration/AdminAuthentication.cs`: password length
   ≥ 12 only, lockout 5 → 15 min, cookie `__Host-admin` HttpOnly/Secure/Strict/7 days sliding, 401/403 instead of
   redirects; `tests/…/Identity/AdminAuthenticationTests.cs`).
+  `P5-T2` (`Persistence/Seed/AdminSeeder` after migrations in `--migrate` and Development startup: role `Admin`
+  (`AppRoles`), creates the admin from `Admin__Email`/`Admin__Password` only if no admin exists, one transaction;
+  unset → warning; half-set → fails; short password → fails; dev compose passes `Admin__*` from `.env`; no
+  registration endpoint, guarded by a test).
 - **GitHub:** `main` pushed on 2026-10-23 (fast-forward to the stacked branches); CI green there for the first time.
 - **Server rules:** the VPS runs the gym system in production — gym backup before any change, every server command
   explained and approved first, never touch the gym's containers/volumes, nothing but the edge on 80/443.
 - **Next task:** Mahdi: server checklist A–B in `deploy/SHARED-SERVER.md §4` (read-only checks + prep), then the gym
-  repo's part (§3) and the cut-over; then tag `v0.2.0` and deploy (`P4-T4`). Claude: `P5-T2` (Admin seeding & no registration).
+  repo's part (§3) and the cut-over; then tag `v0.2.0` and deploy (`P4-T4`). Claude: `P5-T3` (Auth endpoints & CSRF defence).
 - **Accent color:** electric blue (`#4DB5FF` dark / `#0A63C9` light), picked by Claude at Mahdi's request; easy to change (`architecture.md §8.1`).
 - **Waiting on Mahdi:** contact links (`Site:Social:Email|GitHub|Telegram`); optional display face (P2-T8 left it out);
   real résumé facts — every `[placeholder]` and `2000-01` date in `src/PersonalSite.Api/Content/resume.*.json`;

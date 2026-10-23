@@ -233,7 +233,7 @@
   Scope: `AppUser : IdentityUser<Guid>`, `AppDbContext : IdentityDbContext<…>`, password & lockout options (5 attempts, 15 min), cookie (`HttpOnly`, `Secure`, `SameSite=Strict`, 7-day sliding; API returns 401/403 instead of redirects), migration.
   Done when: Identity tables created.
 
-- [ ] **P5-T2 Admin seeding & no registration**
+- [x] **P5-T2 Admin seeding & no registration**
   Scope: `AdminSeeder` from `Admin__Email`/`Admin__Password`, creates user + `Admin` role once; no registration endpoint exists.
   Done when: fresh DB + env → admin can log in; without env vars a warning, no crash.
 

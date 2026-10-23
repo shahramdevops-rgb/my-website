@@ -6,6 +6,7 @@ using Microsoft.Extensions.Options;
 using PersonalSite.Application.Common.Abstractions;
 using PersonalSite.Infrastructure.Persistence;
 using PersonalSite.Infrastructure.Persistence.Interceptors;
+using PersonalSite.Infrastructure.Persistence.Seed;
 
 namespace PersonalSite.Infrastructure;
 
@@ -46,6 +47,13 @@ public static class DependencyInjection
 
         // Same scoped instance whether a service asks for the interface or the concrete type.
         services.AddScoped<IAppDbContext>(serviceProvider => serviceProvider.GetRequiredService<AppDbContext>());
+
+        // The single admin account (P5-T2). Both-or-neither is checked at web start; --migrate checks it when seeding.
+        services.AddOptions<AdminSeedOptions>()
+            .BindConfiguration(AdminSeedOptions.SectionName)
+            .Validate(options => options.IsValid(), "Admin:Email and Admin:Password must be set together.")
+            .ValidateOnStart();
+        services.AddScoped<AdminSeeder>();
 
         // Readiness check: can we open a connection and run a query? Exposed at /health/ready.
         services.AddHealthChecks().AddDbContextCheck<AppDbContext>(name: "database");

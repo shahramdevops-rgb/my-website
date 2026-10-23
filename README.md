@@ -69,6 +69,9 @@ The front-end's server calls the API directly at `http://api:8080` (compose netw
 docker compose up -d db
 # once: connection string for the host API (stored outside the repo; use the password from .env)
 dotnet user-secrets set "ConnectionStrings:Default" "Host=localhost;Port=5433;Database=site;Username=site;Password=<POSTGRES_PASSWORD>" --project src/PersonalSite.Api
+# once: the dev admin account (created at startup if the dev DB has none; password ≥ 12 characters)
+dotnet user-secrets set "Admin:Email" "you@example.com" --project src/PersonalSite.Api
+dotnet user-secrets set "Admin:Password" "<a long passphrase>" --project src/PersonalSite.Api
 dotnet watch --project src/PersonalSite.Api        # API on http://localhost:5080
 
 # second terminal
@@ -114,7 +117,7 @@ Documented in `.env.example`. Key ones (some arrive in later phases):
 |---|---|---|
 | `ConnectionStrings__Default` | `Host=db;Database=site;Username=site;Password=...` | |
 | `POSTGRES_PASSWORD` | `...` | DB container superuser |
-| `Admin__Email` / `Admin__Password` | | Seeds the single admin account on first start |
+| `Admin__Email` / `Admin__Password` | | Create the single admin account when the DB has none (`--migrate` deploy step; dev: startup). Remove after the first deploy |
 | `Security__IpHashSalt` | random 32+ chars | For hashing commenter IPs |
 | `FeatureManagement__Newsletter.Sending` | `false` | Keep off until an email provider is chosen |
 | `Smtp__Host`, `Smtp__User`, `Smtp__Password` | | Only needed when email flags are on |

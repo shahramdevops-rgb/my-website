@@ -8,6 +8,7 @@ using PersonalSite.Api.Infrastructure;
 using PersonalSite.Application;
 using PersonalSite.Infrastructure;
 using PersonalSite.Infrastructure.Persistence;
+using PersonalSite.Infrastructure.Persistence.Seed;
 using Serilog;
 
 // Container healthcheck mode: probe /health and exit, without starting a web host (see HealthProbe).
@@ -16,7 +17,7 @@ if (args is [HealthProbe.Argument])
     return await HealthProbe.RunAsync();
 }
 
-// Deploy step: apply migrations and exit (see MigrationCommand). Not passed on as a command-line config value.
+// Deploy step: apply migrations, seed the admin, exit (see MigrationCommand). Not passed on as a config value.
 var migrateOnly = args is [MigrationCommand.Argument];
 
 // Bootstrap logger: records failures that happen before the host's real logger exists
@@ -49,8 +50,9 @@ try
     if (migrateOnly)
     {
         // The host is built (configuration, DbContext) but never started: no web server, no startup validation of
-        // unrelated options. Only the connection string is needed.
+        // unrelated options. Only the connection string (and Admin:* on a database without an admin) is needed.
         await app.Services.MigrateDatabaseAsync(CancellationToken.None);
+        await app.Services.SeedAdminAsync(CancellationToken.None);
         Log.Information("Migration step finished");
         return 0;
     }
@@ -59,6 +61,7 @@ try
     {
         // Dev convenience: the local DB always matches the code. Production migrates as a deploy step instead.
         await app.Services.MigrateDatabaseAsync(CancellationToken.None);
+        await app.Services.SeedAdminAsync(CancellationToken.None);
     }
 
     // Middleware order matters: each component only sees what runs after it.

@@ -163,6 +163,7 @@ In `.env` set at least:
 | `EDGE_DIR` | only if the edge is not in `/opt/edge` |
 | `API_HOST_PORT`, `FRONTEND_HOST_PORT` | only if `18080`/`13000` are taken on the server (loopback ports the edge connects to) |
 | `Site__Social__*` | contact links, when you have them |
+| `Admin__Email`, `Admin__Password` | your admin login (password ≥ 12 characters). The first deploy's migrate step creates the account; **then delete both lines** — `.env` is passed to the api container, and `docker inspect` would show the password. Later deploys never change an existing admin |
 
 Delete the `Site__BaseUrl=` line (production builds it from `SITE_HOST`). Don't set `IMAGE_TAG`: `deploy.sh` writes it.
 The Let's Encrypt email is not here: it belongs to the edge (`/opt/edge/.env`).

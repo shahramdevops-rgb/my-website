@@ -338,6 +338,14 @@ rules; lockout 5 failures → 15 min; cookie `__Host-admin` (`HttpOnly`, `Secure
 sliding) as the default scheme; challenge → 401 and forbid → 403 (no redirect), turned into ProblemDetails by
 `UseStatusCodePages`. `UseAuthentication`/`UseAuthorization` run after request logging.
 
+**Admin seeding (P5-T2):** `Persistence/Seed/AdminSeeder` runs right after migrations (the `--migrate` step;
+Development startup), never on a normal production start. In one transaction: ensure role `Admin` (`AppRoles.Admin`)
+→ any member already? `AlreadyExists` (settings ignored; a seeded password is never overwritten) → `Admin:Email` +
+`Admin:Password` unset? `NotConfigured` + warning, exit 0 → else create the user (email confirmed, lockout on) and add
+it to the role; an Identity error (e.g. short password) throws, so the deploy step fails. `AdminSeedOptions`:
+both or neither (`ValidateOnStart`; in `--migrate` on first use). No registration endpoint exists (a test scans the
+endpoint data source for `register`/`signup`).
+
 ## 6. Routing
 
 **Front-end (Next.js App Router)** — every public route lives under `app/[locale]/`; `[locale]` accepts only the
@@ -575,7 +583,7 @@ prefixes, dark default, reduced motion). The code stays in git history (commits 
 | Start | Host: `docker compose up -d db` + `dotnet watch` (API, :5080) + `pnpm dev` (frontend, :3000; rewrites `/api/*` to :5080) — **or** everything in compose behind Caddy on :8080 | `docker compose -f compose.yaml -f compose.prod.yaml up -d` |
 | DB migrations | applied at API startup (Development only) | explicit step `docker compose run --rm api --migrate` (`MigrationCommand`: builds the host, migrates, exits without serving), run by `deploy.sh` |
 | TLS | none | the server's shared edge Caddy + Let's Encrypt (§9.1, ADR-028) |
-| Seed | `DevDataSeeder` (fake posts/projects), `DemoSeeder` | `AdminSeeder` from env vars, `DemoSeeder` |
+| Seed | `AdminSeeder` (user-secrets / `.env`) at startup, `DevDataSeeder` (fake posts/projects), `DemoSeeder` | `AdminSeeder` from `Admin__*` in the `--migrate` step, `DemoSeeder` |
 | Images | built locally | two images (`api`, `frontend`) built in GitHub Actions, pushed to GHCR, pulled by the server |
 
 **Production compose (P4-T1):** `compose.prod.yaml` drops the dev `build:` (`!reset`), pins both images to one
