@@ -727,3 +727,20 @@ panel.pasargadgymplus.ir → 127.0.0.1:<gym port>      (the gym system)
   config keeps serving, so one app's typo can't take the other app down.
 - **OOM score:** `oom_score_adj: 500` tells the kernel which processes to kill first when memory runs out — this site,
   not the gym.
+
+### 7.15 Admin sign-in: Identity lockout and cookie flags (P5-T1)
+The admin panel signs in with ASP.NET Core Identity and a cookie, not a JWT: browser and API share one origin, so
+the browser attaches the cookie itself and JavaScript never holds a token.
+```
+Set-Cookie: __Host-admin=CfDJ8…; path=/; secure; samesite=strict; httponly
+```
+- `httponly`: `document.cookie` can't read it — an XSS bug can't send the session elsewhere.
+- `secure` + the `__Host-` prefix: only over HTTPS, only for this exact host (no `Domain`), path `/` — nothing on
+  another subdomain or on plain http can set or overwrite it.
+- `samesite=strict`: not sent when another site starts the request (a form posting to `/api/admin/…`) — the first
+  CSRF defence; P5-T3 adds an `Origin` check.
+- Sliding 7 days: activity renews it; an idle session ends after a week.
+- Lockout: 5 wrong passwords in a row → locked 15 minutes, per account, whatever the attacker's IP. The rate limit
+  (P5-T3) works per IP; together they cap online guessing.
+- An API answers `401`/`403`; Identity's default (a 302 to a login page) would make `fetch` follow a redirect to
+  HTML it can't use.

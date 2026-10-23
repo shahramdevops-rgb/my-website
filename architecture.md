@@ -329,6 +329,15 @@ to the API, which returns the plain-text résumé card (P10-T5; `Vary: User-Agen
 token in JavaScript. Server components forward the incoming cookie when they call `/api/admin/*`. Unsafe methods
 on the API also require a same-origin `Origin` header (CSRF defence in depth); details fixed in P5-T3.
 
+**Setup (P5-T1):** `AppDbContext : IdentityDbContext<AppUser, IdentityRole<Guid>, Guid>`; `AppUser : IdentityUser<Guid>`
+(`Infrastructure/Identity`, Id = UUID v7). Tables `asp_net_users`, `asp_net_roles`, `asp_net_user_roles`, `…_claims`,
+`…_logins`, `…_tokens`, `asp_net_role_claims` (renamed in `Persistence/Configurations/IdentityConfigurations.cs`:
+Identity sets explicit names the snake_case convention leaves alone). `Api/Configuration/AdminAuthentication.cs`:
+`AddIdentityCore` (no Razor UI defaults) + roles + EF stores + `SignInManager`; password = length ≥ 12, no composition
+rules; lockout 5 failures → 15 min; cookie `__Host-admin` (`HttpOnly`, `Secure` always, `SameSite=Strict`, 7 days
+sliding) as the default scheme; challenge → 401 and forbid → 403 (no redirect), turned into ProblemDetails by
+`UseStatusCodePages`. `UseAuthentication`/`UseAuthorization` run after request logging.
+
 ## 6. Routing
 
 **Front-end (Next.js App Router)** — every public route lives under `app/[locale]/`; `[locale]` accepts only the

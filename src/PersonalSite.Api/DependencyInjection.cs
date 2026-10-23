@@ -11,7 +11,7 @@ namespace PersonalSite.Api;
 public static class DependencyInjection
 {
     /// <summary>
-    /// Registers Api-layer services: logging, options, routing, error handling, OpenAPI and health checks.
+    /// Registers Api-layer services: logging, options, admin sign-in, routing, error handling, OpenAPI and health checks.
     /// </summary>
     public static IServiceCollection AddApi(this IServiceCollection services)
     {
@@ -48,6 +48,7 @@ public static class DependencyInjection
         services.AddResumeContent();
         services.AddReverseProxyHeaders();
         services.AddPersistentDataProtection();
+        services.AddAdminAuthentication();
 
         services.AddRouting(options => options.LowercaseUrls = true);
         services.AddProblemDetails();

@@ -229,7 +229,7 @@
 
 ## Phase 5 — Admin panel & authentication
 
-- [ ] **P5-T1 Identity setup**
+- [x] **P5-T1 Identity setup**
   Scope: `AppUser : IdentityUser<Guid>`, `AppDbContext : IdentityDbContext<…>`, password & lockout options (5 attempts, 15 min), cookie (`HttpOnly`, `Secure`, `SameSite=Strict`, 7-day sliding; API returns 401/403 instead of redirects), migration.
   Done when: Identity tables created.
 

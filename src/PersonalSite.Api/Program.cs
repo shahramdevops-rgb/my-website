@@ -82,6 +82,11 @@ try
     app.UseMiddleware<SecurityHeadersMiddleware>();
     app.UseSerilogRequestLogging();
 
+    // Reads the admin cookie into HttpContext.User, then enforces RequireAuthorization() on the matched endpoint.
+    // After request logging, so a 401/403 is logged too; after forwarded headers, so Secure cookies see https.
+    app.UseAuthentication();
+    app.UseAuthorization();
+
     app.MapHealthEndpoints();
     app.MapApiEndpoints();
 
