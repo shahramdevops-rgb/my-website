@@ -85,6 +85,14 @@ try
     app.UseMiddleware<SecurityHeadersMiddleware>();
     app.UseSerilogRequestLogging();
 
+    // Unsafe requests started by another site are refused before any endpoint, cookie or database work (P5-T3).
+    app.UseMiddleware<CrossOriginProtectionMiddleware>();
+
+    // Per-IP limits on the endpoints that name a policy (RequireRateLimiting). Before authentication, so a flood of
+    // requests is turned away without reading cookies or touching the database; after forwarded headers, so the
+    // partition key is the visitor's IP and not the edge proxy's.
+    app.UseRateLimiter();
+
     // Reads the admin cookie into HttpContext.User, then enforces RequireAuthorization() on the matched endpoint.
     // After request logging, so a 401/403 is logged too; after forwarded headers, so Secure cookies see https.
     app.UseAuthentication();

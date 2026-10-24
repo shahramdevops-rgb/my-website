@@ -16,6 +16,7 @@ public static class ApiEndpoints
 
         api.MapSiteEndpoints();
         api.MapResumeEndpoints();
+        api.MapAuthEndpoints();
 
         return endpoints;
     }

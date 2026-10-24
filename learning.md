@@ -744,3 +744,22 @@ Set-Cookie: __Host-admin=CfDJ8…; path=/; secure; samesite=strict; httponly
   (P5-T3) works per IP; together they cap online guessing.
 - An API answers `401`/`403`; Identity's default (a 302 to a login page) would make `fetch` follow a redirect to
   HTML it can't use.
+
+### 7.16 CSRF with Fetch Metadata, rate limits and a constant-time "no" (P5-T3)
+**CSRF** = another site makes the victim's browser send a request to ours; the browser attaches our cookie, so the
+request looks like the admin's. Three layers stop it here:
+1. `SameSite=Strict` on the cookie (7.15): a request another site starts carries no cookie.
+2. **Fetch Metadata**: every current browser adds `Sec-Fetch-Site` (`same-origin`, `same-site`, `cross-site`,
+   `none`), and page scripts can't set it. `CrossOriginProtectionMiddleware` lets unsafe methods through only for
+   `same-origin`/`none`; older browsers fall back to comparing `Origin` with the request's own scheme + host.
+3. A request with **neither** header isn't from a browser (the Next.js server, curl), so it carries no victim's
+   cookie and is allowed — requiring `Origin` would only break server-side calls.
+```
+POST /api/auth/logout   Sec-Fetch-Site: cross-site   → 403 {"code":"request.cross_origin"}
+POST /api/auth/logout   Sec-Fetch-Site: same-origin  → 204
+```
+**Rate limit vs lockout:** the `login` policy counts per IP (10 per 15 min) — it slows one attacker and caps CPU,
+since each attempt costs a PBKDF2 hash. Lockout counts per account, across IPs. The IP is only trustworthy because
+`UseForwardedHeaders` runs first and believes only the edge proxy.
+**Same answer, same time:** unknown email, wrong password, locked account → one `401 auth.invalid_credentials`. An
+unknown email also runs a decoy hash, so response time doesn't reveal which email is the admin's.

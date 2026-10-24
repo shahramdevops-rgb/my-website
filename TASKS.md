@@ -237,9 +237,11 @@
   Scope: `AdminSeeder` from `Admin__Email`/`Admin__Password`, creates user + `Admin` role once; no registration endpoint exists.
   Done when: fresh DB + env → admin can log in; without env vars a warning, no crash.
 
-- [ ] **P5-T3 Auth endpoints & CSRF defence**
+- [x] **P5-T3 Auth endpoints & CSRF defence**
   Scope: `POST /api/auth/login` (rate limit `login`, generic error), `POST /api/auth/logout`, `GET /api/auth/me`; unsafe methods require a same-origin `Origin` header; no open redirect (return URLs handled by the front-end, local paths only).
   Done when: integration tests: wrong password → 401; 5× → locked; cross-origin POST rejected.
+  Status: done 2026-10-25. CSRF check = Fetch Metadata (`Sec-Fetch-Site`) with an `Origin` fallback; requests with
+  neither header (server-side calls) pass, see `architecture.md §5.5`. `login` = 10 per IP per 15 min.
   Learn: cookie auth on one origin, CSRF, open redirects.
 
 - [ ] **P5-T4 Authorization convention**

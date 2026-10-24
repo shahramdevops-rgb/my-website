@@ -327,7 +327,7 @@ to the API, which returns the plain-text résumé card (P10-T5; `Vary: User-Agen
 `POST /api/auth/login` (rate limit `login`, Identity lockout) sets the Identity cookie (`HttpOnly`, `Secure`,
 `SameSite=Strict`). Because the browser sees one origin, the cookie is sent to `/api/*` automatically — no CORS, no
 token in JavaScript. Server components forward the incoming cookie when they call `/api/admin/*`. Unsafe methods
-on the API also require a same-origin `Origin` header (CSRF defence in depth); details fixed in P5-T3.
+on the API also pass a same-origin check (CSRF defence in depth, P5-T3, below).
 
 **Setup (P5-T1):** `AppDbContext : IdentityDbContext<AppUser, IdentityRole<Guid>, Guid>`; `AppUser : IdentityUser<Guid>`
 (`Infrastructure/Identity`, Id = UUID v7). Tables `asp_net_users`, `asp_net_roles`, `asp_net_user_roles`, `…_claims`,
@@ -337,6 +337,21 @@ Identity sets explicit names the snake_case convention leaves alone). `Api/Confi
 rules; lockout 5 failures → 15 min; cookie `__Host-admin` (`HttpOnly`, `Secure` always, `SameSite=Strict`, 7 days
 sliding) as the default scheme; challenge → 401 and forbid → 403 (no redirect), turned into ProblemDetails by
 `UseStatusCodePages`. `UseAuthentication`/`UseAuthorization` run after request logging.
+
+**Endpoints (P5-T3):** `POST /api/auth/login` `{email, password}` → 204 + cookie (persistent, 7 days sliding);
+empty or over-long fields (> 256) → 400; anything else wrong — unknown email, wrong password, locked out, not in the
+`Admin` role — → one `401 auth.invalid_credentials`, and an unknown email runs a decoy hash so timing tells nothing
+(`Api/Auth/AdminSignIn.cs`). `POST /api/auth/logout` → 204 (also without a session). `GET /api/auth/me` → `{email}`
+or 401. Every `/api/auth/*` response has `Cache-Control: no-store` (`SecurityHeadersMiddleware`, by path, so 401s
+from the authorization middleware get it too). Return URLs after login are the front-end's job, local paths only.
+**Rate limit `login`** (`Api/Configuration/RateLimiting.cs`): fixed window, 10 per client IP per 15 min, no queue;
+rejected → 429 `request.rate_limited` + `Retry-After`. The IP is the one `UseForwardedHeaders` accepted from the edge.
+**Cross-origin check** (`Api/Infrastructure/CrossOriginProtectionMiddleware.cs`, the algorithm of Go's
+`http.CrossOriginProtection`), for POST/PUT/PATCH/DELETE on every path: `Sec-Fetch-Site` present → only
+`same-origin`/`none` pass; otherwise `Origin` present → must equal the request's scheme + host; neither header → not
+a browser (Next.js server, curl), passes. Rejected → 403 `request.cross_origin`. Pipeline: … request logging →
+cross-origin check → rate limiter → authentication → authorization → endpoint.
+**Error codes** live in `Api/Infrastructure/ErrorCodes.cs` (ProblemDetails member `code`).
 
 **Admin seeding (P5-T2):** `Persistence/Seed/AdminSeeder` runs right after migrations (the `--migrate` step;
 Development startup), never on a normal production start. In one transaction: ensure role `Admin` (`AppRoles.Admin`)

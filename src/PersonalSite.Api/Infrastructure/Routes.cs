@@ -13,4 +13,10 @@ public static class Routes
     public const string Api = "/api";
     public const string Site = "/site";
     public const string Resume = "/resume";
+
+    /// <summary>Admin sign-in (P5-T3): <see cref="Login"/>, <see cref="Logout"/> and <see cref="Me"/> are below it.</summary>
+    public const string Auth = "/auth";
+    public const string Login = "/login";
+    public const string Logout = "/logout";
+    public const string Me = "/me";
 }

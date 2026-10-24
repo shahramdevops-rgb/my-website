@@ -16,6 +16,7 @@ namespace PersonalSite.IntegrationTests.Identity;
 /// The admin account comes from configuration, once (P5-T2). The tests in this class run one after another on the
 /// shared database, and each one leaves it without an admin.
 /// </summary>
+[Collection(AdminAccountTests.Name)]
 public sealed class AdminSeederTests(WebAppFactory factory)
 {
     private const string _password = "a long enough passphrase";

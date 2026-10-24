@@ -7,7 +7,7 @@ namespace PersonalSite.Api.Configuration;
 /// <summary>
 /// Sign-in for the admin panel (architecture.md §5.3): ASP.NET Core Identity with its EF Core stores, and an
 /// authentication cookie. The browser sees one origin (Caddy), so the cookie reaches <c>/api/*</c> on its own: no
-/// CORS, no token in JavaScript. Login/logout endpoints follow in P5-T3, the <c>Admin</c> policy in P5-T4.
+/// CORS, no token in JavaScript. Login/logout: <c>AuthEndpoints</c> (P5-T3); the <c>Admin</c> policy follows in P5-T4.
 /// </summary>
 public static class AdminAuthentication
 {
@@ -38,7 +38,7 @@ public static class AdminAuthentication
                 options.Password.RequireNonAlphanumeric = false;
 
                 // 5 wrong passwords in a row lock the account for 15 minutes: at most ~480 guesses a day, however
-                // many IPs an attacker has. The `login` rate limit (P5-T3) slows each IP down further.
+                // many IPs an attacker has. The `login` rate limit (RateLimiting) slows each IP down further.
                 options.Lockout.MaxFailedAccessAttempts = MaxFailedAccessAttempts;
                 options.Lockout.DefaultLockoutTimeSpan = LockoutDuration;
                 options.Lockout.AllowedForNewUsers = true;
@@ -58,7 +58,7 @@ public static class AdminAuthentication
             // Not readable from JavaScript: an XSS bug can't copy the session out of the browser.
             options.Cookie.HttpOnly = true;
             options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-            // Never sent with a request started by another site: the first CSRF defence (P5-T3 adds an Origin check).
+            // Never sent with a request started by another site: the first CSRF defence (CrossOriginProtectionMiddleware is the second).
             options.Cookie.SameSite = SameSiteMode.Strict;
 
             // Sliding: a request after more than half of the 7 days issues a fresh cookie, so an admin who uses the
