@@ -167,6 +167,15 @@ reveal something real about the back-end. Details and rejected ideas: `roadmap.m
   `rate limit`), with a Persian gloss in parentheses the first time a term needs one; (3) states what was done,
   what was decided and why (facts, file paths, commands, results), then **explains it educationally** — the
   reasoning behind each decision, not just the outcome; (4) puts questions Shahram must answer in the same reply.
+- **Right-to-left layout that survives the renderer** (Shahram's rule since 2026-10-25). The chat view sets each
+  line's direction from its *first strong letter*: a line that starts with an English word, a code span or a bold
+  English term is laid out left-to-right and its Persian words jumble (a Persian digit like `۳.` doesn't count, it is
+  neutral). So: (1) **every heading, paragraph, list item and table cell starts with a Persian word**; English terms
+  and code only after it (`- لایهٔ اول، **click**: …`, never `- **click**: …`; `### ۳. اجرای موازی layout و page`
+  never `### ۳. layout و page …`); (2) a term to explain gets a Persian heading line of its own, the explanation in
+  the lines below it — not "term: explanation" on one line; (3) section titles in Persian, the English name in
+  parentheses after it (`### بک‌اند (Backend)`); (4) code, commands and paths go in code blocks on their own lines,
+  never at the start of a sentence; (5) tables: the first column starts with a Persian word too.
 - **Split by area** (Shahram's rule since 2026-10-23): his expertise is back-end and DevOps, and he wants to go deeper
   there; front-end is new to him. So "What we did & why" (§11 step 7) has up to three separate headed sections, each
   only when the work touched it: **Backend** (.NET, API, EF Core/PostgreSQL, security, tests) and **DevOps** (Docker,
