@@ -38,7 +38,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v6
         with:
-          # Same SDK as on Mahdi's machine: the version comes from global.json.
+          # Same SDK as on Shahram's machine: the version comes from global.json.
           global-json-file: global.json
 
       - name: Cache NuGet packages

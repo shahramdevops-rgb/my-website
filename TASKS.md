@@ -132,7 +132,7 @@
   Learn: nonces vs hashes, `strict-dynamic`.
 
 - [x] **P2-T8 Design tokens, fonts & theme** (ADR-024)
-  Scope: Tailwind v4 (`@tailwindcss/postcss`), `styles/globals.css` with the token values of architecture §8.1 (electric-blue accent) for dark (default) and light, default palette removed (`--color-*: initial`), contrast test in Vitest (port of P1's `ColorContrastTests`, `tests/PersonalSite.UnitTests/Design/` at commit `fe205aa`: text ≥ 4.5:1, focus/non-text ≥ 3:1); fonts via `next/font/local` (Vazirmatn variable, JetBrains Mono; optional display face picked by Mahdi, OFL only, licence file kept); type scale with Persian line-heights; `code, pre` always LTR; theme: pre-paint script with the nonce (saved choice before first paint), toggle button (`aria-pressed`), color fade only when motion is allowed.
+  Scope: Tailwind v4 (`@tailwindcss/postcss`), `styles/globals.css` with the token values of architecture §8.1 (electric-blue accent) for dark (default) and light, default palette removed (`--color-*: initial`), contrast test in Vitest (port of P1's `ColorContrastTests`, `tests/PersonalSite.UnitTests/Design/` at commit `fe205aa`: text ≥ 4.5:1, focus/non-text ≥ 3:1); fonts via `next/font/local` (Vazirmatn variable, JetBrains Mono; optional display face picked by Shahram, OFL only, licence file kept); type scale with Persian line-heights; `code, pre` always LTR; theme: pre-paint script with the nonce (saved choice before first paint), toggle button (`aria-pressed`), color fade only when motion is allowed.
   Done when: no theme flash on reload; contrast test green in both themes; no font request leaves the origin.
   Learn: CSS variables as a theme API, FOUC.
 
@@ -147,7 +147,7 @@
 
 ## Phase 3 — Static pages, Bento home & keyboard hero (bilingual)
 
-> Mahdi provides the facts; Claude drafts the English text for Mahdi to edit. Prose lives in `frontend/content/*.{locale}.mdx`.
+> Shahram provides the facts; Claude drafts the English text for Shahram to edit. Prose lives in `frontend/content/*.{locale}.mdx`.
 
 - [x] **P3-T1 Structured résumé in the API**
   Scope: `ResumeProfile` record (experience, education, skills with categories, tech stack, links) loaded from `Content/resume.fa.json` + `resume.en.json` (ADR-013), validated at startup; `GET /api/resume?lang=` for the pages; regenerated OpenAPI + TS types.
@@ -202,7 +202,7 @@
 
 - [ ] **P4-T4 Server setup & deploy script**
   Scope: `deploy/README.md` (Ubuntu LTS, Docker, firewall 22/80/443, deploy user, SSH keys, registry login), `deploy/scripts/deploy.sh` (pull → migrate → up -d → health check → prune), `docker save | ssh docker load` fallback.
-  Done when: Mahdi deploys with one command and the site loads over HTTPS.
+  Done when: Shahram deploys with one command and the site loads over HTTPS.
   Status: guide + script written; `deploy.sh` linted (shellcheck) and run end to end locally (`--offline`, `localhost`
   on Caddy's local CA: migrate, healthy, HTTPS check, prune, rollback hint, failure paths).
   2026-10-23: reworked for the shared server (P4-T6): no own Caddy, routes installed in the edge; first deployable
@@ -450,7 +450,7 @@
 ## Phase 12 — AI layer
 
 > AI is optional (ADR-014): every feature is behind an `Ai.*` flag; with all off the site is complete. New
-> dependencies (pgvector, ONNX Runtime, MCP C# SDK, Microsoft.Extensions.AI) are approved by Mahdi at the start of
+> dependencies (pgvector, ONNX Runtime, MCP C# SDK, Microsoft.Extensions.AI) are approved by Shahram at the start of
 > the task that adds them. Public features never call an external AI service.
 
 - [ ] **P12-T1 Local embedding model**
@@ -508,7 +508,7 @@
 
 ## Content track (parallel, writing only)
 
-> No code. Drafts are written by Mahdi (Claude helps with structure and the English versions) and published through
+> No code. Drafts are written by Shahram (Claude helps with structure and the English versions) and published through
 > the admin once P7 exists. Two posts must be ready for the launch (P10-T6).
 
 - [ ] **C-T1 Series ".NET under Iranian constraints"**: outline + first two posts (images built abroad and pulled from GHCR; `docker save | docker load`; mirrors; Let's Encrypt on a `.ir` domain).

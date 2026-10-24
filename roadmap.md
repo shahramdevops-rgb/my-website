@@ -162,7 +162,7 @@ API + hero status line, **X-Ray mode** (UI peels back to real code excerpts and 
 **Goal:** *Engineered* AI that runs on our own server. Optional (ADR-014): every feature behind an `Ai.*` flag.
 **Deliverables:** local embedding model (ONNX, in-process), pgvector, hybrid **semantic search**, **related posts**,
 **Ctrl+K command palette** (React), **MCP server** (read-only), **admin-only AI assistant** (ADR-015).
-New dependencies are approved by Mahdi at the start of the task that adds them.
+New dependencies are approved by Shahram at the start of the task that adds them.
 
 ## Phase 13 — Hardening & polish
 CSP audit, admin 2FA (TOTP), Dependabot (NuGet + npm), accessibility audit, resume print stylesheet, backup restore drill #2.
@@ -195,8 +195,8 @@ Writing starts now; posts are published through the admin once P7 exists. At lea
 ## Considered and rejected (don't re-propose without a new reason)
 | Idea | Why not | What we do instead |
 |---|---|---|
-| **Razor Pages + React islands** | Mahdi wants the standard full-stack split to sell React/TS (ADR-021) | Next.js front-end + ASP.NET Core API |
-| **Botanical design** (P1) | Mahdi didn't like it (ADR-024) | Dark Bento grid, single accent |
+| **Razor Pages + React islands** | Shahram wants the standard full-stack split to sell React/TS (ADR-021) | Next.js front-end + ASP.NET Core API |
+| **Botanical design** (P1) | Shahram didn't like it (ADR-024) | Dark Bento grid, single accent |
 | Recruiter/client **persona toggle** | Hides half the content, doubles maintenance, confuses search engines | Two paths on Home + request type on the contact form |
 | **CPU/RAM per container** in the hero | Meaningless to clients, useful to attackers | Latency, error rate, deploy info (P11) |
 | Generic stack in demos/scrollytelling (**Nginx, JWT, Grafana**) | Not this site's stack — a technical reader notices | The real path: Caddy, cookie auth, our own metrics (ADR-018) |

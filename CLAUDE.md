@@ -7,12 +7,13 @@ architecture decisions in short form, and where the full details live.
 
 ## 1. Project in one paragraph
 
-Personal website of **Mahdi Azghandi** (Mahdi; also known as Shahram — `alternateName` only, ADR-017), a
+Personal website of **Mahdi Azghandi** (the public name, ADR-017; the owner goes by **Shahram** — use Shahram in
+replies and docs; Shahram Azghandi is the `alternateName`), a
 **full-stack engineer: C#/.NET back-end + React/TypeScript front-end** (ADR-022). It combines an online resume, a
 portfolio with **live demos** on real sandbox APIs, a technical blog with moderated comments, a services page to
 attract freelance clients, a contact form and a newsletter signup (sending disabled). Audience: employers (often
 European), potential clients, blog readers. Content is **Persian (RTL) and English (LTR)** from the first page.
-It is also a **learning project**: Mahdi is learning React/Next.js while building it and wants to understand *why*
+It is also a **learning project**: Shahram is learning React/Next.js while building it and wants to understand *why*
 each technical decision is made. Target: launch in ≈ 6 months (≈ April 2027).
 
 **Architecture (ADR-021):** two apps behind **one origin** — a **Next.js 16 front-end** (`frontend/`, React 19,
@@ -110,10 +111,10 @@ reveal something real about the back-end. Details and rejected ideas: `roadmap.m
 - **GitHub:** `main` pushed on 2026-10-23 (fast-forward to the stacked branches); CI green there for the first time.
 - **Server rules:** the VPS runs the gym system in production — gym backup before any change, every server command
   explained and approved first, never touch the gym's containers/volumes, nothing but the edge on 80/443.
-- **Next task:** Mahdi: server checklist A–B in `deploy/SHARED-SERVER.md §4` (read-only checks + prep), then the gym
+- **Next task:** Shahram: server checklist A–B in `deploy/SHARED-SERVER.md §4` (read-only checks + prep), then the gym
   repo's part (§3) and the cut-over; then tag `v0.2.0` and deploy (`P4-T4`). Claude: `P5-T3` (Auth endpoints & CSRF defence).
-- **Accent color:** electric blue (`#4DB5FF` dark / `#0A63C9` light), picked by Claude at Mahdi's request; easy to change (`architecture.md §8.1`).
-- **Waiting on Mahdi:** contact links (`Site:Social:Email|GitHub|Telegram`); optional display face (P2-T8 left it out);
+- **Accent color:** electric blue (`#4DB5FF` dark / `#0A63C9` light), picked by Claude at Shahram's request; easy to change (`architecture.md §8.1`).
+- **Waiting on Shahram:** contact links (`Site:Social:Email|GitHub|Telegram`); optional display face (P2-T8 left it out);
   real résumé facts — every `[placeholder]` and `2000-01` date in `src/PersonalSite.Api/Content/resume.*.json`;
   About story — the `[placeholder]` sentence and a review of the drafted text in `frontend/content/about.*.mdx`; a photo;
   Decisions page — confirm every `[placeholder]` project fact (gym, cinema, microservices) in `frontend/content/decisions.*.mdx`.
@@ -122,10 +123,10 @@ reveal something real about the back-end. Details and rejected ideas: `roadmap.m
   `frontend/` serves `/fa` and `/en` (header/footer shell + the Bento home from `/api/site` and `/api/resume`; nav
   and path links to pages not built yet are 404 until their phase); fonts in `src/fonts/`. Contract change = `dotnet build` (→ `openapi/v1.json`) + `pnpm gen:api`, both committed.
   P1's ideas that carry over: `architecture.md §8.4`.
-- **Dev DB** is published on host port **5433** (Mahdi has another project's PostgreSQL on 5432). For `dotnet watch`
+- **Dev DB** is published on host port **5433** (Shahram has another project's PostgreSQL on 5432). For `dotnet watch`
   on the host, the connection string lives in **user-secrets** (`ConnectionStrings:Default`); in Docker, compose builds it from `.env`.
 - **Tooling note:** locally (VS Code extension) Claude can use `dotnet`, `node` and reach nuget.org/npm; in
-  cloud sandboxes it may not — then Mahdi runs those commands. pnpm isn't on PATH until Mahdi runs `corepack enable`
+  cloud sandboxes it may not — then Shahram runs those commands. pnpm isn't on PATH until Shahram runs `corepack enable`
   (needs an admin shell on Windows); until then use `corepack pnpm <cmd>` from `frontend/`.
 - **Front-end versions held back on purpose:** TypeScript 6.0 (typescript-eslint supports `<6.1`, not TS 7) and
   ESLint 9 (eslint-plugin-react/import/jsx-a11y don't support ESLint 10 yet). Revisit when their peer ranges allow.
@@ -134,16 +135,16 @@ reveal something real about the back-end. Details and rejected ideas: `roadmap.m
   (Docker must be running: integration tests start PostgreSQL via Testcontainers). Front-end: `pnpm test`, `pnpm e2e` (from P2-T3).
 - Keep this section updated: after finishing a task, set "Next task" to the next unchecked item.
 
-## 3. Communication with Mahdi
+## 3. Communication with Shahram
 
-- **Every reply is written in Persian, and Claude is the tutor** (Mahdi's rule since 2026-10-24; it replaces the
+- **Every reply is written in Persian, and Claude is the tutor** (Shahram's rule since 2026-10-24; it replaces the
   2026-10-21 "English briefing for another AI tutor" rule — no more opening/closing lines to a tutor AI). Each reply:
   (1) is in Persian, laid out for right-to-left reading (short paragraphs and lists; code, paths and commands in
   code spans/blocks so they stay LTR); (2) keeps English technical terms in English (e.g. `CSRF`, `middleware`,
   `rate limit`), with a Persian gloss in parentheses the first time a term needs one; (3) states what was done,
   what was decided and why (facts, file paths, commands, results), then **explains it educationally** — the
-  reasoning behind each decision, not just the outcome; (4) puts questions Mahdi must answer in the same reply.
-- **Split by area** (Mahdi's rule since 2026-10-23): his expertise is back-end and DevOps, and he wants to go deeper
+  reasoning behind each decision, not just the outcome; (4) puts questions Shahram must answer in the same reply.
+- **Split by area** (Shahram's rule since 2026-10-23): his expertise is back-end and DevOps, and he wants to go deeper
   there; front-end is new to him. So "What we did & why" (§11 step 7) has up to three separate headed sections, each
   only when the work touched it: **Backend** (.NET, API, EF Core/PostgreSQL, security, tests) and **DevOps** (Docker,
   compose, Caddy, CI/CD, server, networking, backups) — in-depth refreshers: internals, the exact mechanism/setting,
@@ -151,11 +152,11 @@ reveal something real about the back-end. Details and rejected ideas: `roadmap.m
   compared to its .NET/back-end equivalent (e.g. `proxy.ts` ≈ ASP.NET middleware).
 - **Everything in the repo is English**: code, identifiers, comments, commit messages, docs.
 - **Site content (UI text) is Persian and English**, stored in `frontend/messages/{fa,en}.json` or localized MDX —
-  never hard-coded. Claude drafts English text; Mahdi edits it.
-- Mahdi is learning (React/TypeScript especially): always explain *why*. Prefer one clear reason over a list of five.
+  never hard-coded. Claude drafts English text; Shahram edits it.
+- Shahram is learning (React/TypeScript especially): always explain *why*. Prefer one clear reason over a list of five.
   For back-end/DevOps work, name the precise mechanism (the flag, the header, the config key, the failure it prevents).
 - Ask before decisions that are hard to reverse (data model, URLs, public behaviour, new dependencies).
-- **Design direction is Mahdi's call.** Offer ideas and a recommendation; don't change the look without his choice.
+- **Design direction is Shahram's call.** Offer ideas and a recommendation; don't change the look without his choice.
 
 ## 4. Document map
 
@@ -165,7 +166,7 @@ reveal something real about the back-end. Details and rejected ideas: `roadmap.m
 | `rules.md` | Mandatory coding conventions and checklists (C#, API, TypeScript/React) |
 | `roadmap.md` | Positioning, phases and their order/rationale |
 | `TASKS.md` | Small executable tasks with acceptance criteria (IDs like `P7-T3`) |
-| `learning.md` | Plain-language explanations of concepts & decisions (for Mahdi) |
+| `learning.md` | Plain-language explanations of concepts & decisions (for Shahram) |
 | `README.md` | How to run/build/deploy |
 
 ## 5. Scope — what the site contains
@@ -177,7 +178,7 @@ reveal something real about the back-end. Details and rejected ideas: `roadmap.m
 | 3 | Projects / portfolio | DB + admin CRUD; case studies; live status; **gym system is the flagship (client permission given)** | P6 |
 | 4 | Live demos | Cinema seat picking with a real simultaneous-purchase race; gym check-in + lockers; sandbox data (ADR-027) | P6 |
 | 5 | Blog | Markdown written in the **admin panel**; tags, paging, growth stages, translations | P7 |
-| 6 | Comments | Name + email + text; **Pending until Mahdi approves**; honeypot + timing token + rate limit | P8 |
+| 6 | Comments | Name + email + text; **Pending until Shahram approves**; honeypot + timing token + rate limit | P8 |
 | 7 | Contact form | Name, email, message, **request type** → DB + admin inbox; email notify behind flag | P9 |
 | 8 | Resume page + PDF | Rendered from **structured résumé JSON** (ADR-013); PDF uploaded from admin | P3 + P9 |
 | 9 | Contact links | Email, GitHub, Telegram only (**no LinkedIn, no phone** for now) | P2 |
@@ -266,7 +267,7 @@ InMemory; Vitest + Playwright for the front-end.
   CPU/RAM, container names or package versions publicly (ADR-018). Demos run on real endpoints with sandbox data (ADR-027).
 - **Dark theme is the default**; everything must look right in both themes.
 - Public forms: honeypot + signed timing token + rate limit. Comments are `Pending` until approved.
-- Don't enable anything behind a feature flag unless Mahdi asks.
+- Don't enable anything behind a feature flag unless Shahram asks.
 - Secrets never in git. New config → `.env.example` + an Options class with `ValidateOnStart` (API) or `src/lib/env.ts` (front-end).
 - Every admin endpoint requires the `Admin` policy; the admin UI is never the security gate.
 
@@ -286,7 +287,7 @@ InMemory; Vitest + Playwright for the front-end.
 
 ## 11. How to execute a task
 
-When Mahdi says **"Do task Px-Ty"** (or «تسک Px-Ty رو انجام بده»):
+When Shahram says **"Do task Px-Ty"** (or «تسک Px-Ty رو انجام بده»):
 
 1. Read the task in `TASKS.md`, then the relevant sections of `architecture.md` and `rules.md`.
 2. If the task is ambiguous or conflicts with the docs, **ask before coding**. Don't silently expand scope.
@@ -307,7 +308,7 @@ if the contract changed · docs updated · task ticked.
 
 ## 12. Environment facts
 
-- Mahdi develops on **Windows** (repo at `C:\Users\shahram\source\repos\my-website`). Give PowerShell commands first,
+- Shahram develops on **Windows** (repo at `C:\Users\shahram\source\repos\my-website`). Give PowerShell commands first,
   bash when relevant (server is Linux).
 - Production (for now): an **Iranian VPS** (Linux, Docker). Docker Hub/NuGet/npm/GitHub can be slow or blocked from
   there → both images are built in GitHub Actions and pulled from GHCR (fallback: `docker save/load`). Never assume
@@ -348,4 +349,4 @@ pnpm gen:api                                  # regenerate TS types from openapi
 ## 15. When unsure
 
 Prefer the simpler option that keeps the i18n and server-migration goals intact, explain the trade-off in 2–3
-sentences, and ask Mahdi if the choice is hard to reverse.
+sentences, and ask Shahram if the choice is hard to reverse.

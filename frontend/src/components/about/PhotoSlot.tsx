@@ -1,5 +1,5 @@
 /**
- * The About page's portrait. A clearly marked placeholder until Mahdi provides a photo: then it becomes a
+ * The About page's portrait. A clearly marked placeholder until Shahram provides a photo: then it becomes a
  * next/image of a file in src/ (self-hosted, ADR-007) with the name as its alt text, in this same square box,
  * so nothing around it moves. Until then it carries no information and screen readers skip it.
  */

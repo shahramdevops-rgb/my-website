@@ -3,7 +3,7 @@
 **Status (2026-10-23):** this repository is ready (edge proxy, prod compose, `deploy.sh`, all tested locally end to
 end). Nothing has been run on the server. The gym repository still needs its part (§3), and nothing is deployed yet.
 
-The production VPS (Mahdi's own; Ubuntu 26.04, 2 vCPU, 4 GB RAM, 2 GB swap, 60 GB disk, amd64) already runs the
+The production VPS (Shahram's own; Ubuntu 26.04, 2 vCPU, 4 GB RAM, 2 GB swap, 60 GB disk, amd64) already runs the
 **gym management system** (`/opt/gym`, user `gym`) with real member, payment and SMS data. To save cost, this site
 runs on the same machine (ADR-028). This file lists the conflicts, the chosen shape and the work in order.
 

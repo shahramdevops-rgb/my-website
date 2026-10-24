@@ -4,7 +4,7 @@ namespace PersonalSite.Api.Infrastructure;
 
 /// <summary>
 /// Descriptions taken from XML doc comments get the OS line ending (<c>\r\n</c> on Windows, <c>\n</c> on Linux),
-/// so a document built on Mahdi's machine would never match the one CI builds. These transformers force
+/// so a document built on Shahram's machine would never match the one CI builds. These transformers force
 /// <c>\n</c>. They must be added after the XML-comment transformers, which the OpenAPI source generator registers
 /// before our own options code runs.
 /// </summary>
