@@ -515,6 +515,28 @@ It runs in the browser on purpose: the API's `Set-Cookie` must reach the browser
 **Open redirect:** `?next=https://evil.example` would let a phishing link send the admin to a fake site after a real
 login, so `safeNextPath()` keeps only paths inside `/admin`.
 
+### 4.23 Sound without audio files: the Web Audio API (P3-T9)
+The browser has a small synthesizer built in. Nodes are connected like a guitar's pedal chain and scheduled on an
+audio clock (`context.currentTime`, in seconds), not on JavaScript timers:
+```ts
+const noise = context.createBufferSource();          // half a second of random samples = white noise
+const filter = context.createBiquadFilter();          // keep only ~2.4 kHz: the plastic "click"
+filter.type = "bandpass"; filter.frequency.value = 2400;
+const envelope = context.createGain();                // loud for 1 ms, then fades in 25 ms: a hit
+envelope.gain.setValueAtTime(0.0001, at);
+envelope.gain.exponentialRampToValueAtTime(0.6, at + 0.001);
+envelope.gain.exponentialRampToValueAtTime(0.0001, at + 0.025);
+noise.connect(filter).connect(envelope).connect(context.destination);
+noise.start(at); noise.stop(at + 0.035);
+```
+A key press = that click + a low falling tone (the case's "thock") + low-passed noise (the bottom-out). Each key gets
+its own pitch from a hash of its id, plus a little randomness, so it never sounds like one sample on repeat.
+**Autoplay rule:** browsers start audio only after the visitor has clicked, tapped or pressed a key on the page —
+hovering alone doesn't count (`navigator.userActivation.hasBeenActive`). So pointing at a key is silent until the
+first click; after that, every hover plays.
+**Like the theme:** the mute choice is in localStorage and set on `<html>` by the pre-paint script, so the icon
+(chosen by CSS: `sound-off:hidden`) is right before React has loaded.
+
 ## Part 5 — Security
 
 ### 5.1 XSS and Markdown sanitization

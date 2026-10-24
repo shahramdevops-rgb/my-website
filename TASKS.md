@@ -183,6 +183,15 @@
   Scope: `/{locale}/decisions` with 5–6 cards **Challenge → Decision → Why** across projects (this site's front-end/API split, gym system, cinema reservation, microservices platform — e.g. modular monolith for an MVP, no generic repository over EF Core, PostgreSQL + MongoDB split); MDX per locale; linked from the hiring path, About and Resume.
   Done when: both languages and themes; readable without interaction.
 
+- [x] **P3-T9 Keyboard sound + mute switch** (added 2026-10-25 at Shahram's request)
+  Scope: a mechanical-keyboard sound when a keycap goes down/up (pointer moves onto it, real key, list button),
+  synthesized with Web Audio (no audio files); a mute switch in the header next to the language switcher, remembered
+  in localStorage and restored before the first paint (`data-sound="off"`).
+  Done when: sound only after the visitor's first interaction (browser rule), muting silences it and survives a
+  reload, header fits at 360px in both languages; e2e.
+  Status: done 2026-10-25 (`src/lib/sound/`, `SoundToggle`, `e2e/sound.spec.ts`). The character of the sound is a
+  handful of constants in `keyboard-sound.ts` — Shahram tunes them by ear.
+
 ## Phase 4 — First deployment (walking skeleton)
 
 - [x] **P4-T1 Production compose & Caddy**

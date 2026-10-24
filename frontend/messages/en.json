@@ -257,5 +257,8 @@
       "region": "Notifications",
       "dismiss": "Dismiss"
     }
+  },
+  "sound": {
+    "label": "Keyboard sound"
   }
 }

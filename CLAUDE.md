@@ -71,6 +71,10 @@ reveal something real about the back-end. Details and rejected ideas: `roadmap.m
   intro via `parseContactRequestType` (unknown → general, never echoed); email obfuscated by `EmailLink` (client leaf,
   reversed char codes from `src/lib/contact/email.ts`, `mailto:` built after hydration; also in the footer);
   `e2e/contact.spec.ts`).
+  `P3-T9` (keyboard sound, added 2026-10-25: `src/lib/sound/keyboard-sound.ts` synthesizes click/thock/thud with Web
+  Audio per key down/up (pitch per key + jitter), silent before the first user activation; `SoundToggle` next to the
+  language switcher, `localStorage.sound = "off"` mirrored as `data-sound="off"` by the pre-paint script, CSS variant
+  `sound-off:`; `e2e/sound.spec.ts` counts started audio sources).
   `P3-T8` (`/{locale}/decisions`: six cards in `content/decisions.{fa,en}.mdx` with `DecisionList`/`Decision` +
   `Challenge`/`Choice`/`Why` from `src/components/decisions/` (each an `article`, parts a `<dl>`, labels from
   `decisions.parts`); three from this site's ADRs, three project ones with `[placeholder]` facts; linked from the

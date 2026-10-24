@@ -11,6 +11,8 @@
 */
 @custom-variant dark (&:where(:root:not([data-theme="light"]), :root:not([data-theme="light"]) *));
 @custom-variant light (&:where(:root[data-theme="light"], :root[data-theme="light"] *));
+/* Keyboard sound muted (SoundToggle): data-sound="off" on <html>, set before the first paint like data-theme. */
+@custom-variant sound-off (&:where(:root[data-sound="off"], :root[data-sound="off"] *));
 
 /*
   Color tokens. Values here are the DARK theme; the light theme overrides the same variables in @layer base below.

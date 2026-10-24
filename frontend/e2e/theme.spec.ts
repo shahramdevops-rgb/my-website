@@ -50,7 +50,7 @@ for (const reducedMotion of ["no-preference", "reduce"] as const) {
 
     // Click and read the body's transition in the same task, while .theme-transition is on <html>.
     const duration = await page.evaluate(() => {
-      document.querySelector<HTMLButtonElement>("button[aria-pressed]")?.click();
+      document.querySelector<HTMLButtonElement>('button[aria-label="Dark theme"]')?.click();
       return getComputedStyle(document.body).transitionDuration;
     });
 

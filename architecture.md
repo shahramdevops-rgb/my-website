@@ -579,7 +579,7 @@ pairs are light `success` on `surface-2` (4.67), light `accent` on `accent-soft`
 | Feature | Where | How |
 |---|---|---|
 | **Bento grid + cursor spotlight** | Home | CSS grid of cards with hairline borders; one pointer listener writes `--x/--y` CSS variables (CSSOM, CSP-safe); radial-gradient glow on borders; off on touch and reduced motion |
-| **Mechanical keyboard hero** | Home | React Three Fiber keycaps carrying the tech stack; hover or a real key press pushes the key and opens a glass card with projects that used it; static poster first (§8.3) |
+| **Mechanical keyboard hero** | Home | React Three Fiber keycaps carrying the tech stack; hover or a real key press pushes the key and opens a glass card with projects that used it; static poster first (§8.3); a synthesized mechanical-key sound (Web Audio, no files) for every key down/up, after the visitor's first interaction, mute switch in the header (`data-sound` on `<html>`, P3-T9) |
 | **Live demos** | Project pages + Home card | React mini-apps against real sandbox endpoints (ADR-027): cinema seat picking with a real "simultaneous purchase" race (one wins via a row lock), gym check-in + locker assignment with live capacity chart |
 | **X-Ray mode** | Global toggle | Peels the UI layer back to show what produced it: real code excerpts (extracted at build time from marked regions in the repo, linked to GitHub), the queries and timings of *this* request (`Server-Timing`) |
 | **Fluid fa ↔ en** | Language switcher | Navigation to the other locale's URL animated with View Transitions: shared elements slide to their mirrored places; URLs stay separate for SEO (ADR-006) |

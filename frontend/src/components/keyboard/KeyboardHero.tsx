@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { useEffect, useId, useRef, useState } from "react";
 import type { Keycap } from "@/lib/keyboard/keycaps";
+import { playKeySound } from "@/lib/sound/keyboard-sound";
 import { cn } from "@/lib/ui/cn";
 import { KeyboardPoster } from "./KeyboardPoster";
 import { TechCard } from "./TechCard";
@@ -66,6 +67,18 @@ export function KeyboardHero({
   const downId = heldId ?? hoveredId;
   const active = keycaps.find((keycap) => keycap.id === activeId);
 
+  // The sound follows the keycaps on the stage: whenever the key that is down changes (pointer moved onto another
+  // key, a real key pressed or released), the old one is released and the new one pressed. A ref, not state:
+  // remembering which key sounded must not render again.
+  const soundedDownId = useRef<string | null>(null);
+  useEffect(() => {
+    const previous = soundedDownId.current;
+    if (previous === downId) return;
+    if (previous) playKeySound("up", previous);
+    if (downId) playKeySound("down", downId);
+    soundedDownId.current = downId;
+  }, [downId]);
+
   useEffect(() => {
     const root = rootRef.current;
     const stage = stageRef.current;
@@ -117,6 +130,13 @@ export function KeyboardHero({
 
   const toggle = (id: string) => setSelectedId((selected) => (selected === id ? null : id));
 
+  // The list's buttons don't push a keycap down, so a click there plays a whole keystroke itself.
+  const pressButton = (id: string) => {
+    playKeySound("down", id);
+    setTimeout(() => playKeySound("up", id), 70);
+    toggle(id);
+  };
+
   return (
     <div ref={rootRef} className="relative">
       {/*
@@ -161,7 +181,7 @@ export function KeyboardHero({
                 aria-expanded={expanded}
                 aria-controls={cardId}
                 aria-keyshortcuts={keycap.key}
-                onClick={() => toggle(keycap.id)}
+                onClick={() => pressButton(keycap.id)}
                 className={cn(
                   "inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-medium",
                   expanded

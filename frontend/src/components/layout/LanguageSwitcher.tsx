@@ -24,7 +24,7 @@ export function LanguageSwitcher({ locale, label }: { locale: Locale; label: str
       hrefLang={target}
       lang={target}
       onClick={() => rememberLocale(target)}
-      className="inline-flex h-10 items-center rounded-full border border-border bg-surface px-4 text-sm text-text hover:bg-surface-2"
+      className="inline-flex h-10 shrink-0 items-center rounded-full border border-border bg-surface px-3 text-sm text-text hover:bg-surface-2 sm:px-4"
     >
       {label}
     </a>
