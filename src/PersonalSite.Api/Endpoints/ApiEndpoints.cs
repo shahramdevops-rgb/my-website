@@ -1,3 +1,4 @@
+using PersonalSite.Api.Configuration;
 using PersonalSite.Api.Infrastructure;
 
 namespace PersonalSite.Api.Endpoints;
@@ -17,6 +18,17 @@ public static class ApiEndpoints
         api.MapSiteEndpoints();
         api.MapResumeEndpoints();
         api.MapAuthEndpoints();
+
+        // Every admin endpoint is mapped inside this group, so the policy is never forgotten on one of them; the
+        // UI's login redirect is only convenience (architecture.md §5.2). A test lists the group's endpoints from
+        // the routing table and calls each anonymously (P5-T4).
+        var admin = api.MapGroup(Routes.Admin)
+            .RequireAuthorization(AuthorizationPolicies.Admin)
+            .WithTags("Admin")
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status403Forbidden);
+
+        admin.MapAdminDashboardEndpoints();
 
         return endpoints;
     }

@@ -244,12 +244,14 @@
   neither header (server-side calls) pass, see `architecture.md §5.5`. `login` = 10 per IP per 15 min.
   Learn: cookie auth on one origin, CSRF, open redirects.
 
-- [ ] **P5-T4 Authorization convention**
+- [x] **P5-T4 Authorization convention**
   Scope: `/api/admin` group with `RequireAuthorization("Admin")`; a test enumerates every admin endpoint from the endpoint data source and asserts 401 for anonymous calls.
   Done when: the test covers all admin endpoints automatically.
+  Status: done 2026-10-25 (`Auth/AdminAuthorizationTests`: policy metadata, anonymous → 401, signed-in non-admin
+  → 403). `GET /api/admin/dashboard` (zeros) was pulled in from P5-T5 so the convention has a real endpoint to check.
 
 - [ ] **P5-T5 Admin shell in Next.js**
-  Scope: `/admin/login` page, `proxy.ts` redirect to login without the auth cookie (UX only), admin layout (sidebar: داشبورد، پست‌ها، نمونه‌کارها، کامنت‌ها، پیام‌ها، رزومه، مشترکین), toast/flash messages, dashboard counts (`GET /api/admin/dashboard`, zeros until features exist), `noindex`, `Cache-Control: no-store`.
+  Scope: `/admin/login` page, `proxy.ts` redirect to login without the auth cookie (UX only), admin layout (sidebar: داشبورد، پست‌ها، نمونه‌کارها، کامنت‌ها، پیام‌ها، رزومه، مشترکین), toast/flash messages, dashboard counts (`GET /api/admin/dashboard` — built in P5-T4, zeros until features exist), `noindex`, `Cache-Control: no-store`.
   Done when: login → dashboard → logout works in the browser; e2e test.
 
 ## Phase 6 — Projects, case studies & live demos

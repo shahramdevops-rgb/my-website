@@ -19,4 +19,8 @@ public static class Routes
     public const string Login = "/login";
     public const string Logout = "/logout";
     public const string Me = "/me";
+
+    /// <summary>Admin endpoints (P5-T4): the whole group requires the <c>Admin</c> policy.</summary>
+    public const string Admin = "/admin";
+    public const string Dashboard = "/dashboard";
 }

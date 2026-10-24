@@ -353,6 +353,13 @@ a browser (Next.js server, curl), passes. Rejected → 403 `request.cross_origin
 cross-origin check → rate limiter → authentication → authorization → endpoint.
 **Error codes** live in `Api/Infrastructure/ErrorCodes.cs` (ProblemDetails member `code`).
 
+**Authorization convention (P5-T4):** policy `Admin` = signed in + role `Admin` (`Api/Configuration/AuthorizationPolicies.cs`).
+It is set once on the `/api/admin` group in `ApiEndpoints` (also 401/403 in the OpenAPI document), never per
+endpoint; `GET /api/auth/me` uses it too. `Auth/AdminAuthorizationTests` reads every `/api/admin*` route from the
+routing table and checks the policy metadata, anonymous → 401 and a signed-in non-admin → 403, so new admin endpoints
+are covered without editing the test. First endpoint: `GET /api/admin/dashboard` → `AdminDashboardDto` (counts; zero
+until each feature exists, `Application/Admin/AdminDashboardService`). `no-store` covers `/api/admin/*` too.
+
 **Admin seeding (P5-T2):** `Persistence/Seed/AdminSeeder` runs right after migrations (the `--migrate` step;
 Development startup), never on a normal production start. In one transaction: ensure role `Admin` (`AppRoles.Admin`)
 → any member already? `AlreadyExists` (settings ignored; a seeded password is never overwritten) → `Admin:Email` +

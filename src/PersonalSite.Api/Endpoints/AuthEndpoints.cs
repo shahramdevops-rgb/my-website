@@ -34,7 +34,7 @@ public static class AuthEndpoints
         auth.MapGet(Routes.Me, GetMe)
             .WithName("GetCurrentAdmin")
             .WithSummary("The signed-in admin, or 401.")
-            .RequireAuthorization()
+            .RequireAuthorization(AuthorizationPolicies.Admin)
             .ProducesProblem(StatusCodes.Status401Unauthorized);
 
         return endpoints;

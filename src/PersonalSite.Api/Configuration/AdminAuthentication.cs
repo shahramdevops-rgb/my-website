@@ -7,7 +7,7 @@ namespace PersonalSite.Api.Configuration;
 /// <summary>
 /// Sign-in for the admin panel (architecture.md §5.3): ASP.NET Core Identity with its EF Core stores, and an
 /// authentication cookie. The browser sees one origin (Caddy), so the cookie reaches <c>/api/*</c> on its own: no
-/// CORS, no token in JavaScript. Login/logout: <c>AuthEndpoints</c> (P5-T3); the <c>Admin</c> policy follows in P5-T4.
+/// CORS, no token in JavaScript. Login/logout: <c>AuthEndpoints</c> (P5-T3); the <c>Admin</c> policy: <c>AuthorizationPolicies</c> (P5-T4).
 /// </summary>
 public static class AdminAuthentication
 {
@@ -80,7 +80,7 @@ public static class AdminAuthentication
             };
         });
 
-        services.AddAuthorization();
+        services.AddAuthorizationBuilder().AddAdminPolicy();
 
         return services;
     }
