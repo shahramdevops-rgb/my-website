@@ -529,8 +529,9 @@ envelope.gain.exponentialRampToValueAtTime(0.0001, at + 0.025);
 noise.connect(filter).connect(envelope).connect(context.destination);
 noise.start(at); noise.stop(at + 0.035);
 ```
-A key press = that click + a low falling tone (the case's "thock") + low-passed noise (the bottom-out). Each key gets
-its own pitch from a hash of its id, plus a little randomness, so it never sounds like one sample on repeat.
+A key press is tuned like a clicky Cherry MX Blue: that click, higher and shorter (~5 kHz, < 10 ms), a high falling
+"tick", and a mid plastic clack ~14 ms later (the bottom-out); the release clicks again, softer. Each key gets its
+own pitch from a hash of its id, plus a little randomness, so it never sounds like one sample on repeat.
 **Autoplay rule:** browsers start audio only after the visitor has clicked, tapped or pressed a key on the page —
 hovering alone doesn't count (`navigator.userActivation.hasBeenActive`). So pointing at a key is silent until the
 first click; after that, every hover plays.

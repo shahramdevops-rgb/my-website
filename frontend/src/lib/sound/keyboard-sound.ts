@@ -2,11 +2,12 @@ import { soundEnabled } from "./sound-preference";
 
 // The keyboard hero's mechanical-key sound (P3-T9), synthesized with the Web Audio API instead of recorded samples:
 // no audio files to download or license, a different sound for every key, and every press slightly different, like
-// a real board. A press is three short layers (all values below are the knobs to tune the character):
-//   click — the switch's plastic snap: a burst of noise through a band-pass filter;
-//   thock — the case resonating: a low tone that drops in pitch as it fades;
-//   thud  — the keycap bottoming out: low-passed noise.
-// A release is a quieter, higher click. Nothing is ever started without a pointer or key event of the visitor's.
+// a real board. The character is a clicky switch like a Cherry MX Blue (Shahram's choice, 2026-10-25); a press is
+// three short layers (all values below are the knobs to tune it):
+//   click — the click jacket snapping: high band-passed noise, under 10 ms;
+//   tick  — the click's metallic edge: a high tone sliding down;
+//   clack — the keycap bottoming out ~14 ms later: mid band-passed noise.
+// A release clicks again, softer. Nothing is ever started without a pointer or key event of the visitor's.
 
 export type KeyStroke = "down" | "up";
 
@@ -40,30 +41,34 @@ export function playKeySound(stroke: KeyStroke, seed: string): void {
   const at = audio.context.currentTime + 0.005;
 
   if (stroke === "down") {
+    // The click jacket snapping at the actuation point: short, bright, the "click" of a Blue switch.
     noiseBurst(audio, at, {
       type: "bandpass",
-      frequency: 2400 * pitch,
-      q: 0.9,
-      gain: 0.6,
-      decay: 0.025,
+      frequency: 5200 * pitch,
+      q: 3,
+      gain: 0.8,
+      decay: 0.009,
     });
-    tone(audio, at, { from: 190 * pitch, to: 110 * pitch, gain: 0.7, decay: 0.07 });
-    noiseBurst(audio, at + 0.003, {
-      type: "lowpass",
-      frequency: 600 * pitch,
-      q: 0.7,
-      gain: 0.35,
-      decay: 0.045,
+    // Its metallic edge: a high tick that slides down a little.
+    tone(audio, at, { from: 3400 * pitch, to: 2700 * pitch, gain: 0.22, decay: 0.014 });
+    // The keycap bottoming out a moment later (the rest of the travel): a mid plastic clack, not a bass thud.
+    noiseBurst(audio, at + 0.014, {
+      type: "bandpass",
+      frequency: 1900 * pitch,
+      q: 1.1,
+      gain: 0.4,
+      decay: 0.03,
     });
   } else {
+    // A Blue clicks on the way up too (the jacket resetting), a little softer and higher.
     noiseBurst(audio, at, {
       type: "bandpass",
-      frequency: 3600 * pitch,
-      q: 1.2,
-      gain: 0.25,
-      decay: 0.018,
+      frequency: 4400 * pitch,
+      q: 2.5,
+      gain: 0.45,
+      decay: 0.008,
     });
-    tone(audio, at, { from: 320 * pitch, to: 240 * pitch, gain: 0.12, decay: 0.03 });
+    tone(audio, at, { from: 2900 * pitch, to: 2400 * pitch, gain: 0.12, decay: 0.01 });
   }
 }
 
