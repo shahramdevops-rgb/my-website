@@ -118,6 +118,9 @@ reveal something real about the back-end. Details and rejected ideas: `roadmap.m
   `P5-T4` (policy `Admin` in `Api/Configuration/AuthorizationPolicies.cs`, set once on the `/api/admin` group;
   `GET /api/admin/dashboard` (zeros, `Application/Admin/`) pulled in from P5-T5; `Auth/AdminAuthorizationTests` reads
   the routing table: policy metadata, anonymous → 401, non-admin → 403; test helper `TestUser`).
+- **Done in P13 (pulled forward):** `P13-T3` (`.github/dependabot.yml` weekly grouped updates for NuGet/npm/Actions/
+  Docker, majors + held-back TS/ESLint ignored; CI fails on vulnerable NuGet packages (transitive too) and on
+  high/critical `pnpm audit --prod`).
 - **GitHub:** `main` pushed on 2026-10-23 (fast-forward to the stacked branches); CI green there for the first time.
 - **Server rules:** the VPS runs the gym system in production — gym backup before any change, every server command
   explained and approved first, never touch the gym's containers/volumes, nothing but the edge on 80/443.

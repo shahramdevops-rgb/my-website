@@ -1,0 +1,59 @@
+# Dependabot (P13-T3): a weekly pull request per ecosystem with version updates, grouped so one review covers a
+# batch. Each PR runs CI (build, tests, vulnerability checks) before anything is merged by hand. Security alerts and
+# security-update PRs for known vulnerabilities are a separate switch in the repository settings (Security →
+# Dependabot alerts / security updates) and arrive as soon as an advisory is published, not weekly.
+version: 2
+
+updates:
+  - package-ecosystem: nuget
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      # Minor/patch updates in one PR; a major version (e.g. .NET 11 packages) gets its own PR and its own decision.
+      nuget-minor-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: npm
+    # pnpm is detected from frontend/pnpm-lock.yaml.
+    directory: "/frontend"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      npm-minor-patch:
+        update-types: [minor, patch]
+    ignore:
+      # Held back on purpose (CLAUDE.md §2): typescript-eslint supports TypeScript < 6.1, and eslint-plugin-react /
+      # import / jsx-a11y don't support ESLint 10 yet. Remove these lines when their peer ranges allow it.
+      - dependency-name: typescript
+        versions: [">=6.1"]
+      - dependency-name: eslint
+        versions: [">=10"]
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "chore(ci)"
+    groups:
+      actions:
+        patterns: ["*"]
+
+  # Base images in Dockerfile and frontend/Dockerfile. Tags are major/minor (rules.md §14), so patch releases arrive
+  # with every image build anyway; this catches the rest. A new major (.NET 11, Node 26) is a decision, not a bump.
+  - package-ecosystem: docker
+    directories: ["/", "/frontend"]
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "chore(docker)"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]

@@ -500,7 +500,12 @@
 
 - [ ] **P13-T1 CSP & security headers audit** (ADR-025) — securityheaders.com A on HTML and API responses.
 - [ ] **P13-T2 Admin 2FA (TOTP)** with recovery codes.
-- [ ] **P13-T3 Dependabot (NuGet + npm)** + `dotnet list package --vulnerable` and `pnpm audit` in CI.
+- [x] **P13-T3 Dependabot (NuGet + npm)** + `dotnet list package --vulnerable` and `pnpm audit` in CI.
+  Status: done 2026-10-25, pulled forward before the first deploy (security before sharing the gym's server).
+  `.github/dependabot.yml`: weekly, grouped minor/patch for NuGet, npm, Actions, Docker base images; majors and the
+  held-back TypeScript ≥ 6.1 / ESLint ≥ 10 excluded. CI fails on any vulnerable NuGet package (incl. transitive) and on
+  high/critical `pnpm audit --prod` findings. Open: Shahram enables Dependabot alerts + security updates in the
+  GitHub repository settings.
 - [ ] **P13-T4 Accessibility audit** (keyboard pass, NVDA smoke test, contrast re-check, signature features' fallbacks).
 - [ ] **P13-T5 Resume print stylesheet** & page polish.
 - [ ] **P13-T6 Backup restore drill #2** + documented RPO/RTO.

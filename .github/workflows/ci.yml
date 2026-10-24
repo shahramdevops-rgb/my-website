@@ -68,6 +68,17 @@ jobs:
       - name: Check formatting
         run: dotnet format --verify-no-changes --no-restore
 
+      # Known vulnerabilities (GitHub Advisory Database via nuget.org) in any package, direct or transitive. The
+      # command itself always exits 0, so its report is searched. Runs on every push, so an advisory published
+      # after a package was added fails the next build and the next release (release.yml runs this workflow).
+      - name: Check for vulnerable NuGet packages
+        run: |
+          dotnet list package --vulnerable --include-transitive | tee vulnerable.txt
+          if grep -q "has the following vulnerable packages" vulnerable.txt; then
+            echo "::error::Vulnerable NuGet packages found (see the report above). Update them in Directory.Packages.props."
+            exit 1
+          fi
+
       - name: Test
         run: dotnet test --no-build --configuration Release
 
@@ -102,6 +113,12 @@ jobs:
       # --frozen-lockfile: install exactly what pnpm-lock.yaml says, and fail if package.json disagrees with it.
       - name: Install
         run: pnpm install --frozen-lockfile
+
+      # Known vulnerabilities in what ships in the image (--prod: dependencies, not devDependencies), high or
+      # critical only, so a moderate advisory in a deep dependency doesn't block every push; Dependabot alerts
+      # report the rest. Exits non-zero on a finding.
+      - name: Check for vulnerable npm packages
+        run: pnpm audit --prod --audit-level high
 
       # The TS types come from openapi/v1.json (whose match with the C# code the .NET job checks). Stale types
       # would let the front-end compile against a contract the API no longer has.
