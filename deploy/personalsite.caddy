@@ -15,6 +15,12 @@
 	# Compress text responses (HTML, JSON, JS, CSS). Responses that are already compressed are left alone.
 	encode zstd gzip
 
+	# Bodies over 10 MB are refused here (413), before they reach either app or use memory on a server shared with
+	# the gym (P4-T7). The API's own limit is 1 MB; P6's image uploads will stay under this one.
+	request_body {
+		max_size 10MB
+	}
+
 	# HSTS on every response — pages from Next.js too, not only the API's (which also sends it, P4-T2).
 	# 30 days, no includeSubDomains/preload: easy to back out of. `defer` applies it after the upstream answered,
 	# so it replaces the API's copy instead of sending the header twice.

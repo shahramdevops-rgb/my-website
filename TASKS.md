@@ -227,6 +227,16 @@
   repo's part, the server checklist and the cut-over (`deploy/SHARED-SERVER.md §3–4`), then tag `v0.2.0`.
   Learn: host vs bridge networking, loopback-published ports and ufw, Caddy reload semantics, OOM score.
 
+- [x] **P4-T7 Container hardening for the shared server**
+  Scope: the gym's production data shares the server (ADR-028), so a compromise of this site must stay inside its
+  containers: `cap_drop ALL` (+ the db entrypoint's five), `no-new-privileges`, read-only root filesystems + tmpfs,
+  `pids_limit`, db on an internal network, request-body limits in the edge (10 MB) and Kestrel (1 MB).
+  Done when: the prod stack runs locally with all of it, and writes, capabilities, frontend → db and db → internet
+  are shown to fail; backups still work.
+  Status: done 2026-10-25 (added at Shahram's request before the first deploy); checks in `deploy/SHARED-SERVER.md §6`,
+  to be repeated on the server after the first deploy.
+  Learn: Linux capabilities, read-only containers, internal networks, what a shared kernel means.
+
 ## Phase 5 — Admin panel & authentication
 
 - [x] **P5-T1 Identity setup**

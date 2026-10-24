@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text.Json.Nodes;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using PersonalSite.Api.Auth;
 using PersonalSite.Api.Configuration;
 using PersonalSite.Api.Infrastructure;
@@ -11,6 +12,9 @@ namespace PersonalSite.Api;
 
 public static class DependencyInjection
 {
+    /// <summary>Largest request body the API accepts, in bytes (1 MB); see <see cref="AddApi"/>.</summary>
+    public const long MaxRequestBodySize = 1024 * 1024;
+
     /// <summary>
     /// Registers Api-layer services: logging, options, admin sign-in, rate limits, routing, error handling, OpenAPI and
     /// health checks.
@@ -53,6 +57,11 @@ public static class DependencyInjection
         services.AddAdminAuthentication();
         services.AddScoped<AdminSignIn>();
         services.AddRateLimits();
+
+        // Kestrel accepts 30 MB bodies by default. Every endpoint today takes a few hundred bytes of JSON, so anything
+        // bigger is refused (413) before it is buffered: less memory an attacker can make this API hold on a server
+        // shared with another app. File uploads (P6) raise the limit on their own endpoint only.
+        services.Configure<KestrelServerOptions>(options => options.Limits.MaxRequestBodySize = MaxRequestBodySize);
 
         services.AddRouting(options => options.LowercaseUrls = true);
         services.AddProblemDetails();

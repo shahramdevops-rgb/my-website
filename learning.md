@@ -763,3 +763,20 @@ since each attempt costs a PBKDF2 hash. Lockout counts per account, across IPs. 
 `UseForwardedHeaders` runs first and believes only the edge proxy.
 **Same answer, same time:** unknown email, wrong password, locked account → one `401 auth.invalid_credentials`. An
 unknown email also runs a decoy hash, so response time doesn't reveal which email is the admin's.
+
+### 7.17 Containing a compromise: capabilities, read-only containers, internal networks (P4-T7)
+Containers share the host's kernel, so "inside a container" is only as strong as the limits on it. On a server
+shared with the gym, every limit answers: *if someone runs code in this container, what can that code do?*
+- **Capabilities.** Linux splits root's powers into ~40 capabilities (`CAP_CHOWN`, `CAP_NET_RAW`, `CAP_SYS_ADMIN`…).
+  Docker keeps 14 by default; `cap_drop: [ALL]` removes them. Check: `grep CapEff /proc/1/status` → `0000000000000000`.
+- **`no-new-privileges`.** Blocks the setuid trick: running `su`/`sudo`-like binaries can't raise privileges.
+- **`read_only: true`.** The image's filesystem can't be changed; scratch space comes from `tmpfs` (RAM, counted in
+  the memory limit, empty after a restart):
+  ```yaml
+  read_only: true
+  tmpfs: ["/tmp:size=16m"]
+  ```
+- **Internal network.** `internal: true` gives a docker network no gateway: the db can talk to the api, and nothing
+  else, in either direction. The frontend isn't on it, so it can't even resolve the name `db`.
+- **What's left:** a kernel bug escapes any container (keep the host patched), and anyone in the `docker` group is
+  root on the host (protect the deploy key).

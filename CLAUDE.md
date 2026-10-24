@@ -99,6 +99,9 @@ reveal something real about the back-end. Details and rejected ideas: `roadmap.m
   `127.0.0.1:13000/18080`; limits `cpus 1`/`384m`/`oom_score_adj 500`; `deploy.sh` renders `deploy/personalsite.caddy`
   (was `deploy/Caddyfile`) into the edge and reloads it, refuses pre-edge tags (`v0.1.0`). Plan, conflicts and
   server checklist: `deploy/SHARED-SERVER.md`. Tested locally end to end.
+  `P4-T7` (hardening for the shared server: `x-hardening` in `compose.prod.yaml` = `cap_drop ALL` (db adds back 5),
+  `no-new-privileges`, `read_only` + tmpfs, `pids_limit 256`; db only on the `internal` network `backend`; bodies:
+  edge 10 MB, Kestrel 1 MB; verified locally — `deploy/SHARED-SERVER.md §6`, repeat the checks on the server).
 - **Done in P5:** `P5-T1` (`AppDbContext : IdentityDbContext<AppUser, IdentityRole<Guid>, Guid>`, `AppUser` in
   `Infrastructure/Identity` (UUID v7); migration `AddIdentity` with snake_case tables via
   `Persistence/Configurations/IdentityConfigurations.cs`; `Api/Configuration/AdminAuthentication.cs`: password length

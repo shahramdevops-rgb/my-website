@@ -135,3 +135,7 @@
 - Only Caddy publishes host ports in prod (dev also publishes the DB on 5433).
 - Persistent data only in named volumes: `pgdata`, `uploads`, `dpkeys`, `caddy_data`.
 - Healthchecks on `api`, `frontend` and `db`; `depends_on: condition: service_healthy`.
+- Production services are hardened (`compose.prod.yaml`, `x-hardening`): `cap_drop: [ALL]` (add back only what a
+  service proves it needs, with a comment), `no-new-privileges`, `read_only: true` + tmpfs for scratch paths,
+  `pids_limit`, CPU/memory limits. Never mount the docker socket. A new service gets all of it
+  (`deploy/SHARED-SERVER.md §6`).

@@ -73,7 +73,7 @@ Internet ──80/443──► edge Caddy  (/opt/edge, host network, owns 80/443
 | A3 | Ports listening on the host | `13000`/`18080` free; pick the gym's loopback port |
 | A4 | The gym's compose file, Caddyfile, forwarded-header settings, `release.sh` / `server.sh` | Input for §3; check the gym's Caddy has no catch-all site that would answer for this site's domains |
 | A5 | Anonymous access to `ghcr.io` and `github.com` from the server | Decides pull vs. the `docker save \| ssh docker load` fallback (`deploy/README.md §8`) |
-| A6 | `docker compose version` ≥ 2.24.4 | `compose.prod.yaml` uses `!reset` |
+| A6 | `docker compose version` ≥ 2.24.4 | `compose.prod.yaml` uses `!reset` and `<<: [a, b]` merges |
 | A7 | The gym's last backup and its off-server copy | The safety net for the cut-over |
 
 **B. Preparation that doesn't touch the gym:**
@@ -105,3 +105,45 @@ Estimated memory of this stack (to be measured, not promised): PostgreSQL 100–
 150–300 MB, plus the edge Caddy 30–50 MB → ≈ 0.4–0.75 GB. Later features add more: the live demos (P6) and the local
 AI model for semantic search (P12, a few hundred MB). Upgrade trigger: swap in use all the time, or the gym panel
 slower after this site's deploy → 8 GB RAM. CPU matters less: nothing is built on the server.
+
+## 6. Isolation: if this site is ever compromised (P4-T7)
+
+The gym holds real member and payment data; this site is the newer, more exposed code. The question for every
+layer: *if an attacker gets code running inside one of this site's containers, what can they reach?*
+
+| Layer | What is in place | What it stops |
+|---|---|---|
+| Users | `api` and `frontend` run as non-root (`app`, `node`); PostgreSQL drops to `postgres` | Root inside the container |
+| Linux capabilities | `cap_drop: [ALL]` on every service; the db adds back only `CHOWN DAC_OVERRIDE FOWNER SETGID SETUID` for its entrypoint (its server process ends with none) | Raw sockets, mounts, changing other files' owners, … |
+| Privilege escalation | `no-new-privileges` | A setuid binary turning the attacker into root |
+| Filesystem | `read_only: true`; writable only: the named volumes and small tmpfs mounts (`/tmp`, Next's cache, the db socket) | Dropping tools, changing the app's code, filling the disk outside volumes |
+| Processes | `pids_limit: 256`, `cpus: 1`, `mem_limit: 384m`, `oom_score_adj: 500` | Fork bombs; starving the gym of CPU/RAM; the OOM killer picks this site first |
+| Network: db | Only on the `internal` network `backend` (api ↔ db); no ports | The frontend can't reach PostgreSQL; the db has no route to the internet or the host |
+| Network: other apps | No shared docker network with the gym; apps publish on `127.0.0.1` only; Docker isolates bridge networks from each other | Reaching the gym's containers or its database |
+| Host | No docker socket mounted anywhere; the edge's admin API is a root-only unix socket | Controlling Docker or the edge from a container |
+| Requests | Edge: bodies > 10 MB → 413; API: bodies > 1 MB → 413, `login` rate limit, lockout, CSRF check (P5-T3) | Memory/CPU exhaustion through requests |
+
+Checked locally on 2026-10-25 with the production compose file: the stack migrates, becomes healthy and serves pages;
+writes outside the volumes fail (`Read-only file system`); `CapEff` is 0 for every app process; the frontend can't
+resolve `db`; the db can't reach the internet; forwarded headers are still trusted (HSTS on a forwarded https
+request); `pg_dump` (backups) and a db restart work.
+
+**Remaining risks, and who handles them:**
+- **Shared kernel.** A kernel exploit escapes any container. Keep the server patched (`unattended-upgrades` for
+  security updates) — a server-level setting that protects the gym as much as this site.
+- **The `deploy` user is in the `docker` group**, which is root on the host. Its SSH key is the most valuable secret
+  of this site; key-only login, never on a shared machine.
+- **The app's database user is PostgreSQL's superuser** in its own container (the image's default). A SQL injection
+  could run programs *inside the db container* (`COPY … TO PROGRAM`), which the table above contains. A separate
+  least-privilege role for the app is planned for the security audit (P13).
+- **Disk.** Volumes share the server's disk; logs are capped, uploads get size limits in P6. Watch `df -h` after
+  launch (F).
+- Not used: Docker's user-namespace remapping (`userns-remap`) — a daemon-wide switch that would also change the
+  gym's containers and volume ownership.
+
+**After the first deploy, on the server (adds to F):**
+```bash
+docker inspect personalsite-api-1 personalsite-frontend-1 personalsite-db-1 \
+  --format '{{.Name}} ro={{.HostConfig.ReadonlyRootfs}} drop={{.HostConfig.CapDrop}} opt={{.HostConfig.SecurityOpt}} pids={{.HostConfig.PidsLimit}}'
+docker exec personalsite-frontend-1 node -e "require('net').connect(5432,'db').on('error',e=>console.log(e.code))"  # EAI_AGAIN
+```

@@ -23,6 +23,23 @@ x-limits: &limits
   cpus: 1.0
   mem_limit: 384m
   oom_score_adj: 500
+  # A fork bomb (or a runaway thread pool) stops at 256 processes/threads in this container instead of exhausting
+  # the kernel's process table, which the gym's containers share. .NET and Node use a few dozen threads.
+  pids_limit: 256
+
+# Hardening (P4-T7, deploy/SHARED-SERVER.md §6): if someone ever gets code running inside one of these containers,
+# limit what that code can do to the server and to the gym next to it. All of them share the host's kernel, so the
+# aim is to leave as little kernel surface and privilege as possible.
+# - cap_drop ALL: none of Linux's root powers (changing file owners, raw sockets, binding ports < 1024, ...). The
+#   API and Next.js already run as non-root users and need none; the db adds back the few its entrypoint needs.
+# - no-new-privileges: a setuid binary (e.g. su) can't raise a process's privileges, even if one is found in the image.
+# - read_only: the container's own filesystem can't be changed, so an attacker can't drop tools or modify the app's
+#   files; only the named volumes and small in-memory tmpfs mounts are writable (they count towards mem_limit).
+# Docker's default seccomp profile (which blocks ~44 dangerous syscalls) stays on: it is never disabled here.
+x-hardening: &hardening
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  read_only: true
 
 # Fixed address range of the stack's network. The edge reaches frontend/api through their published loopback ports,
 # so Docker hands those connections to the containers from this network's gateway (172.30.0.1): the API trusts
@@ -39,7 +56,12 @@ services:
     build: !reset null
     restart: unless-stopped
     logging: *logging
-    <<: *limits
+    <<: [*limits, *hardening]
+    tmpfs:
+      # Next.js's data cache (cached API fetches, ADR-025) and image cache; uid 1000 = the image's "node" user.
+      # In memory, so it starts empty after a restart, like a fresh deploy.
+      - /app/.next/cache:uid=1000,gid=1000,mode=0700,size=64m
+      - /tmp:size=16m
     ports:
       # Loopback only: reachable by the edge proxy on this machine, never from outside (Docker's published ports
       # bypass ufw, so a 0.0.0.0 binding here would be open to the internet). The edge finds the port with
@@ -51,7 +73,16 @@ services:
     build: !reset null
     restart: unless-stopped
     logging: *logging
-    <<: *limits
+    <<: [*limits, *hardening]
+    tmpfs:
+      # .NET's temp files and diagnostic sockets (dotnet-counters/-trace attach through /tmp).
+      - /tmp:size=16m
+    networks:
+      # default: published port, the edge's forwarded headers and the frontend's calls (http://api:8080).
+      # backend: the database. An internal network is never a container's gateway, so connections to the published
+      # port keep arriving from 172.30.0.1, the trusted proxy address (ReverseProxy:TrustedNetworks).
+      - default
+      - backend
     ports:
       - "127.0.0.1:${API_HOST_PORT:-18080}:8080"
     # The API's own settings (Site__Social__*, FeatureManagement__*, later Admin__*, ...) come from .env.
@@ -76,14 +107,26 @@ services:
   db:
     restart: unless-stopped
     logging: *logging
-    <<: *limits
-    # No ports: PostgreSQL is reachable only from the docker network (the dev override's 5433 is not loaded).
+    <<: [*limits, *hardening]
+    # The official image's entrypoint starts as root, fixes the data directory's owner and switches to the
+    # "postgres" user (su-exec): it needs these powers back, and nothing else. PostgreSQL itself runs unprivileged.
+    cap_add: [CHOWN, DAC_OVERRIDE, FOWNER, SETGID, SETUID]
+    tmpfs:
+      # The server's unix socket (pg_dump/psql in backup.sh connect through it) and temp files.
+      - /var/run/postgresql:uid=70,gid=70,mode=2777,size=1m
+      - /tmp:size=64m
+    # Only on the internal backend network: the frontend can't reach PostgreSQL at all, and the database has no route
+    # to the internet or the host. No ports either (the dev override's 5433 is not loaded).
+    networks: [backend]
 
 networks:
   default:
     ipam:
       config:
         - subnet: *subnet
+  # api ↔ db only. internal: Docker gives it no gateway, so nothing on it can open connections outside it.
+  backend:
+    internal: true
 
 volumes:
   uploads:
