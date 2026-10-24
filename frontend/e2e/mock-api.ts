@@ -1,7 +1,7 @@
 // A tiny stand-in for the .NET API, so e2e tests run without the API and a database. Its answers are typed with
 // the generated schema: if the contract changes, `pnpm typecheck` flags this file too. Started by
 // playwright.config.ts with `node e2e/mock-api.ts` (Node 24 runs TypeScript by stripping the types).
-import { createServer } from "node:http";
+import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import type { components } from "../src/lib/api/schema";
 
 type SiteInfo = components["schemas"]["SiteInfoDto"];
@@ -65,10 +65,93 @@ function resume(lang: "fa" | "en"): Resume {
   };
 }
 
+// The admin account and its session; must match e2e/admin.spec.ts. The real API checks a cookie encrypted with
+// Data Protection; here one fixed value stands for "signed in".
+type Dashboard = components["schemas"]["AdminDashboardDto"];
+const admin = { email: "admin@e2e.test", password: "e2e correct passphrase" };
+/** Signing in with this email answers 429, as the API's `login` rate limit would. */
+const rateLimitedEmail = "limited@e2e.test";
+const sessionCookie = "__Host-admin=e2e-session";
+const dashboard: Dashboard = {
+  posts: 12,
+  projects: 3,
+  pendingComments: 4,
+  unreadMessages: 2,
+  subscribers: 1234,
+};
+
 const port = Number(process.env.MOCK_API_PORT ?? 3101);
 
-createServer((request, response) => {
+function json(response: ServerResponse, status: number, body: unknown, headers = {}): void {
+  response.writeHead(status, { "content-type": "application/json", ...headers });
+  response.end(JSON.stringify(body));
+}
+
+function problem(response: ServerResponse, status: number, code?: string, headers = {}): void {
+  response.writeHead(status, { "content-type": "application/problem+json", ...headers });
+  response.end(JSON.stringify({ status, ...(code ? { code } : {}) }));
+}
+
+function signedIn(request: IncomingMessage): boolean {
+  return (request.headers.cookie ?? "").split(/;\s*/).includes(sessionCookie);
+}
+
+async function readJson(request: IncomingMessage): Promise<Record<string, unknown>> {
+  let body = "";
+  for await (const chunk of request) body += chunk;
+  try {
+    return JSON.parse(body) as Record<string, unknown>;
+  } catch {
+    return {};
+  }
+}
+
+/** /api/auth/* and /api/admin/*; false when the path is not one of them. */
+async function handleAdmin(
+  request: IncomingMessage,
+  response: ServerResponse,
+  path: string,
+): Promise<boolean> {
+  if (request.method === "POST" && path === "/api/auth/login") {
+    const { email, password } = await readJson(request);
+    if (email === rateLimitedEmail)
+      problem(response, 429, "request.rate_limited", { "retry-after": "120" });
+    else if (email === admin.email && password === admin.password) {
+      response.writeHead(204, {
+        "set-cookie": `${sessionCookie}; Path=/; Secure; HttpOnly; SameSite=Strict`,
+      });
+      response.end();
+    } else problem(response, 401, "auth.invalid_credentials");
+    return true;
+  }
+
+  if (request.method === "POST" && path === "/api/auth/logout") {
+    response.writeHead(204, {
+      "set-cookie":
+        "__Host-admin=; Path=/; Secure; HttpOnly; SameSite=Strict; Expires=Thu, 01 Jan 1970 00:00:00 GMT",
+    });
+    response.end();
+    return true;
+  }
+
+  if (request.method === "GET" && path === "/api/auth/me") {
+    if (signedIn(request)) json(response, 200, { email: admin.email });
+    else problem(response, 401);
+    return true;
+  }
+
+  if (request.method === "GET" && path === "/api/admin/dashboard") {
+    if (signedIn(request)) json(response, 200, dashboard);
+    else problem(response, 401);
+    return true;
+  }
+
+  return false;
+}
+
+createServer(async (request, response) => {
   const url = new URL(request.url ?? "/", "http://localhost");
+  if (await handleAdmin(request, response, url.pathname)) return;
   const lang = url.searchParams.get("lang");
 
   if (request.method === "GET" && url.pathname === "/api/site") {

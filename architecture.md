@@ -385,7 +385,7 @@ configured locales (`fa`, `en`), anything else is a 404. Admin routes live under
 | `/{locale}/search` | Semantic search (P12, flag `Ai.SemanticSearch`) |
 | `/{locale}/_styleguide` | Dev-only UI kit page (404 in production) |
 | `/sitemap.xml`, `/robots.txt`, `/{locale}/feed.xml` | Next route handlers (data from the API) |
-| `/admin/...` | Admin UI |
+| `/admin`, `/admin/login`, `/admin/...` | Admin panel (no language prefix, `noindex`; P5-T5, §8.5) |
 
 **API (ASP.NET Core)** — everything under `/api`, lowercase, no trailing slash; language is part of the path or a
 `lang` query parameter, never inferred from headers.
@@ -590,6 +590,27 @@ pairs are light `success` on `surface-2` (4.67), light `accent` on `accent-soft`
 First paint is server-rendered HTML + CSS only. Heavy client code (Three.js, demo apps) loads with
 `next/dynamic` after hydration or when its card scrolls into view; until then a static poster with the same size is
 shown (no layout shift), and the poster stays for reduced-motion users or if WebGL is unavailable.
+
+### 8.5 Admin panel (P5-T5)
+- **Routes:** `app/admin/` is a second root layout beside `app/[locale]` (own `<html>`, `HtmlDocument`). No language
+  in the URL: the language comes from the `lang` cookie → `Accept-Language` → `fa` (`setupAdminLocale()` in every
+  admin layout *and* page — Next renders them in parallel). `app/admin/login/page.tsx`; `app/admin/(panel)/` (a route
+  group, not in the URL) = every other page, wrapped in `AdminShell` (sidebar from `lg`, the same links + account +
+  sign-out in `MobileMenu` below it).
+- **Access:** `proxy.ts` sends any `/admin/*` request without the `__Host-admin` cookie (except the login page) to
+  `/admin/login?next=…` (302) — UX only. The `(panel)` layout asks the API (`GET /api/auth/me` with the forwarded
+  cookie) and redirects an expired/revoked session the same way; pages that fetch data handle 401 themselves
+  (`redirectToLogin()`), because layout and page render in parallel. The API is the gate (§5.2). Every admin
+  response: CSP nonce, `X-Robots-Tag: noindex, nofollow`, `Cache-Control: no-store`, `<meta name="robots">`.
+- **Sign-in:** `LoginForm` (client, `useActionState`) posts from the browser to `/api/auth/login`, so the API's
+  `Set-Cookie` reaches the browser; errors map from ProblemDetails `code`/status (`src/lib/admin/login-error.ts`).
+  `next` is reduced to a path inside `/admin` (`safeNextPath`) — no open redirect.
+- **Feedback:** `ToastProvider`/`useToast()` (one polite live region); `setFlash()` parks a message in
+  sessionStorage for the next page (read on every path change).
+- **Sections:** `src/lib/admin/navigation.ts` lists all seven; `ready: false` = shown with a "soon" mark, not a
+  link. Each later task flips its own entry. Dashboard = `GET /api/admin/dashboard`.
+- **e2e:** `e2e/admin.spec.ts`; the browser's `/api/*` calls are forwarded to `e2e/mock-api.ts` with `page.route`
+  (no Caddy in e2e), so the session cookie round-trips like in production.
 
 ### 8.4 Retired: Razor Pages front-end (P1, 2026-10)
 

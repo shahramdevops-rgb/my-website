@@ -200,5 +200,62 @@
       "decision": "تصمیم",
       "why": "چرا"
     }
+  },
+  "admin": {
+    "meta": {
+      "title": "پنل مدیریت",
+      "titleTemplate": "{title} · مدیریت"
+    },
+    "brand": "پنل مدیریت",
+    "login": {
+      "title": "ورود",
+      "description": "پنل مدیریت این سایت. فقط یک حساب وجود دارد و ثبت‌نام ندارد.",
+      "email": "ایمیل",
+      "password": "رمز عبور",
+      "submit": "ورود",
+      "submitting": "در حال ورود…",
+      "errors": {
+        "invalidCredentials": "ایمیل یا رمز عبور اشتباه است. بعد از ۵ تلاش اشتباه، حساب ۱۵ دقیقه قفل می‌شود.",
+        "rateLimited": "تلاش‌های زیادی از این اتصال انجام شده. {minutes, number} دقیقهٔ دیگر دوباره امتحان کنید.",
+        "invalidInput": "ایمیل و رمز عبور را وارد کنید.",
+        "unavailable": "سرور پاسخ نداد. اتصال را بررسی کنید و دوباره امتحان کنید."
+      }
+    },
+    "nav": {
+      "label": "مدیریت",
+      "menu": "منوی مدیریت",
+      "dashboard": "داشبورد",
+      "posts": "پست‌ها",
+      "projects": "نمونه‌کارها",
+      "comments": "کامنت‌ها",
+      "messages": "پیام‌ها",
+      "resume": "رزومه",
+      "subscribers": "مشترکین",
+      "soon": "به‌زودی"
+    },
+    "shell": {
+      "signedInAs": "واردشده با {email}",
+      "logout": "خروج",
+      "viewSite": "مشاهدهٔ سایت",
+      "language": "English"
+    },
+    "dashboard": {
+      "title": "داشبورد",
+      "description": "آنچه در سایت به رسیدگی نیاز دارد.",
+      "posts": "پست‌ها",
+      "projects": "نمونه‌کارها",
+      "pendingComments": "کامنت‌های در انتظار بررسی",
+      "unreadMessages": "پیام‌های خوانده‌نشده",
+      "subscribers": "مشترکین",
+      "soon": "همراه با بخش خودش می‌آید"
+    },
+    "flash": {
+      "signedIn": "وارد شدید.",
+      "signedOut": "خارج شدید."
+    },
+    "toast": {
+      "region": "اعلان‌ها",
+      "dismiss": "بستن"
+    }
   }
 }

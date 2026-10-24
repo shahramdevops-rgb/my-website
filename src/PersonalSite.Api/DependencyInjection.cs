@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using PersonalSite.Api.Auth;
 using PersonalSite.Api.Configuration;
@@ -62,6 +63,10 @@ public static class DependencyInjection
         // bigger is refused (413) before it is buffered: less memory an attacker can make this API hold on a server
         // shared with another app. File uploads (P6) raise the limit on their own endpoint only.
         services.Configure<KestrelServerOptions>(options => options.Limits.MaxRequestBodySize = MaxRequestBodySize);
+
+        // Numbers are JSON numbers, nothing else. The web default also accepts "42" for an int, and the OpenAPI
+        // document then types every int as `integer | string` — so the front-end's types would be wrong too.
+        services.ConfigureHttpJsonOptions(options => options.SerializerOptions.NumberHandling = JsonNumberHandling.Strict);
 
         services.AddRouting(options => options.LowercaseUrls = true);
         services.AddProblemDetails();

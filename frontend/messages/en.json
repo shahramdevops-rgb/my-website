@@ -200,5 +200,62 @@
       "decision": "Decision",
       "why": "Why"
     }
+  },
+  "admin": {
+    "meta": {
+      "title": "Admin panel",
+      "titleTemplate": "{title} · Admin"
+    },
+    "brand": "Admin panel",
+    "login": {
+      "title": "Sign in",
+      "description": "The admin panel of this site. There is one account and no sign-up.",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Sign in",
+      "submitting": "Signing in…",
+      "errors": {
+        "invalidCredentials": "The email or password is wrong. After 5 wrong attempts the account is locked for 15 minutes.",
+        "rateLimited": "Too many attempts from this connection. Try again in {minutes, plural, one {# minute} other {# minutes}}.",
+        "invalidInput": "Enter your email and password.",
+        "unavailable": "The server didn't answer. Check your connection and try again."
+      }
+    },
+    "nav": {
+      "label": "Admin",
+      "menu": "Admin menu",
+      "dashboard": "Dashboard",
+      "posts": "Posts",
+      "projects": "Projects",
+      "comments": "Comments",
+      "messages": "Messages",
+      "resume": "Resume",
+      "subscribers": "Subscribers",
+      "soon": "Soon"
+    },
+    "shell": {
+      "signedInAs": "Signed in as {email}",
+      "logout": "Sign out",
+      "viewSite": "View site",
+      "language": "فارسی"
+    },
+    "dashboard": {
+      "title": "Dashboard",
+      "description": "What needs attention on the site.",
+      "posts": "Posts",
+      "projects": "Projects",
+      "pendingComments": "Comments awaiting review",
+      "unreadMessages": "Unread messages",
+      "subscribers": "Subscribers",
+      "soon": "Arrives with its section"
+    },
+    "flash": {
+      "signedIn": "Signed in.",
+      "signedOut": "Signed out."
+    },
+    "toast": {
+      "region": "Notifications",
+      "dismiss": "Dismiss"
+    }
   }
 }

@@ -265,3 +265,11 @@
       stroke 250ms ease;
   }
 }
+
+/* Admin toasts (Toaster.tsx) rise into place; used only through motion-safe:, so reduced motion shows them at once. */
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+}

@@ -118,6 +118,12 @@ reveal something real about the back-end. Details and rejected ideas: `roadmap.m
   `P5-T4` (policy `Admin` in `Api/Configuration/AuthorizationPolicies.cs`, set once on the `/api/admin` group;
   `GET /api/admin/dashboard` (zeros, `Application/Admin/`) pulled in from P5-T5; `Auth/AdminAuthorizationTests` reads
   the routing table: policy metadata, anonymous → 401, non-admin → 403; test helper `TestUser`).
+  `P5-T5` (admin panel `app/admin/` = own root layout, no locale prefix, language from the `lang` cookie
+  (`setupAdminLocale()` in every admin layout/page); `proxy.ts` → `/admin/login?next=` without the cookie +
+  `noindex`/`no-store`; `(panel)` layout checks `GET /api/auth/me`; `LoginForm` (`useActionState`, browser → API);
+  `safeNextPath` against open redirects; `ToastProvider`/`useToast` + `setFlash`; sidebar sections `ready: false` until
+  their phase (`src/lib/admin/navigation.ts`); `e2e/admin.spec.ts` forwards browser `/api` calls to the mock with
+  `page.route`; API JSON numbers strict → OpenAPI `integer`).
 - **Done in P13 (pulled forward):** `P13-T3` (`.github/dependabot.yml` weekly grouped updates for NuGet/npm/Actions/
   Docker, majors + held-back TS/ESLint ignored; CI fails on vulnerable NuGet packages (transitive too) and on
   high/critical `pnpm audit --prod`).
@@ -125,7 +131,7 @@ reveal something real about the back-end. Details and rejected ideas: `roadmap.m
 - **Server rules:** the VPS runs the gym system in production — gym backup before any change, every server command
   explained and approved first, never touch the gym's containers/volumes, nothing but the edge on 80/443.
 - **Next task:** Shahram: server checklist A–B in `deploy/SHARED-SERVER.md §4` (read-only checks + prep), then the gym
-  repo's part (§3) and the cut-over; then tag `v0.2.0` and deploy (`P4-T4`). Claude: `P5-T5` (Admin shell in Next.js).
+  repo's part (§3) and the cut-over; then tag `v0.2.0` and deploy (`P4-T4`). Claude: `P6-T1` (Domain: Project & MediaFile).
 - **Accent color:** electric blue (`#4DB5FF` dark / `#0A63C9` light), picked by Claude at Shahram's request; easy to change (`architecture.md §8.1`).
 - **Waiting on Shahram:** contact links (`Site:Social:Email|GitHub|Telegram`); optional display face (P2-T8 left it out);
   real résumé facts — every `[placeholder]` and `2000-01` date in `src/PersonalSite.Api/Content/resume.*.json`;

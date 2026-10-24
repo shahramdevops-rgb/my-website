@@ -113,15 +113,15 @@ export interface components {
         /** @description Counts on the admin dashboard; each links to its admin page (P5-T5). */
         AdminDashboardDto: {
             /** Format: int32 */
-            posts: number | string;
+            posts: number;
             /** Format: int32 */
-            projects: number | string;
+            projects: number;
             /** Format: int32 */
-            pendingComments: number | string;
+            pendingComments: number;
             /** Format: int32 */
-            unreadMessages: number | string;
+            unreadMessages: number;
             /** Format: int32 */
-            subscribers: number | string;
+            subscribers: number;
         };
         /** @description Answer of `GET /api/auth/me`: who is signed in to the admin panel. */
         CurrentAdminDto: {
@@ -131,7 +131,7 @@ export interface components {
             type?: null | string;
             title?: null | string;
             /** Format: int32 */
-            status?: null | number | string;
+            status?: null | number;
             detail?: null | string;
             instance?: null | string;
             errors?: {
@@ -147,7 +147,7 @@ export interface components {
             type?: null | string;
             title?: null | string;
             /** Format: int32 */
-            status?: null | number | string;
+            status?: null | number;
             detail?: null | string;
             instance?: null | string;
         };

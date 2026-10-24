@@ -18,6 +18,7 @@ const routes = [
   "/fa/no-such-page",
   "/en/no-such-page",
   "/de",
+  "/admin/login",
 ];
 
 declare global {

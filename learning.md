@@ -487,6 +487,34 @@ checks the printed look without a printer.
 
 ---
 
+### 4.22 The admin panel: a second root layout, route groups, and forms with `useActionState` (P5-T5)
+**Two root layouts.** `app/[locale]/layout.tsx` and `app/admin/layout.tsx` each render their own `<html>` — like two
+separate `_Layout.cshtml` files for two areas in ASP.NET. Moving between them is a full page load.
+**Route group** = a folder in parentheses, left out of the URL: `app/admin/(panel)/page.tsx` is `/admin`. It lets
+every page except the login page share a layout (the sidebar) — like an MVC area whose pages share a layout, minus
+the login view:
+```
+app/admin/layout.tsx           <html>, toasts           ← /admin/login and /admin/*
+app/admin/login/page.tsx       /admin/login
+app/admin/(panel)/layout.tsx   asks the API who is signed in, draws the sidebar
+app/admin/(panel)/page.tsx     /admin (dashboard)
+```
+**Layouts and pages render in parallel**, not one inside the other's code path: something the layout does (setting
+the language, checking the session) is not guaranteed to have happened when the page runs. So every page repeats
+what it depends on — `setupAdminLocale()`, and a 401 check on its own data.
+**A form with `useActionState`** (React 19): the action is an async function that gets the `FormData` and returns
+the next state (here: the error to show); React gives a `pending` flag while it runs.
+```tsx
+const [state, formAction, pending] = useActionState(async (_prev, formData) => {
+  const { response } = await browserApi.POST("/api/auth/login", { body: { … } });
+  return response.ok ? { error: null } : { error: loginError(response.status, …) };
+}, { error: null });
+<form action={formAction}>…<Button disabled={pending}>…</Button></form>
+```
+It runs in the browser on purpose: the API's `Set-Cookie` must reach the browser, not the Next.js server.
+**Open redirect:** `?next=https://evil.example` would let a phishing link send the admin to a fake site after a real
+login, so `safeNextPath()` keeps only paths inside `/admin`.
+
 ## Part 5 — Security
 
 ### 5.1 XSS and Markdown sanitization
