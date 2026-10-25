@@ -1,5 +1,18 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { keyPitch } from "./keyboard-sound";
+import { type KeySound, keyPitch, type SoundLayer, strokeLayers } from "./keyboard-sound";
+
+/** A centre key of the front row of the main grid. */
+const csharp: KeySound = { id: "csharp", category: "backend", x: 0, y: 1, small: false };
+/** No jitter: random() in the middle of its range. */
+const steady = () => 0.5;
+
+const kinds = (layers: SoundLayer[]) =>
+  layers.map((layer) => `${layer.kind}:${"filter" in layer ? layer.filter : "sine"}`);
+const first = (layers: SoundLayer[]) => {
+  const layer = layers[0];
+  if (layer?.kind !== "noise") throw new Error("The first layer is not noise.");
+  return layer;
+};
 
 describe("keyPitch", () => {
   it("gives every key its own pitch, the same each time", () => {
@@ -14,6 +27,67 @@ describe("keyPitch", () => {
       expect(keyPitch(seed)).toBeLessThanOrEqual(1.08);
     },
   );
+});
+
+describe("strokeLayers", () => {
+  it("gives every category its own switch", () => {
+    const press = (category: KeySound["category"]) =>
+      strokeLayers("down", { ...csharp, category }, steady);
+
+    // Blue and Box Navy click (noise + metallic tone + bottom-out); Brown bumps; Red is a low-passed thock + resonance.
+    expect(kinds(press("backend"))).toEqual(["noise:bandpass", "tone:sine", "noise:bandpass"]);
+    expect(kinds(press("frontend"))).toEqual(["noise:bandpass", "noise:bandpass"]);
+    expect(kinds(press("database"))).toEqual(["noise:lowpass", "tone:sine"]);
+    expect(kinds(press("devops"))).toEqual(["noise:bandpass", "tone:sine", "noise:bandpass"]);
+    // Box Navy's click bar: louder and lower than a Blue's click.
+    expect(first(press("devops")).gain).toBeGreaterThan(first(press("backend")).gain);
+    expect(first(press("devops")).frequency).toBeLessThan(first(press("backend")).frequency);
+  });
+
+  it("clicks again on release only for the clicky switches", () => {
+    const release = (category: KeySound["category"]) =>
+      strokeLayers("up", { ...csharp, category }, steady);
+
+    expect(release("backend")).toHaveLength(2);
+    expect(release("devops")).toHaveLength(2);
+    expect(release("frontend")).toHaveLength(1);
+    expect(release("database")).toHaveLength(1);
+    expect(first(release("frontend")).gain).toBeLessThan(first(release("backend")).gain);
+  });
+
+  it("makes edge keys hollower than centre keys: longer, more resonant, a little lower", () => {
+    const centre = first(strokeLayers("down", csharp, steady));
+    const edge = first(strokeLayers("down", { ...csharp, x: -1 }, steady));
+
+    expect(edge.decay).toBeGreaterThan(centre.decay);
+    expect(edge.q).toBeGreaterThan(centre.q);
+    expect(edge.frequency).toBeLessThan(centre.frequency);
+  });
+
+  it("makes back rows brighter and the small keys higher", () => {
+    const front = first(strokeLayers("down", csharp, steady));
+    const back = first(strokeLayers("down", { ...csharp, y: 0 }, steady));
+    const small = first(strokeLayers("down", { ...csharp, small: true }, steady));
+
+    expect(back.frequency).toBeGreaterThan(front.frequency);
+    expect(small.frequency).toBeGreaterThan(front.frequency);
+  });
+
+  it("varies every press a little: timing, filter, decay and loudness", () => {
+    const low = strokeLayers("down", csharp, () => 0);
+    const high = strokeLayers("down", csharp, () => 1);
+    const steadyPress = strokeLayers("down", csharp, steady);
+
+    for (const press of [low, high]) {
+      expect(first(press).frequency).not.toBe(first(steadyPress).frequency);
+      expect(first(press).decay).not.toBe(first(steadyPress).decay);
+      expect(first(press).gain).not.toBe(first(steadyPress).gain);
+      expect(press[2]?.delay).not.toBe(steadyPress[2]?.delay);
+    }
+    // The stroke itself is never early or late; only the later layers drift.
+    expect(low[0]?.delay).toBe(0);
+    expect(high[0]?.delay).toBe(0);
+  });
 });
 
 describe("playKeySound", () => {
@@ -72,7 +146,7 @@ describe("playKeySound", () => {
     activate(true);
     const { playKeySound } = await import("./keyboard-sound");
 
-    playKeySound("down", "csharp");
+    playKeySound("down", csharp);
 
     expect(started.count).toBe(3);
   });
@@ -82,7 +156,7 @@ describe("playKeySound", () => {
     activate(false);
     const { playKeySound } = await import("./keyboard-sound");
 
-    playKeySound("down", "csharp");
+    playKeySound("down", csharp);
 
     expect(started.count).toBe(0);
   });
@@ -93,7 +167,7 @@ describe("playKeySound", () => {
     document.documentElement.setAttribute("data-sound", "off");
     const { playKeySound } = await import("./keyboard-sound");
 
-    playKeySound("up", "csharp");
+    playKeySound("up", csharp);
 
     expect(started.count).toBe(0);
   });

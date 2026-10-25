@@ -99,3 +99,26 @@ export function keyboardLayout(count: number): { columns: number; rows: number }
   const rows = Math.max(1, Math.ceil(count / 4));
   return { columns: Math.max(1, Math.ceil(count / rows)), rows };
 }
+
+/**
+ * Where a keycap sits on the plate, for its sound (P3-T13): `x` from -1 (left edge) through 0 (centre) to 1 (right
+ * edge), `y` from 0 (back row) to 1 (front row). The "also" rows are at the back, above the main grid, in its
+ * columns — the same arrangement as the poster and the 3D scene.
+ */
+export function keyPosition(keycaps: Keycap[], keycap: Keycap): { x: number; y: number } {
+  const main = keycapsIn(keycaps, "main");
+  const also = keycapsIn(keycaps, "also");
+  const { columns, rows } = keyboardLayout(main.length);
+  const alsoRows = Math.ceil(also.length / columns);
+  const group = keycap.row === "also" ? also : main;
+  const index = group.findIndex(({ id }) => id === keycap.id);
+  const column = index % columns;
+  const row = Math.floor(index / columns) + (keycap.row === "main" ? alsoRows : 0);
+  const half = (columns - 1) / 2;
+  const lastRow = alsoRows + rows - 1;
+
+  return {
+    x: half === 0 ? 0 : (column - half) / half,
+    y: lastRow === 0 ? 1 : row / lastRow,
+  };
+}

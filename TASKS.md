@@ -217,7 +217,7 @@
   `components/keyboard/category-colors.ts`; `CategoryLegend` + `CategoryMark`. Contrast test: text/muted/accent on
   every body (4.5:1), every mark on bg/surface/surface-2/its body (3:1).
 
-- [ ] **P3-T13 Keyboard: a different switch per category**
+- [x] **P3-T13 Keyboard: a different switch per category**
   Scope: replace the single Blue sound with per-category switch profiles (data in `keyboard-sound.ts`, still
   synthesized, no files): backend = Blue (clicky, the current sound), frontend = Brown (tactile bump, no click,
   softer), database = Red (linear, deep "thock", no click), devops = Box Navy (heavy, loud, lower click bar).
@@ -225,6 +225,10 @@
   the back), shorter "also" keys a little higher, and per-press jitter (timing, filter, decay — not only pitch).
   Release: Blue/Navy click again, Brown/Red only a soft tick.
   Done when: unit tests show different layer sets per category and position; values easy to retune by ear later.
+  Status: done 2026-10-25. `switchProfiles` (data, one entry per category, `down`/`up` layer lists) + pure
+  `strokeLayers(stroke, key, random)`; per-key knobs `edgeRing`, `backBrightness`, `smallKeyPitch`, `jitter` at the
+  top of `keyboard-sound.ts`. `keyPosition()` in `keycaps.ts` gives x (-1…1) and y (back 0 … front 1). Tuned in code,
+  not yet by ear — Shahram listens and adjusts.
 
 - [ ] **P3-T14 Keyboard: light ripple from the pressed key**
   Scope: each key press sends a wave of light outward across the keycaps in the pressed key's category color, delay

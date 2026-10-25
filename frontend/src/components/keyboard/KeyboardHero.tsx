@@ -1,9 +1,15 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useId, useRef, useState } from "react";
-import { type Keycap, keycapsIn, type TechCategory, techCategories } from "@/lib/keyboard/keycaps";
-import { playKeySound } from "@/lib/sound/keyboard-sound";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
+import {
+  type Keycap,
+  keycapsIn,
+  keyPosition,
+  type TechCategory,
+  techCategories,
+} from "@/lib/keyboard/keycaps";
+import { type KeySound, type KeyStroke, playKeySound } from "@/lib/sound/keyboard-sound";
 import { cn } from "@/lib/ui/cn";
 import { CategoryLegend, CategoryMark } from "./CategoryLegend";
 import { KeyboardPoster } from "./KeyboardPoster";
@@ -28,6 +34,11 @@ export type KeyboardHeroLabels = {
 };
 
 type SceneState = "loading" | "ready" | "failed";
+
+function play(sounds: Map<string, KeySound>, stroke: KeyStroke, id: string) {
+  const sound = sounds.get(id);
+  if (sound) playKeySound(stroke, sound);
+}
 
 /** Typing in a form field elsewhere on the page must never press a keycap. */
 function isEditable(target: EventTarget | null): boolean {
@@ -70,6 +81,22 @@ export function KeyboardHero({
   // One hidden element per category that the buttons point at: "Back-end" is read after the name, not part of it.
   const categoryId = (category: TechCategory) => `${cardId}-${category}`;
 
+  // What each key sounds like: its switch (category) and its place on the plate (P3-T13).
+  const sounds = useMemo(
+    () =>
+      new Map(
+        keycaps.map((keycap): [string, KeySound] => [
+          keycap.id,
+          {
+            id: keycap.id,
+            category: keycap.category,
+            small: keycap.row === "also",
+            ...keyPosition(keycaps, keycap),
+          },
+        ]),
+      ),
+    [keycaps],
+  );
   const activeId = hoveredId ?? selectedId;
   const downId = heldId ?? hoveredId;
   const active = keycaps.find((keycap) => keycap.id === activeId);
@@ -81,10 +108,10 @@ export function KeyboardHero({
   useEffect(() => {
     const previous = soundedDownId.current;
     if (previous === downId) return;
-    if (previous) playKeySound("up", previous);
-    if (downId) playKeySound("down", downId);
+    if (previous) play(sounds, "up", previous);
+    if (downId) play(sounds, "down", downId);
     soundedDownId.current = downId;
-  }, [downId]);
+  }, [downId, sounds]);
 
   useEffect(() => {
     const root = rootRef.current;
@@ -174,8 +201,8 @@ export function KeyboardHero({
 
   // The list's buttons don't push a keycap down, so a click there plays a whole keystroke itself.
   const pressButton = (id: string) => {
-    playKeySound("down", id);
-    setTimeout(() => playKeySound("up", id), 70);
+    play(sounds, "down", id);
+    setTimeout(() => play(sounds, "up", id), 70);
     toggle(id);
   };
 

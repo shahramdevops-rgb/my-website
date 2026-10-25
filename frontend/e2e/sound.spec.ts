@@ -39,13 +39,13 @@ test.describe("keyboard sound", () => {
     await page.goto("/en");
     await expect(soundToggle(page)).toHaveAttribute("aria-pressed", "true");
 
-    await techButton(page, "React").click();
-    // Press (3 layers) + release (2 layers) 70 ms later.
+    // C# is a back-end key, a Blue switch: press (3 layers) + release (2 layers) 70 ms later.
+    await techButton(page, "C#").click();
     await expect.poll(() => sounds(page)).toBe(5);
 
     await soundToggle(page).click();
     await expect(soundToggle(page)).toHaveAttribute("aria-pressed", "false");
-    await techButton(page, "C#").click();
+    await techButton(page, "React").click();
     await page.waitForTimeout(200);
     expect(await sounds(page)).toBe(5);
 
@@ -58,10 +58,23 @@ test.describe("keyboard sound", () => {
     await page.goto("/en");
     await page.getByTestId("keyboard-stage").hover({ position: { x: 5, y: 5 } });
 
-    await page.keyboard.down("KeyR");
+    await page.keyboard.down("KeyC");
     await expect.poll(() => sounds(page)).toBe(3);
-    await page.keyboard.up("KeyR");
+    await page.keyboard.up("KeyC");
     await expect.poll(() => sounds(page)).toBe(5);
+  });
+
+  test("a linear (Red) key sounds differently from a clicky one: no click on release", async ({
+    page,
+  }) => {
+    await page.goto("/en");
+    await page.getByTestId("keyboard-stage").hover({ position: { x: 5, y: 5 } });
+
+    // Redis is a database key, a Red switch: a thock (2 layers) down, one soft tick up.
+    await page.keyboard.down("KeyE");
+    await expect.poll(() => sounds(page)).toBe(2);
+    await page.keyboard.up("KeyE");
+    await expect.poll(() => sounds(page)).toBe(3);
   });
 
   test("nothing sounds before the visitor has clicked, tapped or typed", async ({ page }) => {

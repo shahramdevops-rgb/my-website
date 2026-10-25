@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildKeycaps, keyboardLayout, type TechCategory } from "./keycaps";
+import { buildKeycaps, keyboardLayout, keyPosition, type TechCategory } from "./keycaps";
 
 const tech = (id: string, name: string, category: TechCategory = "backend") => ({
   id,
@@ -120,5 +120,28 @@ describe("keyboardLayout", () => {
     [10, 4, 3],
   ])("puts %i keycaps in %i columns and %i rows", (count, columns, rows) => {
     expect(keyboardLayout(count)).toEqual({ columns, rows });
+  });
+});
+
+describe("keyPosition", () => {
+  it("places keys across the plate (-1 … 1) and from the back row (0) to the front row (1)", () => {
+    const keycaps = buildKeycaps({
+      techStack: ["a", "b", "c", "d", "e", "f", "g", "h"].map((id) => tech(id, id.toUpperCase())),
+      alsoUsed: [tech("p", "P"), tech("q", "Q"), tech("r", "R"), tech("s", "S"), tech("t", "T")],
+      experience: [],
+    });
+    const at = (id: string) => {
+      const keycap = keycaps.find((candidate) => candidate.id === id);
+      if (!keycap) throw new Error(`No keycap ${id}`);
+      return keyPosition(keycaps, keycap);
+    };
+
+    // 4 columns; also rows: P Q R S / T; main rows: A B C D / E F G H — four rows in all.
+    expect(at("p")).toEqual({ x: -1, y: 0 });
+    expect(at("s")).toEqual({ x: 1, y: 0 });
+    expect(at("t").y).toBeCloseTo(1 / 3);
+    expect(at("b").x).toBeCloseTo(-1 / 3);
+    expect(at("a").y).toBeCloseTo(2 / 3);
+    expect(at("h")).toEqual({ x: 1, y: 1 });
   });
 });
