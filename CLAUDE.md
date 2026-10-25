@@ -139,7 +139,9 @@ reveal something real about the back-end. Details and rejected ideas: `roadmap.m
 - **Server rules:** the VPS runs the gym system in production — gym backup before any change, every server command
   explained and approved first, never touch the gym's containers/volumes, nothing but the edge on 80/443.
 - **Next task:** Shahram: server checklist A–B in `deploy/SHARED-SERVER.md §4` (read-only checks + prep), then the gym
-  repo's part (§3) and the cut-over; then tag `v0.2.0` and deploy (`P4-T4`). Claude: `P6-T1` (Domain: Project & MediaFile).
+  repo's part (§3) and the cut-over; then tag `v0.2.0` and deploy (`P4-T4`). Claude: the keyboard plan `P3-T11` → `P3-T14` (categories + 4 more
+  technologies, category colors, a switch sound per category, light ripple; agreed 2026-10-25, start when Shahram
+  says "do it"), then `P6-T1` (Domain: Project & MediaFile).
 - **Accent color:** electric blue (`#4DB5FF` dark / `#0A63C9` light), picked by Claude at Shahram's request; easy to change (`architecture.md §8.1`).
 - **Waiting on Shahram:** contact links (`Site:Social:Email|GitHub|Telegram`); optional display face (P2-T8 left it out);
   real résumé facts — every `[placeholder]` and `2000-01` date in `src/PersonalSite.Api/Content/resume.*.json`;

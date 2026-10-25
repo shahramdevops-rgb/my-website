@@ -183,6 +183,43 @@
   Scope: `/{locale}/decisions` with 5–6 cards **Challenge → Decision → Why** across projects (this site's front-end/API split, gym system, cinema reservation, microservices platform — e.g. modular monolith for an MVP, no generic repository over EF Core, PostgreSQL + MongoDB split); MDX per locale; linked from the hiring path, About and Resume.
   Done when: both languages and themes; readable without interaction.
 
+- [ ] **P3-T11 Keyboard: four more technologies + categories** (planned 2026-10-25 with Shahram; build only when he
+  says so). Order: P3-T11 → P3-T12 → P3-T13 → P3-T14 (each needs the one before).
+  Scope:
+  - Résumé: every `ResumeTech` gets a required `category`: `backend` | `frontend` | `database` | `devops` (C# enum
+    as string → OpenAPI enum → TS union). Validator: same category per id in fa and en.
+  - Assignment: backend = C#, .NET, EF Core, Python, Django · frontend = React, TypeScript, Next.js, Tailwind CSS ·
+    database = PostgreSQL, MySQL, MongoDB, Redis · devops = Docker, Linux, Nginx, RabbitMQ, Git & GitHub.
+  - `alsoUsed` gains Linux, Nginx, RabbitMQ, Tailwind CSS (Shahram's picks) → 10 keys = 3 rows (4 + 4 + 2):
+    `MaxAlsoUsed` 8 → 12, and re-check the framing (camera aim, poster box) so all rows fit at 360/1024/1440.
+    Draft descriptions for Shahram to edit; skills group "Also worked with" updated.
+  - TechCard and the button list show the category name (messages `home.stack.categories.*`).
+  Done when: data validated in both languages, keyboard fits with 3 small rows, e2e mock has categories.
+
+- [ ] **P3-T12 Keyboard: category colors (a soft keycap colorway)**
+  Scope: like a real GMK-style keycap set — each category tints the keycap body (soft, mixed into the surface color),
+  legends stay the text color; the electric-blue accent stays reserved for the active key (ADR-024's single accent
+  still owns interaction). Tokens in `globals.css`, dark + light values, e.g. backend violet, frontend teal,
+  database amber, devops coral (final hues by eye, Shahram approves on a screenshot). Same colors in poster, 3D
+  scene (keycap material), button list (colored dot) and TechCard. Color is never the only signal: a small legend
+  under the keyboard ("■ Back-end ■ Front-end ■ Database ■ DevOps") and the category name on the card.
+  Done when: contrast test covers every legend/body pair in both themes; screenshots approved by Shahram.
+
+- [ ] **P3-T13 Keyboard: a different switch per category**
+  Scope: replace the single Blue sound with per-category switch profiles (data in `keyboard-sound.ts`, still
+  synthesized, no files): backend = Blue (clicky, the current sound), frontend = Brown (tactile bump, no click,
+  softer), database = Red (linear, deep "thock", no click), devops = Box Navy (heavy, loud, lower click bar).
+  On top, per key: position on the plate (edge keys hollower, centre keys more solid; rows a little brighter toward
+  the back), shorter "also" keys a little higher, and per-press jitter (timing, filter, decay — not only pitch).
+  Release: Blue/Navy click again, Brown/Red only a soft tick.
+  Done when: unit tests show different layer sets per category and position; Shahram approves by ear.
+
+- [ ] **P3-T14 Keyboard: light ripple from the pressed key**
+  Scope: each key press sends a wave of light outward across the keycaps in the pressed key's category color, delay
+  by distance, fading in ~600 ms (like a real RGB keyboard's reactive ripple). 3D scene: per-keycap emissive pulse in
+  `useFrame`; poster: CSS animation with a per-key delay. Reduced motion: no wave, only the pressed key lights.
+  Done when: works in poster and scene, both themes; e2e checks reduced motion shows no wave.
+
 - [x] **P3-T10 "Also worked with" row on the keyboard** (added 2026-10-25 at Shahram's request)
   Scope: résumé `alsoUsed` list next to `techStack` (validator: one id space, ≤ 8, same ids in fa/en); keyboard: a
   smaller, muted top row in poster and 3D scene, the main keys keep their size; a separate small button group; the
