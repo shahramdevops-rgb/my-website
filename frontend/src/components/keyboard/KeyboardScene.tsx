@@ -25,7 +25,13 @@ import {
   SRGBColorSpace,
   Vector3,
 } from "three";
-import { type Keycap, keyboardLayout, keycapsIn } from "@/lib/keyboard/keycaps";
+import {
+  type Keycap,
+  keyboardLayout,
+  keycapsIn,
+  type TechCategory,
+  techCategories,
+} from "@/lib/keyboard/keycaps";
 import { currentTheme, defaultTheme, subscribeToTheme, type Theme } from "@/lib/theme/theme";
 import { cn } from "@/lib/ui/cn";
 
@@ -67,6 +73,8 @@ type SceneColors = {
   text: string;
   muted: string;
   accent: string;
+  /** Per category: the keycap body (`soft`) and the plain color (P3-T12). */
+  categories: Record<TechCategory, { body: string; mark: string }>;
   sans: string;
   mono: string;
 };
@@ -88,6 +96,12 @@ function useSceneColors(): SceneColors {
       text: token("text"),
       muted: token("muted"),
       accent: token("accent"),
+      categories: Object.fromEntries(
+        techCategories.map((category) => [
+          category,
+          { body: token(`cat-${category}-soft`), mark: token(`cat-${category}`) },
+        ]),
+      ) as SceneColors["categories"],
       // next/font's family lists (src/lib/fonts.ts), with a generic family in case they are missing.
       sans: `${style.getPropertyValue("--font-vazirmatn").trim() || "system-ui"}, sans-serif`,
       mono: `${style.getPropertyValue("--font-jetbrains-mono").trim() || "ui-monospace"}, monospace`,
@@ -250,7 +264,7 @@ function KeycapMesh({
       >
         <meshStandardMaterial
           ref={material}
-          color={colors.surface}
+          color={colors.categories[keycap.category].body}
           emissive={colors.accent}
           emissiveIntensity={0}
           roughness={0.55}

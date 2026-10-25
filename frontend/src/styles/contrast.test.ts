@@ -13,6 +13,7 @@ const themes = ["dark", "light"] as const;
 type Theme = (typeof themes)[number];
 
 const backgrounds = ["bg", "surface", "surface-2"];
+const categories = ["backend", "frontend", "database", "devops"];
 
 const textPairs: [foreground: string, background: string][] = [
   ...["text", "muted", "accent", "success", "danger"].flatMap((foreground) =>
@@ -21,7 +22,22 @@ const textPairs: [foreground: string, background: string][] = [
   ["text", "accent-soft"], // tag text
   ["accent", "accent-soft"], // tag text
   ["bg", "accent"], // label on a primary button
+  // Keycap legends on each category's keycap body (P3-T12): name, key letter, active name.
+  ...categories.flatMap((category) =>
+    ["text", "muted", "accent"].map((foreground): [string, string] => [
+      foreground,
+      `cat-${category}-soft`,
+    ]),
+  ),
 ];
+
+// A category's plain color is a mark (dot, legend swatch): non-text contrast on every surface it sits on.
+const markPairs: [mark: string, background: string][] = categories.flatMap((category) =>
+  [...backgrounds, `cat-${category}-soft`].map((background): [string, string] => [
+    `cat-${category}`,
+    background,
+  ]),
+);
 
 // Vitest runs from frontend/ (jsdom gives import.meta.url an http: scheme, so no path relative to this file).
 const css = readFileSync(join(process.cwd(), "src", "styles", "globals.css"), "utf8");
@@ -75,6 +91,12 @@ describe.each(themes)("%s theme", (theme) => {
     const ratio = contrastRatio(token(theme, foreground), token(theme, background));
 
     expect(ratio).toBeGreaterThanOrEqual(textMinimum);
+  });
+
+  it.each(markPairs)("the category mark %s on %s meets 3:1", (mark, background) => {
+    const ratio = contrastRatio(token(theme, mark), token(theme, background));
+
+    expect(ratio).toBeGreaterThanOrEqual(nonTextMinimum);
   });
 
   it.each(backgrounds)("the focus ring (accent) on %s meets 3:1", (background) => {

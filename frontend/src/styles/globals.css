@@ -36,6 +36,20 @@
   --color-danger: #ff6b6b;
 
   /*
+    Keyboard categories (P3-T12), like a keycap set's colorway: the plain color marks a category (dots, legend,
+    light ripple); "-soft" is the keycap body, that color mixed into surface (16 % dark, 12 % light) so the legends
+    keep text contrast on it. The accent stays the color of the active key: one accent owns interaction (ADR-024).
+  */
+  --color-cat-backend: #a78bfa;
+  --color-cat-backend-soft: #29263c;
+  --color-cat-frontend: #2dd4bf;
+  --color-cat-frontend-soft: #153233;
+  --color-cat-database: #fbbf24;
+  --color-cat-database-soft: #362f1a;
+  --color-cat-devops: #ff8a65;
+  --color-cat-devops-soft: #372624;
+
+  /*
     Type scale. Persian script has tall letters and dots above and below the line, so line-heights are taller than
     Tailwind's defaults (1.85 for body text); big headings need less, or their lines drift apart.
   */
@@ -93,6 +107,14 @@
     --color-accent-soft: #dcebfc;
     --color-success: #137a45;
     --color-danger: #c42b2b;
+    --color-cat-backend: #7c3aed;
+    --color-cat-backend-soft: #efe7fd;
+    --color-cat-frontend: #0f766e;
+    --color-cat-frontend-soft: #e2efee;
+    --color-cat-database: #b45309;
+    --color-cat-database-soft: #f6eae1;
+    --color-cat-devops: #c2410c;
+    --color-cat-devops-soft: #f8e8e2;
   }
 
   /*
@@ -114,6 +136,14 @@
       --color-accent-soft: #dcebfc;
       --color-success: #137a45;
       --color-danger: #c42b2b;
+      --color-cat-backend: #7c3aed;
+      --color-cat-backend-soft: #efe7fd;
+      --color-cat-frontend: #0f766e;
+      --color-cat-frontend-soft: #e2efee;
+      --color-cat-database: #b45309;
+      --color-cat-database-soft: #f6eae1;
+      --color-cat-devops: #c2410c;
+      --color-cat-devops-soft: #f8e8e2;
     }
   }
 

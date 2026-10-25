@@ -5,6 +5,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { type Keycap, keycapsIn, type TechCategory, techCategories } from "@/lib/keyboard/keycaps";
 import { playKeySound } from "@/lib/sound/keyboard-sound";
 import { cn } from "@/lib/ui/cn";
+import { CategoryLegend, CategoryMark } from "./CategoryLegend";
 import { KeyboardPoster } from "./KeyboardPoster";
 import { TechCard } from "./TechCard";
 import { useSceneAllowed } from "./useSceneAllowed";
@@ -161,6 +162,7 @@ export function KeyboardHero({
               : "bg-accent-soft text-accent hover:shadow-[0_0_0_3px_var(--color-accent-soft)]",
         )}
       >
+        <CategoryMark category={keycap.category} className={cn(small && "size-2")} />
         <span dir="auto">{keycap.name}</span>
         {/* The key is announced by aria-keyshortcuts; read out again it would join the name ("C# C"). */}
         <kbd aria-hidden="true" className="text-xs">
@@ -216,7 +218,8 @@ export function KeyboardHero({
           {labels.categories[category]}
         </span>
       ))}
-      <p className="mt-4 text-sm text-muted">{labels.hint}</p>
+      <CategoryLegend labels={labels.categories} />
+      <p className="mt-3 text-sm text-muted">{labels.hint}</p>
       <ul className="mt-3 flex flex-wrap gap-2">
         {keycapsIn(keycaps, "main").map((keycap) => (
           <li key={keycap.id}>{techButton(keycap)}</li>

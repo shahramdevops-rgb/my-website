@@ -1,6 +1,7 @@
 import type { PointerEvent } from "react";
 import { type Keycap, keyboardLayout, keycapsIn } from "@/lib/keyboard/keycaps";
 import { cn } from "@/lib/ui/cn";
+import { categoryColors } from "./category-colors";
 
 type KeyboardPosterProps = {
   keycaps: Keycap[];
@@ -94,7 +95,9 @@ function PosterKey({ keycap, active, down, onEnter, onLeave, small = false }: Po
       onPointerLeave={onLeave}
       className={cn(
         // Container queries: the legend scales with its keycap, at every grid width.
-        "@container relative flex items-center justify-center rounded-lg border bg-surface",
+        // The body takes its category's tint, like a keycap set's colorway (P3-T12).
+        "@container relative flex items-center justify-center rounded-lg border",
+        categoryColors[keycap.category].body,
         "shadow-[0_0.3rem_0_var(--color-border)] motion-safe:transition-[translate,box-shadow] motion-safe:duration-100",
         small ? "aspect-[8/3.5]" : "aspect-[8/5]",
         active ? "border-accent text-accent" : "border-border text-text",

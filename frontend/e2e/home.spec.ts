@@ -89,7 +89,9 @@ test.describe("home Bento grid", () => {
     const stack = page.getByRole("region", { name: "پشته فنی" });
     const names = await stack
       .getByRole("button")
-      .evaluateAll((buttons) => buttons.map((button) => button.querySelector("span")?.textContent));
+      .evaluateAll((buttons) =>
+        buttons.map((button) => button.querySelector("span[dir=auto]")?.textContent),
+      );
     // The main stack first, then the smaller "also used" group.
     expect(names).toEqual(["C#", ".NET", "React", "Python", "Redis"]);
   });

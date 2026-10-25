@@ -1,4 +1,5 @@
 import type { Keycap } from "@/lib/keyboard/keycaps";
+import { CategoryMark } from "./CategoryLegend";
 
 type TechCardProps = {
   keycap: Keycap;
@@ -16,7 +17,10 @@ type TechCardProps = {
 export function TechCard({ keycap, categoryLabel, usedInLabel, noProjectsLabel }: TechCardProps) {
   return (
     <div className="rounded-xl border border-border bg-surface/90 p-4 shadow-lg backdrop-blur-md">
-      <p className="text-xs font-medium text-muted">{categoryLabel}</p>
+      <p className="flex items-center gap-1.5 text-xs font-medium text-muted">
+        <CategoryMark category={keycap.category} />
+        {categoryLabel}
+      </p>
       {/* <bdi>: "C#" keeps its order on a Persian page, while the heading still aligns with the page. */}
       <h3 className="mt-0.5 text-lg font-bold">
         <bdi>{keycap.name}</bdi>

@@ -203,7 +203,7 @@
   (`setViewOffset`) puts the keyboard on the bottom margin. Skills "Also worked with" gained RabbitMQ and Nginx
   (Tailwind CSS and Linux were already in Front-end/Delivery). The four descriptions are drafts for Shahram.
 
-- [ ] **P3-T12 Keyboard: category colors (a soft keycap colorway)**
+- [x] **P3-T12 Keyboard: category colors (a soft keycap colorway)**
   Scope: like a real GMK-style keycap set — each category tints the keycap body (soft, mixed into the surface color),
   legends stay the text color; the electric-blue accent stays reserved for the active key (ADR-024's single accent
   still owns interaction). Tokens in `globals.css`, dark + light values, e.g. backend violet, frontend teal,
@@ -211,6 +211,11 @@
   scene (keycap material), button list (colored dot) and TechCard. Color is never the only signal: a small legend
   under the keyboard ("■ Back-end ■ Front-end ■ Database ■ DevOps") and the category name on the card.
   Done when: contrast test covers every legend/body pair in both themes; screenshots of both themes in the report.
+  Status: done 2026-10-25. Tokens `--color-cat-{backend,frontend,database,devops}` (mark: dots, legend, ripple) and
+  `…-soft` (keycap body = mark mixed into `surface`, 16 % dark / 12 % light); dark violet `#a78bfa`, teal `#2dd4bf`,
+  amber `#fbbf24`, coral `#ff8a65`; light `#7c3aed`, `#0f766e`, `#b45309`, `#c2410c`. Class map in
+  `components/keyboard/category-colors.ts`; `CategoryLegend` + `CategoryMark`. Contrast test: text/muted/accent on
+  every body (4.5:1), every mark on bg/surface/surface-2/its body (3:1).
 
 - [ ] **P3-T13 Keyboard: a different switch per category**
   Scope: replace the single Blue sound with per-category switch profiles (data in `keyboard-sound.ts`, still

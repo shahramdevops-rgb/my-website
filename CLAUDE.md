@@ -79,6 +79,9 @@ reveal something real about the back-end. Details and rejected ideas: `roadmap.m
   `backend|frontend|database|devops`, same in fa/en; `alsoUsed` + Linux, Nginx, RabbitMQ, Tailwind CSS (≤ 12 = three
   rows); card shows the category, buttons have it as accessible description (`home.stack.categories.*`); stage 4:3 on
   phones; 3D camera fits by projecting the case's corners + lens shift `setViewOffset` onto the bottom margin).
+  `P3-T12` (category colorway: tokens `--color-cat-*` (mark) + `--color-cat-*-soft` (keycap body) in dark/light/print,
+  class map `components/keyboard/category-colors.ts`, `CategoryLegend` under the stage, `CategoryMark` dot on buttons
+  and the card; scene reads the same tokens; accent still only the active key; contrast test covers every pair).
   `P3-T9` (keyboard sound, added 2026-10-25: `src/lib/sound/keyboard-sound.ts` synthesizes a clicky Blue-switch
   sound (click/tick/clack) with Web Audio per key down/up (pitch per key + jitter), silent before the first user activation; `SoundToggle` next to the
   language switcher, `localStorage.sound = "off"` mirrored as `data-sound="off"` by the pre-paint script, CSS variant

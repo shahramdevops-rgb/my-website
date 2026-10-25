@@ -568,6 +568,14 @@ Neutrals are slightly cool so the blue feels at home.
 | `--color-accent-soft` | `#0F2638` | `#DCEBFC` | tag/badge backgrounds |
 | `--color-success` | `#3DD68C` | `#137A45` | live 🟢, demo success |
 | `--color-danger` | `#FF6B6B` | `#C42B2B` | down 🔴, demo conflict |
+| `--color-cat-backend` / `-soft` | `#A78BFA` / `#29263C` | `#7C3AED` / `#EFE7FD` | keyboard category: mark / keycap body (P3-T12) |
+| `--color-cat-frontend` / `-soft` | `#2DD4BF` / `#153233` | `#0F766E` / `#E2EFEE` | 〃 |
+| `--color-cat-database` / `-soft` | `#FBBF24` / `#362F1A` | `#B45309` / `#F6EAE1` | 〃 |
+| `--color-cat-devops` / `-soft` | `#FF8A65` / `#372624` | `#C2410C` / `#F8E8E2` | 〃 |
+
+The category colors are a keycap colorway, not a second accent: they tint keycap bodies and mark categories (dots,
+legend, light ripple); the accent still alone marks the active key and everything interactive. `-soft` = the mark
+mixed into `surface` (16 % dark, 12 % light), so the legends (text, muted, accent) keep ≥ 4.5:1 on it.
 
 All text/background pairs must meet WCAG AA (≥ 4.5:1); the focus ring and other non-text UI ≥ 3:1. A Vitest test
 (`src/styles/contrast.test.ts`) reads `globals.css` and enforces it (port of P1's `ColorContrastTests`). Checked for these values: the weakest
