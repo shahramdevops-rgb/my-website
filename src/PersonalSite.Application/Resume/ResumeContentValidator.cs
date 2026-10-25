@@ -10,7 +10,7 @@ namespace PersonalSite.Application.Resume;
 /// </summary>
 public sealed partial class ResumeContentValidator : IValidateOptions<ResumeContent>
 {
-    /// <summary>The keyboard's small top row: more keys than this would be too narrow to read.</summary>
+    /// <summary>The keyboard's "also used" keys, at most two rows above the main grid.</summary>
     public const int MaxAlsoUsed = 8;
 
     public ValidateOptionsResult Validate(string? name, ResumeContent options)
@@ -56,7 +56,7 @@ public sealed partial class ResumeContentValidator : IValidateOptions<ResumeCont
         var techIds = new HashSet<string>(StringComparer.Ordinal);
         check.True(profile.TechStack.Count > 0, "techStack must not be empty.");
         check.Tech(profile.TechStack, "techStack", techIds);
-        check.True(profile.AlsoUsed.Count <= MaxAlsoUsed, $"alsoUsed has room for at most {MaxAlsoUsed} technologies (one row of the keyboard).");
+        check.True(profile.AlsoUsed.Count <= MaxAlsoUsed, $"alsoUsed has room for at most {MaxAlsoUsed} technologies (two rows of the keyboard).");
         check.Tech(profile.AlsoUsed, "alsoUsed", techIds);
 
         check.True(profile.Experience.Count > 0, "experience must not be empty.");

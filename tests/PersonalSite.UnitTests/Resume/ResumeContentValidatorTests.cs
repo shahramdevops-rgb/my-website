@@ -93,7 +93,7 @@ public sealed class ResumeContentValidatorTests
 
         var result = _validator.Validate(name: null, Content(profile, profile));
 
-        FailuresOf(result).ShouldContain($"fa: alsoUsed has room for at most {ResumeContentValidator.MaxAlsoUsed} technologies (one row of the keyboard).");
+        FailuresOf(result).ShouldContain($"fa: alsoUsed has room for at most {ResumeContentValidator.MaxAlsoUsed} technologies (two rows of the keyboard).");
     }
 
     [Fact]

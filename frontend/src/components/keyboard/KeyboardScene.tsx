@@ -32,9 +32,12 @@ import { cn } from "@/lib/ui/cn";
 const keycapWidth = 1.6;
 const keycapDepth = 1;
 const keycapHeight = 0.42;
-/** The top row's keycaps (P3-T10): as many as fit the main grid's width, shallower and lower — a function row. */
-const smallKeycapDepth = 0.62;
-const smallKeycapHeight = 0.32;
+/**
+ * The "also used" keycaps (P3-T10): as wide as the main ones, in the main grid's columns, so their names are just as
+ * readable — but shallower and lower, like a keyboard's function row, so the main stack still leads.
+ */
+const smallKeycapDepth = 0.7;
+const smallKeycapHeight = 0.3;
 const keyGap = 0.22;
 const casePadding = 0.36;
 const caseHeight = 0.5;
@@ -50,6 +53,11 @@ const noRaycast = () => null;
 type KeycapSize = { width: number; depth: number; height: number };
 
 const mainKeycap: KeycapSize = { width: keycapWidth, depth: keycapDepth, height: keycapHeight };
+const smallKeycap: KeycapSize = {
+  width: keycapWidth,
+  depth: smallKeycapDepth,
+  height: smallKeycapHeight,
+};
 
 type SceneColors = {
   theme: Theme;
@@ -149,7 +157,9 @@ function drawLegend(
   // The canvas isn't in the page, so it would not inherit dir="ltr"; legends are LTR in both languages.
   context.direction = "ltr";
 
-  let size = height * 0.3;
+  // A shallow keycap has a short canvas: its name gets a larger share of the height, so it ends up the same size as
+  // a main keycap's name.
+  let size = height * (keycap.row === "also" ? 0.42 : 0.3);
   context.font = `600 ${size}px ${colors.sans}`;
   const maxWidth = width * 0.84;
   const measured = context.measureText(keycap.name).width;
@@ -157,11 +167,10 @@ function drawLegend(
     size *= maxWidth / measured;
     context.font = `600 ${size}px ${colors.sans}`;
   }
-  // The top row's names are muted until active, like the poster's: the main stack leads.
-  context.fillStyle = active ? colors.accent : keycap.row === "also" ? colors.muted : colors.text;
+  context.fillStyle = active ? colors.accent : colors.text;
   context.textAlign = "center";
   context.textBaseline = "middle";
-  context.fillText(keycap.name, width / 2, height * 0.56);
+  context.fillText(keycap.name, width / 2, height * (keycap.row === "also" ? 0.6 : 0.56));
 
   context.font = `500 ${height * 0.17}px ${colors.mono}`;
   context.fillStyle = colors.muted;
@@ -333,7 +342,8 @@ function Underglow({ width, depth, theme }: { width: number; depth: number; them
 
 /**
  * Places the camera so the case fills the same share of the view's width as the poster's keyboard, at every
- * size of the stage, looking down at it from 52°. Looking at a point behind the keyboard puts it in the lower
+ * size of the stage, looking down at it from 60° (steep enough for the legends to read easily; was 52° until
+ * 2026-10-25). Looking at a point behind the keyboard puts it in the lower
  * part of the view, where the poster has it too, and leaves the top free for the glass card.
  */
 function FitCamera({ width, depth }: { width: number; depth: number }) {
@@ -342,11 +352,11 @@ function FitCamera({ width, depth }: { width: number; depth: number }) {
 
   useEffect(() => {
     const perspective = camera as PerspectiveCamera;
-    const elevation = MathUtils.degToRad(52);
+    const elevation = MathUtils.degToRad(60);
     const halfHorizontalFov = Math.atan(Math.tan(MathUtils.degToRad(perspective.fov / 2)) * aspect);
     const distance = width / 2 / widthFill / Math.tan(halfHorizontalFov) + depth / 2;
     perspective.position.set(0, Math.sin(elevation) * distance, Math.cos(elevation) * distance);
-    perspective.lookAt(0, 0, -depth * 0.75);
+    perspective.lookAt(0, 0, -depth * 0.4);
     perspective.updateProjectionMatrix();
   }, [camera, aspect, width, depth]);
 
@@ -444,15 +454,8 @@ export function KeyboardScene({
   const { columns, rows } = keyboardLayout(main.length);
   const gridWidth = columns * keycapWidth + (columns - 1) * keyGap;
   // The top row spans the main grid's width; its keys share it.
-  const smallKeycap = useMemo<KeycapSize>(
-    () => ({
-      width: (gridWidth - (also.length - 1) * keyGap) / Math.max(also.length, 1),
-      depth: smallKeycapDepth,
-      height: smallKeycapHeight,
-    }),
-    [gridWidth, also.length],
-  );
-  const topRowDepth = also.length > 0 ? smallKeycapDepth + keyGap : 0;
+  const alsoRows = Math.ceil(also.length / columns);
+  const topRowDepth = alsoRows * (smallKeycapDepth + keyGap);
   const gridDepth = topRowDepth + rows * keycapDepth + (rows - 1) * keyGap;
   const width = gridWidth + 2 * casePadding;
   const depth = gridDepth + 2 * casePadding;
@@ -500,8 +503,10 @@ export function KeyboardScene({
                   keycap={keycap}
                   size={smallKeycap}
                   position={[
-                    -gridWidth / 2 + smallKeycap.width / 2 + index * (smallKeycap.width + keyGap),
-                    backEdge + smallKeycapDepth / 2,
+                    ((index % columns) - (columns - 1) / 2) * (keycapWidth + keyGap),
+                    backEdge +
+                      smallKeycapDepth / 2 +
+                      Math.floor(index / columns) * (smallKeycapDepth + keyGap),
                   ]}
                   active={keycap.id === activeId}
                   down={keycap.id === downId}

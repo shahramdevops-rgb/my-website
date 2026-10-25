@@ -71,8 +71,9 @@ reveal something real about the back-end. Details and rejected ideas: `roadmap.m
   intro via `parseContactRequestType` (unknown → general, never echoed); email obfuscated by `EmailLink` (client leaf,
   reversed char codes from `src/lib/contact/email.ts`, `mailto:` built after hydration; also in the footer);
   `e2e/contact.spec.ts`).
-  `P3-T10` (résumé `alsoUsed` beside `techStack` — one id space, ≤ 8, fa/en same ids; keyboard: small muted top
-  row in poster + scene (`Keycap.row` = `main|also`, `keycapsIn()`), main keys unchanged; separate small button group
+  `P3-T10` (résumé `alsoUsed` beside `techStack` — one id space, ≤ 8, fa/en same ids; keyboard: shallower keys
+  above the main grid, in its columns (same width, so the names read) in poster + scene (`Keycap.row` = `main|also`,
+  `keycapsIn()`), main keys unchanged; camera looks down from 60°, poster tilt 25°; separate small button group
   "Also worked with"; résumé skills group of the same name; e2e mock has Python + Redis).
   `P3-T9` (keyboard sound, added 2026-10-25: `src/lib/sound/keyboard-sound.ts` synthesizes a clicky Blue-switch
   sound (click/tick/clack) with Web Audio per key down/up (pitch per key + jitter), silent before the first user activation; `SoundToggle` next to the

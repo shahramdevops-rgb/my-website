@@ -51,12 +51,13 @@ export function KeyboardPoster({
         covered && "pointer-events-none opacity-0",
       )}
     >
-      <div className="w-full origin-bottom rounded-2xl border border-border bg-surface-2 p-[3%] [transform:perspective(60rem)_rotateX(32deg)]">
-        {/* The small top row (like a keyboard's function row): what was also used, as wide as the main grid. */}
+      <div className="w-full origin-bottom rounded-2xl border border-border bg-surface-2 p-[3%] [transform:perspective(60rem)_rotateX(25deg)]">
+        {/* What was also used: the main grid's columns (so the names are as readable), shorter keys — like a
+            keyboard's function row above the letters. */}
         {also.length > 0 && (
           <div
-            className="mb-[3%] grid gap-[2%]"
-            style={{ gridTemplateColumns: `repeat(${also.length}, minmax(0, 1fr))` }}
+            className="mb-[3%] grid gap-[3%]"
+            style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
           >
             {also.map((keycap) => (
               <PosterKey key={keycap.id} keycap={keycap} {...keyState(keycap)} small />
@@ -82,7 +83,7 @@ type PosterKeyProps = {
   down: boolean;
   onEnter: (event: PointerEvent) => void;
   onLeave: (event: PointerEvent) => void;
-  /** The top row's keys: shorter, and their legend muted until active, so the main stack leads. */
+  /** The "also used" keys: as wide as the main ones but shorter, so the main stack leads. */
   small?: boolean;
 };
 
@@ -95,17 +96,15 @@ function PosterKey({ keycap, active, down, onEnter, onLeave, small = false }: Po
         // Container queries: the legend scales with its keycap, at every grid width.
         "@container relative flex items-center justify-center rounded-lg border bg-surface",
         "shadow-[0_0.3rem_0_var(--color-border)] motion-safe:transition-[translate,box-shadow] motion-safe:duration-100",
-        small ? "aspect-[8/4]" : "aspect-[8/5]",
-        active
-          ? "border-accent text-accent"
-          : cn("border-border", small ? "text-muted" : "text-text"),
+        small ? "aspect-[8/3.5]" : "aspect-[8/5]",
+        active ? "border-accent text-accent" : "border-border text-text",
         down && "translate-y-[0.3rem] shadow-none",
       )}
     >
       <span className="absolute start-[7%] top-[6%] font-mono text-[11cqw] text-muted">
         {keycap.key}
       </span>
-      <span className={cn("font-semibold", small ? "text-[13cqw]" : "text-[12cqw]")}>
+      <span className={cn("text-[12cqw]", small ? "mt-[6%] font-medium" : "font-semibold")}>
         {keycap.name}
       </span>
     </div>
