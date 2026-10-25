@@ -24,6 +24,12 @@ export function StackCard({ keycaps }: { keycaps: Keycap[] }) {
           alsoUsed: t("alsoUsed"),
           usedIn: t("usedIn"),
           noProjects: t("noProjects"),
+          categories: {
+            backend: t("categories.backend"),
+            frontend: t("categories.frontend"),
+            database: t("categories.database"),
+            devops: t("categories.devops"),
+          },
         }}
       />
     </BentoCard>

@@ -6,8 +6,8 @@ import { KeyboardHero } from "./KeyboardHero";
 const keycaps = buildKeycaps({
   alsoUsed: [],
   techStack: [
-    { id: "csharp", name: "C#", description: "C# description" },
-    { id: "react", name: "React", description: "React description" },
+    { id: "csharp", name: "C#", description: "C# description", category: "backend" },
+    { id: "react", name: "React", description: "React description", category: "frontend" },
   ],
   experience: [
     {
@@ -26,6 +26,12 @@ const labels = {
   alsoUsed: "Also worked with",
   usedIn: "Used in",
   noProjects: "No projects yet",
+  categories: {
+    backend: "Back-end",
+    frontend: "Front-end",
+    database: "Database",
+    devops: "DevOps",
+  },
 };
 
 // jsdom has no matchMedia and no WebGL: the hero shows the poster, never the 3D scene.
@@ -62,6 +68,13 @@ describe("KeyboardHero", () => {
     expect(csharp).toHaveAttribute("aria-expanded", "false");
   });
 
+  it("describes each button by its category, without making it part of the name", () => {
+    const { csharp, react } = renderHero();
+
+    expect(csharp).toHaveAccessibleDescription("Back-end");
+    expect(react).toHaveAccessibleDescription("Front-end");
+  });
+
   it("opens the card of the button pressed, with the résumé entries that used it", () => {
     const { csharp } = renderHero();
 
@@ -70,6 +83,7 @@ describe("KeyboardHero", () => {
     expect(csharp).toHaveAttribute("aria-expanded", "true");
     const card = cardOf(csharp);
     expect(within(card).getByRole("heading", { name: "C#" })).toBeInTheDocument();
+    expect(within(card).getByText("Back-end")).toBeInTheDocument();
     expect(within(card).getByText("C# description")).toBeInTheDocument();
     expect(within(card).getByText("Gym")).toBeInTheDocument();
     expect(within(card).getByText("Lead developer")).toBeInTheDocument();

@@ -93,7 +93,7 @@ public sealed class ResumeContentValidatorTests
 
         var result = _validator.Validate(name: null, Content(profile, profile));
 
-        FailuresOf(result).ShouldContain($"fa: alsoUsed has room for at most {ResumeContentValidator.MaxAlsoUsed} technologies (two rows of the keyboard).");
+        FailuresOf(result).ShouldContain($"fa: alsoUsed has room for at most {ResumeContentValidator.MaxAlsoUsed} technologies (three rows of the keyboard).");
     }
 
     [Fact]
@@ -102,6 +102,26 @@ public sealed class ResumeContentValidatorTests
         var result = _validator.Validate(name: null, Content(Profile(), Profile() with { AlsoUsed = [Tech("django")] }));
 
         FailuresOf(result).ShouldContain("fa/en: alsoUsed ids (and their order) must be the same in both languages.");
+    }
+
+    [Fact]
+    public void Validate_LanguagesDisagreeOnCategory_Fails()
+    {
+        var en = Profile() with { TechStack = [Tech("csharp"), Tech("postgresql", TechCategory.Frontend)] };
+
+        var result = _validator.Validate(name: null, Content(Profile(), en));
+
+        FailuresOf(result).ShouldContain("fa/en: technology categories must be the same in both languages.");
+    }
+
+    [Fact]
+    public void Validate_UndefinedCategory_Fails()
+    {
+        var profile = Profile() with { AlsoUsed = [Tech("python", (TechCategory)7)] };
+
+        var result = _validator.Validate(name: null, Content(profile, profile));
+
+        FailuresOf(result).ShouldContain("fa: alsoUsed[0].category must be backend, frontend, database or devops.");
     }
 
     [Theory]
@@ -149,11 +169,12 @@ public sealed class ResumeContentValidatorTests
         Experience: [Job()],
         Education: [new ResumeEducation("University of Guilan", "BSc", "Electrical Engineering", "2010-09", "2014-06")],
         Skills: [new ResumeSkillGroup("Back-end", ["C#", "PostgreSQL"])],
-        TechStack: [Tech("csharp"), Tech("postgresql")],
+        TechStack: [Tech("csharp"), Tech("postgresql", TechCategory.Database)],
         AlsoUsed: [Tech("python")]);
 
     private static ResumeExperience Job() =>
         new("Example Co", "Engineer", "2021-01", "Built things.", ["Shipped a thing."], ["csharp"]);
 
-    private static ResumeTech Tech(string id) => new(id, id, $"About {id}.");
+    private static ResumeTech Tech(string id, TechCategory category = TechCategory.Backend) =>
+        new(id, id, $"About {id}.", category);
 }

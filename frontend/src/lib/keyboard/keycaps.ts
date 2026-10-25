@@ -2,7 +2,19 @@
 // presses it and the résumé entries that used it. The main stack (`techStack`) gets the big keys; what was also used
 // (`alsoUsed`, P3-T10) a smaller row above them. Pure functions, shared by the server (which builds
 // the keycaps) and the browser (poster, 3D scene and accessible list all read the same array).
+import type { components } from "@/lib/api/schema";
 import type { Resume } from "@/lib/resume/get-resume";
+
+/** Which part of the stack a technology belongs to (P3-T11): its keycap's color and switch sound. */
+export type TechCategory = components["schemas"]["TechCategory"];
+
+/** The categories in the order the legend lists them. */
+export const techCategories: readonly TechCategory[] = [
+  "backend",
+  "frontend",
+  "database",
+  "devops",
+];
 
 export type Keycap = {
   /** The résumé's language-neutral slug (`csharp`). */
@@ -20,6 +32,7 @@ export type Keycap = {
   usedIn: { organization: string; role: string }[];
   /** `main`: the stack the site is about, big keys. `also`: worked with besides it, the small top row. */
   row: KeycapRow;
+  category: TechCategory;
 };
 
 export type KeycapRow = "main" | "also";
@@ -66,6 +79,7 @@ export function buildKeycaps(
         .filter((entry) => entry.tech.includes(tech.id))
         .map(({ organization, role }) => ({ organization, role })),
       row,
+      category: tech.category,
     });
   }
 
@@ -79,7 +93,7 @@ export function keycapsIn(keycaps: Keycap[], row: KeycapRow): Keycap[] {
 
 /**
  * The grid the main keycaps sit in, the same for the poster and the 3D scene: at most 4 per row, rows as even as
- * possible (8 → 4 × 2, 5 → 3 + 2, 3 → one row of 3). The `also` keys are one row above it, as wide as the grid.
+ * possible (8 → 4 × 2, 5 → 3 + 2, 3 → one row of 3). The `also` keys are in rows above it, in the same columns.
  */
 export function keyboardLayout(count: number): { columns: number; rows: number } {
   const rows = Math.max(1, Math.ceil(count / 4));

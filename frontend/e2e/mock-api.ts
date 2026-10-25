@@ -58,14 +58,14 @@ function resume(lang: "fa" | "en"): Resume {
       { category: lang === "fa" ? "گروه آزمایشی e2e" : "e2e group", items: ["C#", "React"] },
     ],
     techStack: [
-      { id: "csharp", name: "C#", description: "e2e" },
-      { id: "dotnet", name: ".NET", description: "e2e" },
-      { id: "react", name: "React", description: "e2e" },
+      { id: "csharp", name: "C#", description: "e2e", category: "backend" },
+      { id: "dotnet", name: ".NET", description: "e2e", category: "backend" },
+      { id: "react", name: "React", description: "e2e", category: "frontend" },
     ],
     // Must match e2e/keyboard.spec.ts: the small top row.
     alsoUsed: [
-      { id: "python", name: "Python", description: "e2e" },
-      { id: "redis", name: "Redis", description: "e2e" },
+      { id: "python", name: "Python", description: "e2e", category: "backend" },
+      { id: "redis", name: "Redis", description: "e2e", category: "database" },
     ],
   };
 }

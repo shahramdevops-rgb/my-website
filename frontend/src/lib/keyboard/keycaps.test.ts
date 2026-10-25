@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { buildKeycaps, keyboardLayout } from "./keycaps";
+import { buildKeycaps, keyboardLayout, type TechCategory } from "./keycaps";
 
-const tech = (id: string, name: string) => ({ id, name, description: `${name} description` });
+const tech = (id: string, name: string, category: TechCategory = "backend") => ({
+  id,
+  name,
+  description: `${name} description`,
+  category,
+});
 
 const experience = (organization: string, techIds: string[]) => ({
   organization,
@@ -66,6 +71,23 @@ describe("buildKeycaps", () => {
       { organization: "Cinema", role: "Cinema role" },
     ]);
     expect(keycaps[1]?.usedIn).toEqual([{ organization: "Gym", role: "Gym role" }]);
+  });
+});
+
+describe("buildKeycaps categories", () => {
+  it("keeps each technology's category on its keycap", () => {
+    const keycaps = buildKeycaps({
+      techStack: [tech("csharp", "C#"), tech("react", "React", "frontend")],
+      alsoUsed: [tech("redis", "Redis", "database"), tech("nginx", "Nginx", "devops")],
+      experience: [],
+    });
+
+    expect(keycaps.map(({ id, category }) => [id, category])).toEqual([
+      ["csharp", "backend"],
+      ["react", "frontend"],
+      ["redis", "database"],
+      ["nginx", "devops"],
+    ]);
   });
 });
 

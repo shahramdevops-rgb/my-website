@@ -216,12 +216,13 @@ export interface components {
          *     `postgresql`), identical in both files; `name` and `description` are localized.
          *     `techStack` = the main stack, what the site sells (ADR-022): the keyboard's big keys. `alsoUsed` =
          *     technologies worked with besides it (P3-T10): a smaller row above them, so breadth shows without diluting the
-         *     main message.
+         *     main message. `category` is a fact, not wording: the same in both files.
          */
         ResumeTech: {
             id: string;
             name: string;
             description: string;
+            category: components["schemas"]["TechCategory"];
         };
         /** @description What every page of the front-end needs about the site itself (`GET /api/site`). */
         SiteInfoDto: {
@@ -245,6 +246,13 @@ export interface components {
             /** Format: uri */
             telegram: null | string;
         };
+        /**
+         * @description Which part of the stack a technology belongs to (P3-T11): it groups the keyboard's keycaps by color and sound.
+         *     Lowercase strings in the résumé files and on the wire; the attribute applies to both, so the content files and
+         *     the API can't spell it differently, and the OpenAPI document lists the four values (a TS union on the front-end).
+         * @enum {unknown}
+         */
+        TechCategory: "backend" | "frontend" | "database" | "devops";
     };
     responses: never;
     parameters: never;

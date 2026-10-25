@@ -61,7 +61,13 @@
       "hint": "Point at a key or type its letter, or pick a technology below.",
       "usedIn": "Used in",
       "alsoUsed": "Also worked with",
-      "noProjects": "Projects that use it appear here as they are added."
+      "noProjects": "Projects that use it appear here as they are added.",
+      "categories": {
+        "backend": "Back-end",
+        "frontend": "Front-end",
+        "database": "Database",
+        "devops": "DevOps"
+      }
     },
     "hiring": {
       "eyebrow": "Hiring?",

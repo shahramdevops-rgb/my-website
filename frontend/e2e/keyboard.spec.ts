@@ -89,6 +89,18 @@ test.describe("keyboard hero", () => {
     await expect(techButton(page, ".NET")).toHaveAttribute("aria-expanded", "true");
   });
 
+  test("each card and button names the technology's category", async ({ page }) => {
+    await page.goto("/fa");
+    const card = page.getByRole("region", { name: "پشته فنی" });
+    const redis = card.getByRole("button", { name: "Redis", exact: true });
+
+    await expect(redis).toHaveAccessibleDescription("پایگاه داده");
+    await redis.click();
+
+    const panel = page.locator(`[id="${await redis.getAttribute("aria-controls")}"]`);
+    await expect(panel).toContainText("پایگاه داده");
+  });
+
   test("the list of buttons exposes every card", async ({ page }) => {
     await page.goto("/fa");
     const card = page.getByRole("region", { name: "پشته فنی" });

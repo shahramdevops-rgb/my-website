@@ -25,6 +25,7 @@ public sealed class ResumeEndpointsTests(WebAppFactory factory)
         root.GetProperty("experience").GetArrayLength().ShouldBeGreaterThan(0);
         root.GetProperty("skills").GetArrayLength().ShouldBeGreaterThan(0);
         root.GetProperty("techStack")[0].GetProperty("id").GetString().ShouldBe("csharp");
+        root.GetProperty("techStack")[0].GetProperty("category").GetString().ShouldBe("backend");
         root.GetProperty("links").ValueKind.ShouldBe(JsonValueKind.Array);
     }
 

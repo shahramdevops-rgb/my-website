@@ -51,6 +51,6 @@ public sealed record ResumeSkillGroup(string Category, IReadOnlyList<string> Ite
 /// <c>postgresql</c>), identical in both files; <c>name</c> and <c>description</c> are localized.
 /// <c>techStack</c> = the main stack, what the site sells (ADR-022): the keyboard's big keys. <c>alsoUsed</c> =
 /// technologies worked with besides it (P3-T10): a smaller row above them, so breadth shows without diluting the
-/// main message.
+/// main message. <c>category</c> is a fact, not wording: the same in both files.
 /// </summary>
-public sealed record ResumeTech(string Id, string Name, string Description);
+public sealed record ResumeTech(string Id, string Name, string Description, TechCategory Category);

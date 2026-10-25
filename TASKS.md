@@ -183,7 +183,7 @@
   Scope: `/{locale}/decisions` with 5–6 cards **Challenge → Decision → Why** across projects (this site's front-end/API split, gym system, cinema reservation, microservices platform — e.g. modular monolith for an MVP, no generic repository over EF Core, PostgreSQL + MongoDB split); MDX per locale; linked from the hiring path, About and Resume.
   Done when: both languages and themes; readable without interaction.
 
-- [ ] **P3-T11 Keyboard: four more technologies + categories** (planned 2026-10-25 with Shahram). When he says "do
+- [x] **P3-T11 Keyboard: four more technologies + categories** (planned 2026-10-25 with Shahram). When he says "do
   it", build all four tasks in order P3-T11 → P3-T12 → P3-T13 → P3-T14 (each needs the one before) **without asking
   questions**: every decision below is final, open details (exact hues, sound values, wording) are Claude's call —
   Shahram adjusts afterwards. One branch + commit per task, full checks, screenshots for the report.
@@ -197,6 +197,11 @@
     Draft descriptions for Shahram to edit; skills group "Also worked with" updated.
   - TechCard and the button list show the category name (messages `home.stack.categories.*`).
   Done when: data validated in both languages, keyboard fits with 3 small rows, e2e mock has categories.
+  Status: done 2026-10-25. `TechCategory` enum (string values via `JsonStringEnumMemberName`); the buttons get the
+  category as their accessible description, the card shows it above the name. Framing: the stage is 4:3 on phones
+  (16:10 from `sm`), and the 3D camera now fits by projecting the case's corners, then a lens shift
+  (`setViewOffset`) puts the keyboard on the bottom margin. Skills "Also worked with" gained RabbitMQ and Nginx
+  (Tailwind CSS and Linux were already in Front-end/Delivery). The four descriptions are drafts for Shahram.
 
 - [ ] **P3-T12 Keyboard: category colors (a soft keycap colorway)**
   Scope: like a real GMK-style keycap set — each category tints the keycap body (soft, mixed into the surface color),

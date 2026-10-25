@@ -2,6 +2,8 @@ import type { Keycap } from "@/lib/keyboard/keycaps";
 
 type TechCardProps = {
   keycap: Keycap;
+  /** The keycap's category, localized ("Back-end"). */
+  categoryLabel: string;
   usedInLabel: string;
   noProjectsLabel: string;
 };
@@ -11,11 +13,12 @@ type TechCardProps = {
  * Translucent with a blur, so the keyboard stays visible behind it; the surface is opaque enough that text keeps
  * the contrast of text on `surface` (contrast.test.ts).
  */
-export function TechCard({ keycap, usedInLabel, noProjectsLabel }: TechCardProps) {
+export function TechCard({ keycap, categoryLabel, usedInLabel, noProjectsLabel }: TechCardProps) {
   return (
     <div className="rounded-xl border border-border bg-surface/90 p-4 shadow-lg backdrop-blur-md">
+      <p className="text-xs font-medium text-muted">{categoryLabel}</p>
       {/* <bdi>: "C#" keeps its order on a Persian page, while the heading still aligns with the page. */}
-      <h3 className="text-lg font-bold">
+      <h3 className="mt-0.5 text-lg font-bold">
         <bdi>{keycap.name}</bdi>
       </h3>
       <p className="mt-1 text-sm">{keycap.description}</p>

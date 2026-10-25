@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useId, useRef, useState } from "react";
-import { type Keycap, keycapsIn } from "@/lib/keyboard/keycaps";
+import { type Keycap, keycapsIn, type TechCategory, techCategories } from "@/lib/keyboard/keycaps";
 import { playKeySound } from "@/lib/sound/keyboard-sound";
 import { cn } from "@/lib/ui/cn";
 import { KeyboardPoster } from "./KeyboardPoster";
@@ -22,6 +22,8 @@ export type KeyboardHeroLabels = {
   alsoUsed: string;
   usedIn: string;
   noProjects: string;
+  /** Each category's name ("Back-end"): on the card, and the buttons' description. */
+  categories: Record<TechCategory, string>;
 };
 
 type SceneState = "loading" | "ready" | "failed";
@@ -64,6 +66,8 @@ export function KeyboardHero({
   const rootRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const cardId = useId();
+  // One hidden element per category that the buttons point at: "Back-end" is read after the name, not part of it.
+  const categoryId = (category: TechCategory) => `${cardId}-${category}`;
 
   const activeId = hoveredId ?? selectedId;
   const downId = heldId ?? hoveredId;
@@ -145,6 +149,7 @@ export function KeyboardHero({
         aria-expanded={expanded}
         aria-controls={cardId}
         aria-keyshortcuts={keycap.key}
+        aria-describedby={categoryId(keycap.category)}
         onClick={() => pressButton(keycap.id)}
         className={cn(
           "inline-flex items-center gap-2 rounded-full font-medium",
@@ -176,6 +181,7 @@ export function KeyboardHero({
     <div ref={rootRef} className="relative">
       {/*
         One box for poster and scene: its aspect ratio is fixed before any script runs, so the swap moves nothing.
+        Taller on phones (4:3): a narrow keyboard with five rows would be tiny in a 16:10 box.
         dir="ltr": a keyboard is a physical object with Latin legends, the same way round in both languages.
       */}
       <div
@@ -183,7 +189,7 @@ export function KeyboardHero({
         dir="ltr"
         aria-hidden="true"
         data-testid="keyboard-stage"
-        className="relative aspect-[16/10] overflow-hidden rounded-xl lg:aspect-[5/4]"
+        className="relative aspect-[4/3] overflow-hidden rounded-xl sm:aspect-[16/10] lg:aspect-[5/4]"
       >
         <KeyboardPoster
           keycaps={keycaps}
@@ -205,6 +211,11 @@ export function KeyboardHero({
         )}
       </div>
 
+      {techCategories.map((category) => (
+        <span key={category} id={categoryId(category)} hidden>
+          {labels.categories[category]}
+        </span>
+      ))}
       <p className="mt-4 text-sm text-muted">{labels.hint}</p>
       <ul className="mt-3 flex flex-wrap gap-2">
         {keycapsIn(keycaps, "main").map((keycap) => (
@@ -238,6 +249,7 @@ export function KeyboardHero({
           <div className="sm:max-h-full sm:max-w-sm sm:overflow-hidden">
             <TechCard
               keycap={active}
+              categoryLabel={labels.categories[active.category]}
               usedInLabel={labels.usedIn}
               noProjectsLabel={labels.noProjects}
             />

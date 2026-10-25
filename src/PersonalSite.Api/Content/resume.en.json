@@ -56,81 +56,119 @@
     },
     {
       "category": "Also worked with",
-      "items": ["Python & Django", "MySQL", "MongoDB", "Redis", "Git & GitHub"]
+      "items": ["Python & Django", "MySQL", "MongoDB", "Redis", "RabbitMQ", "Nginx", "Git & GitHub"]
     }
   ],
   "techStack": [
     {
       "id": "csharp",
       "name": "C#",
-      "description": "My main language for back-end code: typed, fast, with modern pattern matching and records."
+      "description": "My main language for back-end code: typed, fast, with modern pattern matching and records.",
+      "category": "backend"
     },
     {
       "id": "dotnet",
       "name": ".NET",
-      "description": "The runtime and ASP.NET Core web framework behind the APIs I build."
+      "description": "The runtime and ASP.NET Core web framework behind the APIs I build.",
+      "category": "backend"
     },
     {
       "id": "ef-core",
       "name": "EF Core",
-      "description": "The ORM I use to map domain models to PostgreSQL, with migrations and projections."
+      "description": "The ORM I use to map domain models to PostgreSQL, with migrations and projections.",
+      "category": "backend"
     },
     {
       "id": "postgresql",
       "name": "PostgreSQL",
-      "description": "The relational database I trust for transactions, constraints and concurrency."
+      "description": "The relational database I trust for transactions, constraints and concurrency.",
+      "category": "database"
     },
     {
       "id": "react",
       "name": "React",
-      "description": "The UI library for interactive front-ends, from forms to live demos."
+      "description": "The UI library for interactive front-ends, from forms to live demos.",
+      "category": "frontend"
     },
     {
       "id": "typescript",
       "name": "TypeScript",
-      "description": "Typed JavaScript; my front-end types are generated from the API's OpenAPI contract."
+      "description": "Typed JavaScript; my front-end types are generated from the API's OpenAPI contract.",
+      "category": "frontend"
     },
     {
       "id": "nextjs",
       "name": "Next.js",
-      "description": "The React framework for server rendering, routing and i18n on this site."
+      "description": "The React framework for server rendering, routing and i18n on this site.",
+      "category": "frontend"
     },
     {
       "id": "docker",
       "name": "Docker",
-      "description": "Containers for every service, built in CI and run the same way locally and in production."
+      "description": "Containers for every service, built in CI and run the same way locally and in production.",
+      "category": "devops"
     }
   ],
   "alsoUsed": [
     {
       "id": "python",
       "name": "Python",
-      "description": "A language I've used for back-end work and scripts, besides C#."
+      "description": "A language I've used for back-end work and scripts, besides C#.",
+      "category": "backend"
     },
     {
       "id": "django",
       "name": "Django",
-      "description": "Python's web framework: models, admin and server-rendered pages or APIs."
+      "description": "Python's web framework: models, admin and server-rendered pages or APIs.",
+      "category": "backend"
     },
     {
       "id": "mysql",
       "name": "MySQL",
-      "description": "A relational database I've worked with besides PostgreSQL."
+      "description": "A relational database I've worked with besides PostgreSQL.",
+      "category": "database"
     },
     {
       "id": "mongodb",
       "name": "MongoDB",
-      "description": "A document database, for data whose shape varies more than a table's."
+      "description": "A document database, for data whose shape varies more than a table's.",
+      "category": "database"
     },
     {
       "id": "redis",
       "name": "Redis",
-      "description": "An in-memory store for caching and fast shared state between services."
+      "description": "An in-memory store for caching and fast shared state between services.",
+      "category": "database"
     },
     {
       "id": "git",
       "name": "Git & GitHub",
-      "description": "Version control and collaboration: branches, pull requests and CI with GitHub Actions."
+      "description": "Version control and collaboration: branches, pull requests and CI with GitHub Actions.",
+      "category": "devops"
+    },
+    {
+      "id": "linux",
+      "name": "Linux",
+      "description": "The servers my apps run on: shell, systemd, permissions and troubleshooting in production.",
+      "category": "devops"
+    },
+    {
+      "id": "nginx",
+      "name": "Nginx",
+      "description": "A web server and reverse proxy in front of apps: TLS, routing and static files.",
+      "category": "devops"
+    },
+    {
+      "id": "rabbitmq",
+      "name": "RabbitMQ",
+      "description": "A message broker for background work and events between services, with retries.",
+      "category": "devops"
+    },
+    {
+      "id": "tailwind",
+      "name": "Tailwind CSS",
+      "description": "Utility-first CSS; this site's design tokens and RTL-safe layout are built on it.",
+      "category": "frontend"
     }
   ]
 }

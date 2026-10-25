@@ -659,7 +659,8 @@
         "required": [
           "id",
           "name",
-          "description"
+          "description",
+          "category"
         ],
         "type": "object",
         "properties": {
@@ -671,9 +672,12 @@
           },
           "description": {
             "type": "string"
+          },
+          "category": {
+            "$ref": "#/components/schemas/TechCategory"
           }
         },
-        "description": "One technology (a keycap of the keyboard hero). `id` is a language-neutral slug (`csharp`,\n`postgresql`), identical in both files; `name` and `description` are localized.\n`techStack` = the main stack, what the site sells (ADR-022): the keyboard's big keys. `alsoUsed` =\ntechnologies worked with besides it (P3-T10): a smaller row above them, so breadth shows without diluting the\nmain message."
+        "description": "One technology (a keycap of the keyboard hero). `id` is a language-neutral slug (`csharp`,\n`postgresql`), identical in both files; `name` and `description` are localized.\n`techStack` = the main stack, what the site sells (ADR-022): the keyboard's big keys. `alsoUsed` =\ntechnologies worked with besides it (P3-T10): a smaller row above them, so breadth shows without diluting the\nmain message. `category` is a fact, not wording: the same in both files."
       },
       "SiteInfoDto": {
         "required": [
@@ -741,6 +745,15 @@
           }
         },
         "description": "Contact links; `null` = not configured, the front-end hides it."
+      },
+      "TechCategory": {
+        "enum": [
+          "backend",
+          "frontend",
+          "database",
+          "devops"
+        ],
+        "description": "Which part of the stack a technology belongs to (P3-T11): it groups the keyboard's keycaps by color and sound.\nLowercase strings in the résumé files and on the wire; the attribute applies to both, so the content files and\nthe API can't spell it differently, and the OpenAPI document lists the four values (a TS union on the front-end)."
       }
     }
   },

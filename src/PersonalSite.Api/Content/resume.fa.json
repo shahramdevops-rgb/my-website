@@ -56,81 +56,119 @@
     },
     {
       "category": "همچنین کار کرده‌ام با",
-      "items": ["Python و Django", "MySQL", "MongoDB", "Redis", "Git و GitHub"]
+      "items": ["Python و Django", "MySQL", "MongoDB", "Redis", "RabbitMQ", "Nginx", "Git و GitHub"]
     }
   ],
   "techStack": [
     {
       "id": "csharp",
       "name": "C#",
-      "description": "زبان اصلی من برای بک‌اند: تایپ‌شده، سریع، با pattern matching و recordهای مدرن."
+      "description": "زبان اصلی من برای بک‌اند: تایپ‌شده، سریع، با pattern matching و recordهای مدرن.",
+      "category": "backend"
     },
     {
       "id": "dotnet",
       "name": ".NET",
-      "description": "runtime و فریم‌ورک وب ASP.NET Core که APIهایم روی آن ساخته می‌شوند."
+      "description": "runtime و فریم‌ورک وب ASP.NET Core که APIهایم روی آن ساخته می‌شوند.",
+      "category": "backend"
     },
     {
       "id": "ef-core",
       "name": "EF Core",
-      "description": "ORMی که با آن مدل‌های دامنه را با migration و projection به PostgreSQL نگاشت می‌کنم."
+      "description": "ORMی که با آن مدل‌های دامنه را با migration و projection به PostgreSQL نگاشت می‌کنم.",
+      "category": "backend"
     },
     {
       "id": "postgresql",
       "name": "PostgreSQL",
-      "description": "پایگاه‌دادهٔ رابطه‌ای که برای تراکنش، constraint و هم‌زمانی به آن اعتماد دارم."
+      "description": "پایگاه‌دادهٔ رابطه‌ای که برای تراکنش، constraint و هم‌زمانی به آن اعتماد دارم.",
+      "category": "database"
     },
     {
       "id": "react",
       "name": "React",
-      "description": "کتابخانهٔ UI برای فرانت‌اندهای تعاملی، از فرم‌ها تا دموهای زنده."
+      "description": "کتابخانهٔ UI برای فرانت‌اندهای تعاملی، از فرم‌ها تا دموهای زنده.",
+      "category": "frontend"
     },
     {
       "id": "typescript",
       "name": "TypeScript",
-      "description": "جاوااسکریپت تایپ‌شده؛ تایپ‌های فرانت‌اند من از قرارداد OpenAPI همان API تولید می‌شوند."
+      "description": "جاوااسکریپت تایپ‌شده؛ تایپ‌های فرانت‌اند من از قرارداد OpenAPI همان API تولید می‌شوند.",
+      "category": "frontend"
     },
     {
       "id": "nextjs",
       "name": "Next.js",
-      "description": "فریم‌ورک React برای رندر سمت سرور، مسیریابی و چندزبانگی در همین سایت."
+      "description": "فریم‌ورک React برای رندر سمت سرور، مسیریابی و چندزبانگی در همین سایت.",
+      "category": "frontend"
     },
     {
       "id": "docker",
       "name": "Docker",
-      "description": "کانتینر برای هر سرویس؛ در CI ساخته می‌شود و محلی و در production یکسان اجرا می‌شود."
+      "description": "کانتینر برای هر سرویس؛ در CI ساخته می‌شود و محلی و در production یکسان اجرا می‌شود.",
+      "category": "devops"
     }
   ],
   "alsoUsed": [
     {
       "id": "python",
       "name": "Python",
-      "description": "زبانی که در کنار C#\u200e برای کارهای بک‌اند و اسکریپت‌نویسی از آن استفاده کرده‌ام."
+      "description": "زبانی که در کنار C#\u200e برای کارهای بک‌اند و اسکریپت‌نویسی از آن استفاده کرده‌ام.",
+      "category": "backend"
     },
     {
       "id": "django",
       "name": "Django",
-      "description": "فریم‌ورک وب پایتون: مدل‌ها، پنل ادمین و صفحه‌های سمت سرور یا API."
+      "description": "فریم‌ورک وب پایتون: مدل‌ها، پنل ادمین و صفحه‌های سمت سرور یا API.",
+      "category": "backend"
     },
     {
       "id": "mysql",
       "name": "MySQL",
-      "description": "پایگاه داده‌ای رابطه‌ای که در کنار PostgreSQL با آن کار کرده‌ام."
+      "description": "پایگاه داده‌ای رابطه‌ای که در کنار PostgreSQL با آن کار کرده‌ام.",
+      "category": "database"
     },
     {
       "id": "mongodb",
       "name": "MongoDB",
-      "description": "پایگاه داده‌ای سندمحور، برای داده‌هایی که شکلشان از یک جدول متغیرتر است."
+      "description": "پایگاه داده‌ای سندمحور، برای داده‌هایی که شکلشان از یک جدول متغیرتر است.",
+      "category": "database"
     },
     {
       "id": "redis",
       "name": "Redis",
-      "description": "ذخیره‌ساز درون‌حافظه‌ای برای کش و وضعیت مشترک سریع بین سرویس‌ها."
+      "description": "ذخیره‌ساز درون‌حافظه‌ای برای کش و وضعیت مشترک سریع بین سرویس‌ها.",
+      "category": "database"
     },
     {
       "id": "git",
       "name": "Git & GitHub",
-      "description": "کنترل نسخه و کار تیمی: شاخه‌ها، pull request و CI با GitHub Actions."
+      "description": "کنترل نسخه و کار تیمی: شاخه‌ها، pull request و CI با GitHub Actions.",
+      "category": "devops"
+    },
+    {
+      "id": "linux",
+      "name": "Linux",
+      "description": "سرورهایی که برنامه‌هایم روی آن‌ها اجرا می‌شوند: shell، systemd، دسترسی‌ها و عیب‌یابی در production.",
+      "category": "devops"
+    },
+    {
+      "id": "nginx",
+      "name": "Nginx",
+      "description": "وب‌سرور و reverse proxy جلوی برنامه‌ها: TLS، مسیریابی و فایل‌های ایستا.",
+      "category": "devops"
+    },
+    {
+      "id": "rabbitmq",
+      "name": "RabbitMQ",
+      "description": "message broker برای کارهای پس‌زمینه و رویدادهای بین سرویس‌ها، همراه با تلاش دوباره.",
+      "category": "devops"
+    },
+    {
+      "id": "tailwind",
+      "name": "Tailwind CSS",
+      "description": "CSS مبتنی بر کلاس‌های کاربردی؛ توکن‌های طراحی و چیدمان راست‌به‌چپ همین سایت روی آن ساخته شده‌اند.",
+      "category": "frontend"
     }
   ]
 }

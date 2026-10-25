@@ -23,6 +23,7 @@ import {
   type PerspectiveCamera,
   type PointLight,
   SRGBColorSpace,
+  Vector3,
 } from "three";
 import { type Keycap, keyboardLayout, keycapsIn } from "@/lib/keyboard/keycaps";
 import { currentTheme, defaultTheme, subscribeToTheme, type Theme } from "@/lib/theme/theme";
@@ -340,11 +341,19 @@ function Underglow({ width, depth, theme }: { width: number; depth: number; them
   );
 }
 
+/** Lowest and highest point of the view (-1 … 1) the keyboard may reach: the poster's margins. */
+const viewBottom = -0.86;
+const viewTop = 0.96;
+
 /**
- * Places the camera so the case fills the same share of the view's width as the poster's keyboard, at every
- * size of the stage, looking down at it from 60° (steep enough for the legends to read easily; was 52° until
- * 2026-10-25). Looking at a point behind the keyboard puts it in the lower
- * part of the view, where the poster has it too, and leaves the top free for the glass card.
+ * Places the camera so the keyboard is as large as the stage allows, looking down at it from 60° (steep enough
+ * for the legends to read easily; was 52° until 2026-10-25):
+ * 1. size — starting too close, the camera backs away until the case fills at most the poster's share of the width
+ *    and fits between the top and bottom margins. Measured by projecting the case's corners, not by a formula, so a
+ *    deep keyboard (three "also" rows, P3-T11) in a short stage fits too;
+ * 2. place — the picture is shifted down (a lens shift: `setViewOffset` moves the visible window, not the camera,
+ *    so the angle stays the same) until the case sits on the bottom margin, where the poster has it too. The top
+ *    stays free for the glass card.
  */
 function FitCamera({ width, depth }: { width: number; depth: number }) {
   const camera = useThree((state) => state.camera);
@@ -354,10 +363,44 @@ function FitCamera({ width, depth }: { width: number; depth: number }) {
     const perspective = camera as PerspectiveCamera;
     const elevation = MathUtils.degToRad(60);
     const halfHorizontalFov = Math.atan(Math.tan(MathUtils.degToRad(perspective.fov / 2)) * aspect);
-    const distance = width / 2 / widthFill / Math.tan(halfHorizontalFov) + depth / 2;
-    perspective.position.set(0, Math.sin(elevation) * distance, Math.cos(elevation) * distance);
-    perspective.lookAt(0, 0, -depth * 0.4);
-    perspective.updateProjectionMatrix();
+    const top = caseHeight / 2 + keycapHeight;
+    const corners = [-1, 1].flatMap((x) =>
+      [-1, 1].flatMap((z) =>
+        [-caseHeight / 2, top].map((y) => new Vector3((x * width) / 2, y, (z * depth) / 2)),
+      ),
+    );
+    const projected = () => corners.map((corner) => corner.clone().project(perspective));
+    const place = (distance: number) => {
+      perspective.position.set(0, Math.sin(elevation) * distance, Math.cos(elevation) * distance);
+      perspective.lookAt(0, 0, 0);
+      perspective.updateMatrixWorld();
+      perspective.updateProjectionMatrix();
+    };
+    const fits = () => {
+      const points = projected();
+      const ys = points.map(({ y }) => y);
+      return (
+        points.every(({ x }) => Math.abs(x) <= widthFill) &&
+        Math.max(...ys) - Math.min(...ys) <= viewTop - viewBottom
+      );
+    };
+
+    // No shift while sizing. It also sets the aspect (see below), which R3F sets on resize too — but maybe after
+    // this effect, and projecting needs it now.
+    perspective.setViewOffset(aspect, 1, 0, 0, aspect, 1);
+    // Close enough that the case's front edge alone would already fill the width.
+    let distance = width / 2 / widthFill / Math.tan(halfHorizontalFov);
+    place(distance);
+    // 2 % steps: a few dozen at most, once per resize.
+    for (let step = 0; step < 150 && !fits(); step++) {
+      distance *= 1.02;
+      place(distance);
+    }
+
+    // The view is 2 units high (-1 … 1); an offset of one view height moves the picture up by 2. The "full size"
+    // is aspect × 1: setViewOffset sets the camera's aspect from it.
+    const lowest = Math.min(...projected().map(({ y }) => y));
+    perspective.setViewOffset(aspect, 1, 0, (viewBottom - lowest) / 2, aspect, 1);
   }, [camera, aspect, width, depth]);
 
   return null;

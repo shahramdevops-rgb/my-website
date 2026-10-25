@@ -10,8 +10,8 @@ namespace PersonalSite.Application.Resume;
 /// </summary>
 public sealed partial class ResumeContentValidator : IValidateOptions<ResumeContent>
 {
-    /// <summary>The keyboard's "also used" keys, at most two rows above the main grid.</summary>
-    public const int MaxAlsoUsed = 8;
+    /// <summary>The keyboard's "also used" keys, at most three rows above the main grid.</summary>
+    public const int MaxAlsoUsed = 12;
 
     public ValidateOptionsResult Validate(string? name, ResumeContent options)
     {
@@ -56,7 +56,7 @@ public sealed partial class ResumeContentValidator : IValidateOptions<ResumeCont
         var techIds = new HashSet<string>(StringComparer.Ordinal);
         check.True(profile.TechStack.Count > 0, "techStack must not be empty.");
         check.Tech(profile.TechStack, "techStack", techIds);
-        check.True(profile.AlsoUsed.Count <= MaxAlsoUsed, $"alsoUsed has room for at most {MaxAlsoUsed} technologies (two rows of the keyboard).");
+        check.True(profile.AlsoUsed.Count <= MaxAlsoUsed, $"alsoUsed has room for at most {MaxAlsoUsed} technologies (three rows of the keyboard).");
         check.Tech(profile.AlsoUsed, "alsoUsed", techIds);
 
         check.True(profile.Experience.Count > 0, "experience must not be empty.");
@@ -117,6 +117,10 @@ public sealed partial class ResumeContentValidator : IValidateOptions<ResumeCont
 
         Same(fa.TechStack.Select(t => t.Id).SequenceEqual(en.TechStack.Select(t => t.Id)), "techStack ids (and their order)");
         Same(fa.AlsoUsed.Select(t => t.Id).SequenceEqual(en.AlsoUsed.Select(t => t.Id)), "alsoUsed ids (and their order)");
+        Same(
+            fa.TechStack.Concat(fa.AlsoUsed).Select(t => t.Category)
+                .SequenceEqual(en.TechStack.Concat(en.AlsoUsed).Select(t => t.Category)),
+            "technology categories");
         Same(fa.Links.Select(l => l.Url).SequenceEqual(en.Links.Select(l => l.Url)), "links (urls and order)");
         Same(fa.Skills.Count == en.Skills.Count, "the number of skill groups");
 
@@ -159,6 +163,8 @@ public sealed partial class ResumeContentValidator : IValidateOptions<ResumeCont
                 True(ids.Add(tech.Id ?? string.Empty), $"{name}[{i}].id \"{tech.Id}\" is used twice.");
                 Text(tech.Name, $"{name}[{i}].name");
                 Text(tech.Description, $"{name}[{i}].description");
+                // The string converter also accepts a number ("category": 7); only the named values are categories.
+                True(Enum.IsDefined(tech.Category), $"{name}[{i}].category must be backend, frontend, database or devops.");
             }
         }
 
