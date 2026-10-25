@@ -15,6 +15,7 @@ import {
 import {
   AdditiveBlending,
   CanvasTexture,
+  Color,
   type Group,
   MathUtils,
   type MeshBasicMaterial,
@@ -33,6 +34,7 @@ import {
   techCategories,
 } from "@/lib/keyboard/keycaps";
 import { currentTheme, defaultTheme, subscribeToTheme, type Theme } from "@/lib/theme/theme";
+import { type Ripple, rippleDelayMs, rippleLevel } from "./ripple";
 import { cn } from "@/lib/ui/cn";
 
 // Sizes in scene units (1 = a keycap's depth). The keycap's 8:5 top matches the poster's keycaps.
@@ -203,6 +205,8 @@ type KeycapMeshProps = {
   active: boolean;
   down: boolean;
   colors: SceneColors;
+  /** The light ripple passing over this key: when it arrives (ms after the press) and the pressed key's color. */
+  light: { seq: number; color: string; delayMs: number } | null;
   onHover: (id: string | null) => void;
   onSelect: (id: string) => void;
 };
@@ -214,12 +218,18 @@ function KeycapMesh({
   active,
   down,
   colors,
+  light,
   onHover,
   onSelect,
 }: KeycapMeshProps) {
   const group = useRef<Group>(null);
   const material = useRef<MeshStandardMaterial>(null);
   const restY = caseHeight / 2 + size.height / 2;
+  const body = colors.categories[keycap.category].body;
+  const bodyColor = useMemo(() => new Color(body), [body]);
+  const lightColor = useMemo(() => new Color(light?.color ?? body), [light?.color, body]);
+  // When this key's current ripple started, on the scene's clock: set on the first frame after a new press.
+  const rippleStart = useRef<{ seq: number; at: number } | null>(null);
 
   const legend = useMemo(
     () => drawLegend(keycap, colors, active, size),
@@ -229,7 +239,7 @@ function KeycapMesh({
   useEffect(() => () => legend.dispose(), [legend]);
 
   // Every frame, ease toward the target instead of jumping: damp() gives the same speed at 60 and 120 Hz.
-  useFrame((_, delta) => {
+  useFrame(({ clock }, delta) => {
     if (!group.current || !material.current) return;
     const targetY = down ? restY - pushDepth : restY;
     group.current.position.y = MathUtils.damp(group.current.position.y, targetY, 18, delta);
@@ -239,6 +249,17 @@ function KeycapMesh({
       10,
       delta,
     );
+
+    // The ripple tints the keycap toward the pressed key's category color and back (P3-T14). A tint, not emitted
+    // light: on the light theme's near-white keycaps, added light would clip to white and show nothing.
+    let level = 0;
+    if (light) {
+      if (rippleStart.current?.seq !== light.seq) {
+        rippleStart.current = { seq: light.seq, at: clock.elapsedTime };
+      }
+      level = rippleLevel((clock.elapsedTime - rippleStart.current.at) * 1000 - light.delayMs);
+    }
+    material.current.color.lerpColors(bodyColor, lightColor, level);
   });
 
   // A touch has no "over"; a tap is a click and selects (onClick below).
@@ -264,7 +285,7 @@ function KeycapMesh({
       >
         <meshStandardMaterial
           ref={material}
-          color={colors.categories[keycap.category].body}
+          color={body}
           emissive={colors.accent}
           emissiveIntensity={0}
           roughness={0.55}
@@ -478,6 +499,8 @@ type KeyboardSceneProps = {
   downId: string | null;
   onHover: (id: string | null) => void;
   onSelect: (id: string) => void;
+  /** The last press's light ripple, if any. */
+  ripple: Ripple | null;
   onReady: () => void;
   onFailed: () => void;
 };
@@ -495,6 +518,7 @@ export function KeyboardScene({
   downId,
   onHover,
   onSelect,
+  ripple,
   onReady,
   onFailed,
 }: KeyboardSceneProps) {
@@ -524,6 +548,16 @@ export function KeyboardScene({
     setPointing(id !== null);
     onHover(id);
   };
+
+  const origin = ripple && keycaps.find(({ id }) => id === ripple.id);
+  const lightOf = (keycap: Keycap) =>
+    ripple && origin
+      ? {
+          seq: ripple.seq,
+          color: colors.categories[origin.category].mark,
+          delayMs: rippleDelayMs(keycaps, origin, keycap),
+        }
+      : null;
 
   return (
     <div
@@ -568,6 +602,7 @@ export function KeyboardScene({
                   active={keycap.id === activeId}
                   down={keycap.id === downId}
                   colors={colors}
+                  light={lightOf(keycap)}
                   onHover={hover}
                   onSelect={onSelect}
                 />
@@ -587,6 +622,7 @@ export function KeyboardScene({
                     active={keycap.id === activeId}
                     down={keycap.id === downId}
                     colors={colors}
+                    light={lightOf(keycap)}
                     onHover={hover}
                     onSelect={onSelect}
                   />

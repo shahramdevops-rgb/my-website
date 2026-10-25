@@ -85,6 +85,9 @@ reveal something real about the back-end. Details and rejected ideas: `roadmap.m
   `P3-T13` (a switch per category in `keyboard-sound.ts`: `switchProfiles` Blue/Brown/Red/Box Navy as layer data,
   pure `strokeLayers()` adds per-key pitch, plate position from `keyPosition()` (edges hollower, back rows brighter),
   higher "also" keys and per-press jitter of timing/filter/decay/gain; Brown/Red release = one soft tick).
+  `P3-T14` (light ripple per press in the pressed key's category color: `components/keyboard/ripple.ts`, delay =
+  `keyDistance()` × 60 ms, 350 ms per key; poster overlay + `animate-key-ripple`, scene color lerp in `useFrame`;
+  reduced motion → only the pressed key lights, `e2e/keyboard.spec.ts`).
   `P3-T9` (keyboard sound, added 2026-10-25: `src/lib/sound/keyboard-sound.ts` synthesizes a clicky Blue-switch
   sound (click/tick/clack) with Web Audio per key down/up (pitch per key + jitter), silent before the first user activation; `SoundToggle` next to the
   language switcher, `localStorage.sound = "off"` mirrored as `data-sound="off"` by the pre-paint script, CSS variant
@@ -149,9 +152,9 @@ reveal something real about the back-end. Details and rejected ideas: `roadmap.m
 - **Server rules:** the VPS runs the gym system in production — gym backup before any change, every server command
   explained and approved first, never touch the gym's containers/volumes, nothing but the edge on 80/443.
 - **Next task:** Shahram: server checklist A–B in `deploy/SHARED-SERVER.md §4` (read-only checks + prep), then the gym
-  repo's part (§3) and the cut-over; then tag `v0.2.0` and deploy (`P4-T4`). Claude: the keyboard plan `P3-T11` → `P3-T14` (categories + 4 more
-  technologies, category colors, a switch sound per category, light ripple; agreed 2026-10-25; when Shahram says "do it",
-  build all four in one go without questions — `TASKS.md` has every decision), then `P6-T1` (Domain: Project & MediaFile).
+  repo's part (§3) and the cut-over; then tag `v0.2.0` and deploy (`P4-T4`). Claude: `P6-T1` (Domain: Project &
+  MediaFile). Shahram may still retune the keyboard by ear/eye (P3-T12 hues in `globals.css`, P3-T13 switch values in
+  `keyboard-sound.ts`).
 - **Accent color:** electric blue (`#4DB5FF` dark / `#0A63C9` light), picked by Claude at Shahram's request; easy to change (`architecture.md §8.1`).
 - **Waiting on Shahram:** contact links (`Site:Social:Email|GitHub|Telegram`); optional display face (P2-T8 left it out);
   real résumé facts — every `[placeholder]` and `2000-01` date in `src/PersonalSite.Api/Content/resume.*.json`;

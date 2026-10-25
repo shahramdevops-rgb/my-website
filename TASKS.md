@@ -230,11 +230,15 @@
   top of `keyboard-sound.ts`. `keyPosition()` in `keycaps.ts` gives x (-1…1) and y (back 0 … front 1). Tuned in code,
   not yet by ear — Shahram listens and adjusts.
 
-- [ ] **P3-T14 Keyboard: light ripple from the pressed key**
+- [x] **P3-T14 Keyboard: light ripple from the pressed key**
   Scope: each key press sends a wave of light outward across the keycaps in the pressed key's category color, delay
   by distance, fading in ~600 ms (like a real RGB keyboard's reactive ripple). 3D scene: per-keycap emissive pulse in
   `useFrame`; poster: CSS animation with a per-key delay. Reduced motion: no wave, only the pressed key lights.
   Done when: works in poster and scene, both themes; e2e checks reduced motion shows no wave.
+  Status: done 2026-10-25. `components/keyboard/ripple.ts` (timing + `rippleLevel` curve) and `keyDistance()`.
+  Poster: an overlay per key with `animate-key-ripple` (keyframes in `globals.css`) and a per-key `animation-delay`;
+  reduced motion hides every overlay but the pressed key's. Scene: the keycap's color is lerped toward the category
+  color instead of an emissive glow (added light clips to white on the light theme's pale keycaps).
 
 - [x] **P3-T10 "Also worked with" row on the keyboard** (added 2026-10-25 at Shahram's request)
   Scope: résumé `alsoUsed` list next to `techStack` (validator: one id space, ≤ 8, same ids in fa/en); keyboard: a

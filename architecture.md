@@ -527,8 +527,8 @@ with a shared secret (`Revalidate__Secret`).
 - **Keyboard hero (P3-T3):** `lib/keyboard/keycaps.ts` turns the résumé into `Keycap`s on the server (`buildKeycaps`:
   each tech gets the first free letter/digit of its name as its key — C# → C, Next.js → X once N is taken — and the
   `experience` entries whose `tech` lists it; `keyboardLayout`: ≤ 4 per row). `components/keyboard/KeyboardHero`
-  (client) owns the state (selected / hovered / held) and renders: a stage with fixed `aspect-ratio` (16/10, 5/4 at
-  lg; `dir="ltr"`, `aria-hidden`) holding `KeyboardPoster` (HTML/CSS keycaps with a CSS perspective, first paint) and,
+  (client) owns the state (selected / hovered / held / ripple) and renders: a stage with fixed `aspect-ratio` (4/3
+  on phones, 16/10 from sm, 5/4 at lg; `dir="ltr"`, `aria-hidden`) holding `KeyboardPoster` (HTML/CSS keycaps with a CSS perspective, first paint) and,
   when `useSceneAllowed` says so (WebGL + no reduced motion; false on the server), `KeyboardScene` via
   `next/dynamic({ ssr: false })` — R3F + drei `RoundedBox` keycaps, legends drawn on 2D canvases with the page's own
   fonts (no troika/font download/worker), colors read from the CSS tokens and re-read on theme change, soft hue-cycling
@@ -538,6 +538,11 @@ with a shared secret (`Revalidate__Secret`).
   Real keys (`KeyboardEvent.code`) work while the pointer is over the stage or focus is in the hero (WCAG 2.1.4);
   modifiers and editable targets are ignored; Esc closes. `e2e/keyboard.spec.ts`: poster without JS, zero layout
   shift while the scene loads, real keys, every card reachable from the list, reduced motion → no canvas.
+  Since P3-T11…T14: each keycap has a category — its body color (`category-colors.ts`, legend `CategoryLegend`), its
+  switch sound (`switchProfiles` in `lib/sound/keyboard-sound.ts`, shaped by `keyPosition()` on the plate) and the
+  color of the light ripple every press sends out (`ripple.ts`: delay = `keyDistance()` × 60 ms, 350 ms per key; CSS
+  `animate-key-ripple` per poster key, a color lerp per 3D keycap in `useFrame`; reduced motion → only the pressed
+  key). The 3D camera sizes the keyboard by projecting the case's corners, then lens-shifts it onto the bottom margin.
 - **Theme (P2-T8):** `data-theme="dark|light"` on `<html>`; no attribute = dark (the `dark:` variant matches "not
   light"). `components/layout/HtmlDocument.tsx` is the shared `<html>` shell (locale layout + 404). In `<head>`,
   `ThemeScript` writes the inline pre-paint script (`src/lib/theme/theme.ts`) with this request's nonce, which

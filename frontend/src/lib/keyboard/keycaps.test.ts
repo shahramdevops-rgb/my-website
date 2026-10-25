@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { buildKeycaps, keyboardLayout, keyPosition, type TechCategory } from "./keycaps";
+import {
+  buildKeycaps,
+  keyboardLayout,
+  type Keycap,
+  keyDistance,
+  keyPosition,
+  type TechCategory,
+} from "./keycaps";
 
 const tech = (id: string, name: string, category: TechCategory = "backend") => ({
   id,
@@ -143,5 +150,21 @@ describe("keyPosition", () => {
     expect(at("b").x).toBeCloseTo(-1 / 3);
     expect(at("a").y).toBeCloseTo(2 / 3);
     expect(at("h")).toEqual({ x: 1, y: 1 });
+  });
+
+  it("measures the light ripple's distance in keys, across the also and main rows", () => {
+    const keycaps = buildKeycaps({
+      techStack: ["a", "b", "c", "d"].map((id) => tech(id, id.toUpperCase())),
+      alsoUsed: [tech("p", "P")],
+      experience: [],
+    });
+    const [a, b, , d, p] = keycaps as [Keycap, Keycap, Keycap, Keycap, Keycap];
+
+    expect(keyDistance(keycaps, a, a)).toBe(0);
+    expect(keyDistance(keycaps, a, b)).toBe(1);
+    expect(keyDistance(keycaps, a, d)).toBe(3);
+    // P is right above A.
+    expect(keyDistance(keycaps, p, a)).toBe(1);
+    expect(keyDistance(keycaps, p, d)).toBeCloseTo(Math.hypot(3, 1));
   });
 });

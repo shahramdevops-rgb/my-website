@@ -2,6 +2,7 @@ import type { PointerEvent } from "react";
 import { type Keycap, keyboardLayout, keycapsIn } from "@/lib/keyboard/keycaps";
 import { cn } from "@/lib/ui/cn";
 import { categoryColors } from "./category-colors";
+import { type Ripple, rippleDelayMs } from "./ripple";
 
 type KeyboardPosterProps = {
   keycaps: Keycap[];
@@ -10,6 +11,8 @@ type KeyboardPosterProps = {
   /** The keycap that is pushed down (hovered, or its real key held). */
   downId: string | null;
   onHover: (id: string | null) => void;
+  /** The last press's light ripple, if any. */
+  ripple: Ripple | null;
   /** Set once the 3D scene is on screen: the poster stays underneath, out of the pointer's way. */
   covered: boolean;
 };
@@ -25,6 +28,7 @@ export function KeyboardPoster({
   activeId,
   downId,
   onHover,
+  ripple,
   covered,
 }: KeyboardPosterProps) {
   const main = keycapsIn(keycaps, "main");
@@ -35,9 +39,19 @@ export function KeyboardPoster({
   const hover = (id: string | null) => (event: PointerEvent) => {
     if (event.pointerType !== "touch") onHover(id);
   };
+  const origin = ripple && keycaps.find(({ id }) => id === ripple.id);
   const keyState = (keycap: Keycap) => ({
     active: keycap.id === activeId,
     down: keycap.id === downId,
+    light:
+      ripple && origin
+        ? {
+            seq: ripple.seq,
+            color: categoryColors[origin.category].mark,
+            delayMs: rippleDelayMs(keycaps, origin, keycap),
+            origin: keycap.id === origin.id,
+          }
+        : null,
     onEnter: hover(keycap.id),
     onLeave: hover(null),
   });
@@ -84,11 +98,21 @@ type PosterKeyProps = {
   down: boolean;
   onEnter: (event: PointerEvent) => void;
   onLeave: (event: PointerEvent) => void;
+  /** The light ripple passing over this key: when it arrives, in which color, and whether it started here. */
+  light: { seq: number; color: string; delayMs: number; origin: boolean } | null;
   /** The "also used" keys: as wide as the main ones but shorter, so the main stack leads. */
   small?: boolean;
 };
 
-function PosterKey({ keycap, active, down, onEnter, onLeave, small = false }: PosterKeyProps) {
+function PosterKey({
+  keycap,
+  active,
+  down,
+  onEnter,
+  onLeave,
+  light,
+  small = false,
+}: PosterKeyProps) {
   return (
     <div
       onPointerEnter={onEnter}
@@ -104,10 +128,28 @@ function PosterKey({ keycap, active, down, onEnter, onLeave, small = false }: Po
         down && "translate-y-[0.3rem] shadow-none",
       )}
     >
+      {/*
+        The light, under the legends. A new press (seq) mounts a new element, which restarts the animation.
+        Reduced motion: no wave — only the pressed key lights.
+      */}
+      {light && (
+        <span
+          key={light.seq}
+          data-ripple={light.origin ? "origin" : "wave"}
+          className={cn(
+            "absolute inset-0 animate-key-ripple rounded-[inherit]",
+            light.color,
+            !light.origin && "motion-reduce:hidden",
+          )}
+          style={{ animationDelay: `${light.delayMs}ms` }}
+        />
+      )}
       <span className="absolute start-[7%] top-[6%] font-mono text-[11cqw] text-muted">
         {keycap.key}
       </span>
-      <span className={cn("text-[12cqw]", small ? "mt-[6%] font-medium" : "font-semibold")}>
+      <span
+        className={cn("relative text-[12cqw]", small ? "mt-[6%] font-medium" : "font-semibold")}
+      >
         {keycap.name}
       </span>
     </div>

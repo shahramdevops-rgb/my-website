@@ -115,8 +115,30 @@ test.describe("keyboard hero", () => {
     }
   });
 
+  test("a press sends a light ripple across every key of the poster", async ({ page }) => {
+    await page.goto("/en");
+    await page.getByTestId("keyboard-stage").hover({ position: { x: 5, y: 5 } });
+
+    await page.keyboard.press("r");
+
+    const lights = page.getByTestId("keyboard-poster").locator("[data-ripple]");
+    await expect(lights).toHaveCount(technologies.length + alsoUsed.length);
+    await expect(lights.locator("visible=true")).toHaveCount(technologies.length + alsoUsed.length);
+  });
+
   test.describe("with reduced motion", () => {
     test.use({ reducedMotion: "reduce" });
+
+    test("a press lights only the pressed key: no wave", async ({ page }) => {
+      await page.goto("/en");
+      await page.getByTestId("keyboard-stage").hover({ position: { x: 5, y: 5 } });
+
+      await page.keyboard.press("r");
+
+      const poster = page.getByTestId("keyboard-poster");
+      await expect(poster.locator("[data-ripple=origin]")).toBeVisible();
+      await expect(poster.locator("[data-ripple]:visible")).toHaveCount(1);
+    });
 
     test("the poster stays and no 3D scene loads", async ({ page }) => {
       await page.goto("/en");

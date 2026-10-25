@@ -77,6 +77,27 @@
 }
 
 /*
+  The keyboard's light ripple (P3-T14): a key flares in its category color and fades — the same curve and timing as
+  rippleLevel() in components/keyboard/ripple.ts, which the 3D scene uses. "both": transparent before the wave
+  arrives (the per-key animation-delay) and after it passed.
+*/
+@theme {
+  --animate-key-ripple: key-ripple 350ms linear both;
+
+  @keyframes key-ripple {
+    0% {
+      opacity: 0;
+    }
+    25% {
+      opacity: 0.45;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+}
+
+/*
   Fonts (src/lib/fonts.ts): next/font sets --font-vazirmatn and --font-jetbrains-mono on <html>. "inline" puts the
   var() into the utilities themselves, so they resolve on the element that uses them.
   Vazirmatn has Latin glyphs too, so mixed Persian/English text uses one face. Tahoma is the best-looking Persian

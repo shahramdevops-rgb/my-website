@@ -13,6 +13,7 @@ import { type KeySound, type KeyStroke, playKeySound } from "@/lib/sound/keyboar
 import { cn } from "@/lib/ui/cn";
 import { CategoryLegend, CategoryMark } from "./CategoryLegend";
 import { KeyboardPoster } from "./KeyboardPoster";
+import type { Ripple } from "./ripple";
 import { TechCard } from "./TechCard";
 import { useSceneAllowed } from "./useSceneAllowed";
 
@@ -71,6 +72,10 @@ export function KeyboardHero({
   // Its real key is held down.
   const [heldId, setHeldId] = useState<string | null>(null);
   const [sceneState, setSceneState] = useState<SceneState>("loading");
+  // The light ripple of the last press (P3-T14); a new seq starts a new wave.
+  const [ripple, setRipple] = useState<Ripple | null>(null);
+  const startRipple = (id: string) =>
+    setRipple((previous) => ({ seq: (previous?.seq ?? 0) + 1, id }));
 
   const sceneAllowed = useSceneAllowed();
   const showScene = sceneAllowed && sceneState !== "failed";
@@ -138,6 +143,8 @@ export function KeyboardHero({
       // A held key repeats keydown; the keycap is already down.
       if (event.repeat) return;
       setHeldId(keycap.id);
+      // startRipple, written out: this effect's listeners use only React's stable setters.
+      setRipple((previous) => ({ seq: (previous?.seq ?? 0) + 1, id: keycap.id }));
       setSelectedId(keycap.id);
     };
 
@@ -161,6 +168,12 @@ export function KeyboardHero({
       window.removeEventListener("blur", releaseAll);
     };
   }, [keycaps]);
+
+  // The pointer moving onto a key pushes it down: a press, with its ripple.
+  const hover = (id: string | null) => {
+    setHoveredId(id);
+    if (id) startRipple(id);
+  };
 
   const toggle = (id: string) => setSelectedId((selected) => (selected === id ? null : id));
 
@@ -201,6 +214,7 @@ export function KeyboardHero({
 
   // The list's buttons don't push a keycap down, so a click there plays a whole keystroke itself.
   const pressButton = (id: string) => {
+    startRipple(id);
     play(sounds, "down", id);
     setTimeout(() => play(sounds, "up", id), 70);
     toggle(id);
@@ -224,7 +238,8 @@ export function KeyboardHero({
           keycaps={keycaps}
           activeId={activeId}
           downId={downId}
-          onHover={setHoveredId}
+          onHover={hover}
+          ripple={ripple}
           covered={showScene && sceneState === "ready"}
         />
         {showScene && (
@@ -232,7 +247,8 @@ export function KeyboardHero({
             keycaps={keycaps}
             activeId={activeId}
             downId={downId}
-            onHover={setHoveredId}
+            onHover={hover}
+            ripple={ripple}
             onSelect={toggle}
             onReady={() => setSceneState("ready")}
             onFailed={() => setSceneState("failed")}

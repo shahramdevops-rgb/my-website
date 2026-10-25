@@ -101,24 +101,45 @@ export function keyboardLayout(count: number): { columns: number; rows: number }
 }
 
 /**
- * Where a keycap sits on the plate, for its sound (P3-T13): `x` from -1 (left edge) through 0 (centre) to 1 (right
- * edge), `y` from 0 (back row) to 1 (front row). The "also" rows are at the back, above the main grid, in its
- * columns — the same arrangement as the poster and the 3D scene.
+ * A keycap's cell in the whole keyboard's grid: the "also" rows first (at the back, above the main grid, in its
+ * columns), then the main rows — the same arrangement as the poster and the 3D scene.
  */
-export function keyPosition(keycaps: Keycap[], keycap: Keycap): { x: number; y: number } {
+export function keyCell(
+  keycaps: Keycap[],
+  keycap: Keycap,
+): { column: number; row: number; columns: number; rows: number } {
   const main = keycapsIn(keycaps, "main");
   const also = keycapsIn(keycaps, "also");
   const { columns, rows } = keyboardLayout(main.length);
   const alsoRows = Math.ceil(also.length / columns);
   const group = keycap.row === "also" ? also : main;
   const index = group.findIndex(({ id }) => id === keycap.id);
-  const column = index % columns;
-  const row = Math.floor(index / columns) + (keycap.row === "main" ? alsoRows : 0);
+
+  return {
+    column: index % columns,
+    row: Math.floor(index / columns) + (keycap.row === "main" ? alsoRows : 0),
+    columns,
+    rows: alsoRows + rows,
+  };
+}
+
+/**
+ * Where a keycap sits on the plate, for its sound (P3-T13): `x` from -1 (left edge) through 0 (centre) to 1 (right
+ * edge), `y` from 0 (back row) to 1 (front row).
+ */
+export function keyPosition(keycaps: Keycap[], keycap: Keycap): { x: number; y: number } {
+  const { column, row, columns, rows } = keyCell(keycaps, keycap);
   const half = (columns - 1) / 2;
-  const lastRow = alsoRows + rows - 1;
 
   return {
     x: half === 0 ? 0 : (column - half) / half,
-    y: lastRow === 0 ? 1 : row / lastRow,
+    y: rows === 1 ? 1 : row / (rows - 1),
   };
+}
+
+/** How many keys apart two keycaps are (straight-line, in grid cells): how late the light ripple reaches one (P3-T14). */
+export function keyDistance(keycaps: Keycap[], from: Keycap, to: Keycap): number {
+  const a = keyCell(keycaps, from);
+  const b = keyCell(keycaps, to);
+  return Math.hypot(a.column - b.column, a.row - b.row);
 }
