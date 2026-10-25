@@ -183,8 +183,10 @@
   Scope: `/{locale}/decisions` with 5–6 cards **Challenge → Decision → Why** across projects (this site's front-end/API split, gym system, cinema reservation, microservices platform — e.g. modular monolith for an MVP, no generic repository over EF Core, PostgreSQL + MongoDB split); MDX per locale; linked from the hiring path, About and Resume.
   Done when: both languages and themes; readable without interaction.
 
-- [ ] **P3-T11 Keyboard: four more technologies + categories** (planned 2026-10-25 with Shahram; build only when he
-  says so). Order: P3-T11 → P3-T12 → P3-T13 → P3-T14 (each needs the one before).
+- [ ] **P3-T11 Keyboard: four more technologies + categories** (planned 2026-10-25 with Shahram). When he says "do
+  it", build all four tasks in order P3-T11 → P3-T12 → P3-T13 → P3-T14 (each needs the one before) **without asking
+  questions**: every decision below is final, open details (exact hues, sound values, wording) are Claude's call —
+  Shahram adjusts afterwards. One branch + commit per task, full checks, screenshots for the report.
   Scope:
   - Résumé: every `ResumeTech` gets a required `category`: `backend` | `frontend` | `database` | `devops` (C# enum
     as string → OpenAPI enum → TS union). Validator: same category per id in fa and en.
@@ -200,10 +202,10 @@
   Scope: like a real GMK-style keycap set — each category tints the keycap body (soft, mixed into the surface color),
   legends stay the text color; the electric-blue accent stays reserved for the active key (ADR-024's single accent
   still owns interaction). Tokens in `globals.css`, dark + light values, e.g. backend violet, frontend teal,
-  database amber, devops coral (final hues by eye, Shahram approves on a screenshot). Same colors in poster, 3D
+  database amber, devops coral (hues picked by eye with the contrast test; Shahram may adjust later). Same colors in poster, 3D
   scene (keycap material), button list (colored dot) and TechCard. Color is never the only signal: a small legend
   under the keyboard ("■ Back-end ■ Front-end ■ Database ■ DevOps") and the category name on the card.
-  Done when: contrast test covers every legend/body pair in both themes; screenshots approved by Shahram.
+  Done when: contrast test covers every legend/body pair in both themes; screenshots of both themes in the report.
 
 - [ ] **P3-T13 Keyboard: a different switch per category**
   Scope: replace the single Blue sound with per-category switch profiles (data in `keyboard-sound.ts`, still
@@ -212,7 +214,7 @@
   On top, per key: position on the plate (edge keys hollower, centre keys more solid; rows a little brighter toward
   the back), shorter "also" keys a little higher, and per-press jitter (timing, filter, decay — not only pitch).
   Release: Blue/Navy click again, Brown/Red only a soft tick.
-  Done when: unit tests show different layer sets per category and position; Shahram approves by ear.
+  Done when: unit tests show different layer sets per category and position; values easy to retune by ear later.
 
 - [ ] **P3-T14 Keyboard: light ripple from the pressed key**
   Scope: each key press sends a wave of light outward across the keycaps in the pressed key's category color, delay
