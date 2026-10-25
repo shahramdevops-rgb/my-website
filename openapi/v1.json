@@ -563,7 +563,7 @@
             ]
           }
         },
-        "description": "A job or engagement. `end` = `null` means \"present\". `tech` holds ids from\n`techStack`, so the keyboard hero can list the work that used each technology."
+        "description": "A job or engagement. `end` = `null` means \"present\". `tech` holds ids from\n`techStack` or `alsoUsed`, so the keyboard hero can list the work that used each technology."
       },
       "ResumeLink": {
         "required": [
@@ -589,7 +589,8 @@
           "experience",
           "education",
           "skills",
-          "techStack"
+          "techStack",
+          "alsoUsed"
         ],
         "type": "object",
         "properties": {
@@ -621,6 +622,12 @@
             }
           },
           "techStack": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ResumeTech"
+            }
+          },
+          "alsoUsed": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ResumeTech"
@@ -666,7 +673,7 @@
             "type": "string"
           }
         },
-        "description": "One technology of the stack (a keycap of the keyboard hero). `id` is a language-neutral slug\n(`csharp`, `postgresql`), identical in both files; `name` and `description` are localized."
+        "description": "One technology (a keycap of the keyboard hero). `id` is a language-neutral slug (`csharp`,\n`postgresql`), identical in both files; `name` and `description` are localized.\n`techStack` = the main stack, what the site sells (ADR-022): the keyboard's big keys. `alsoUsed` =\ntechnologies worked with besides it (P3-T10): a smaller row above them, so breadth shows without diluting the\nmain message."
       },
       "SiteInfoDto": {
         "required": [

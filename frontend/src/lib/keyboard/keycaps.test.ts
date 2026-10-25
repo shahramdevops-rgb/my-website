@@ -21,6 +21,7 @@ describe("buildKeycaps", () => {
         tech("nextjs", "Next.js"),
         tech("docker", "Docker"),
       ],
+      alsoUsed: [],
       experience: [],
     });
 
@@ -36,6 +37,7 @@ describe("buildKeycaps", () => {
   it("falls back to the first free letter, then a digit, when the name has none left", () => {
     const keycaps = buildKeycaps({
       techStack: [tech("a", "A"), tech("b", "B"), tech("ab", "AB"), tech("hash", "#")],
+      alsoUsed: [],
       experience: [],
     });
 
@@ -45,7 +47,7 @@ describe("buildKeycaps", () => {
   it("uses digits once every letter is taken and leaves out what has no key", () => {
     const techStack = Array.from({ length: 40 }, (_, index) => tech(`t${index}`, "#"));
 
-    const keycaps = buildKeycaps({ techStack, experience: [] });
+    const keycaps = buildKeycaps({ techStack, alsoUsed: [], experience: [] });
 
     expect(keycaps).toHaveLength(36);
     expect(keycaps.at(26)).toMatchObject({ key: "0", code: "Digit0" });
@@ -55,6 +57,7 @@ describe("buildKeycaps", () => {
   it("lists the résumé entries that used each technology, in résumé order", () => {
     const keycaps = buildKeycaps({
       techStack: [tech("csharp", "C#"), tech("react", "React")],
+      alsoUsed: [],
       experience: [experience("Gym", ["csharp", "react"]), experience("Cinema", ["csharp"])],
     });
 
@@ -63,6 +66,25 @@ describe("buildKeycaps", () => {
       { organization: "Cinema", role: "Cinema role" },
     ]);
     expect(keycaps[1]?.usedIn).toEqual([{ organization: "Gym", role: "Gym role" }]);
+  });
+});
+
+describe("buildKeycaps with alsoUsed", () => {
+  it("puts the main stack first, so it gets the first pick of letters, and marks each key's row", () => {
+    const keycaps = buildKeycaps({
+      techStack: [tech("postgresql", "PostgreSQL"), tech("react", "React")],
+      alsoUsed: [tech("python", "Python"), tech("redis", "Redis")],
+      experience: [experience("Shop", ["python"])],
+    });
+
+    expect(keycaps.map(({ id, key, row }) => [id, key, row])).toEqual([
+      ["postgresql", "P", "main"],
+      ["react", "R", "main"],
+      // P and R are taken by the main stack.
+      ["python", "Y", "also"],
+      ["redis", "E", "also"],
+    ]);
+    expect(keycaps[2]?.usedIn).toEqual([{ organization: "Shop", role: "Shop role" }]);
   });
 });
 

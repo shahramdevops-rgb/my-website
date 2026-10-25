@@ -183,6 +183,14 @@
   Scope: `/{locale}/decisions` with 5–6 cards **Challenge → Decision → Why** across projects (this site's front-end/API split, gym system, cinema reservation, microservices platform — e.g. modular monolith for an MVP, no generic repository over EF Core, PostgreSQL + MongoDB split); MDX per locale; linked from the hiring path, About and Resume.
   Done when: both languages and themes; readable without interaction.
 
+- [x] **P3-T10 "Also worked with" row on the keyboard** (added 2026-10-25 at Shahram's request)
+  Scope: résumé `alsoUsed` list next to `techStack` (validator: one id space, ≤ 8, same ids in fa/en); keyboard: a
+  smaller, muted top row in poster and 3D scene, the main keys keep their size; a separate small button group; the
+  résumé's skills get an "Also worked with" group; job tags resolve ids from both lists.
+  Done when: both languages and themes, poster and scene, 360/1440; e2e.
+  Status: done 2026-10-25 with Python, Django, MySQL, MongoDB, Redis, Git & GitHub (Shahram's list). Descriptions
+  are drafts for Shahram to edit; which jobs used them goes into `experience[].tech` with the real résumé facts.
+
 - [x] **P3-T9 Keyboard sound + mute switch** (added 2026-10-25 at Shahram's request)
   Scope: a mechanical-keyboard sound when a keycap goes down/up (pointer moves onto it, real key, list button),
   synthesized with Web Audio (no audio files); a mute switch in the header next to the language switcher, remembered

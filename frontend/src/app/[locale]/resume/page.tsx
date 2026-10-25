@@ -84,7 +84,7 @@ export default async function ResumePage({ params }: PageProps<"/[locale]/resume
 
       <ResumeExperience
         experience={resume.experience}
-        techStack={resume.techStack}
+        techStack={[...resume.techStack, ...resume.alsoUsed]}
         locale={locale}
       />
       <ResumeEducation education={resume.education} locale={locale} />

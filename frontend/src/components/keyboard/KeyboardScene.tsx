@@ -24,7 +24,7 @@ import {
   type PointLight,
   SRGBColorSpace,
 } from "three";
-import { type Keycap, keyboardLayout } from "@/lib/keyboard/keycaps";
+import { type Keycap, keyboardLayout, keycapsIn } from "@/lib/keyboard/keycaps";
 import { currentTheme, defaultTheme, subscribeToTheme, type Theme } from "@/lib/theme/theme";
 import { cn } from "@/lib/ui/cn";
 
@@ -32,6 +32,9 @@ import { cn } from "@/lib/ui/cn";
 const keycapWidth = 1.6;
 const keycapDepth = 1;
 const keycapHeight = 0.42;
+/** The top row's keycaps (P3-T10): as many as fit the main grid's width, shallower and lower — a function row. */
+const smallKeycapDepth = 0.62;
+const smallKeycapHeight = 0.32;
 const keyGap = 0.22;
 const casePadding = 0.36;
 const caseHeight = 0.5;
@@ -42,6 +45,11 @@ const widthFill = 0.88;
 
 /** For meshes the pointer should pass through (labels, glow): only keycaps answer to it. */
 const noRaycast = () => null;
+
+/** A keycap's outer size in scene units. */
+type KeycapSize = { width: number; depth: number; height: number };
+
+const mainKeycap: KeycapSize = { width: keycapWidth, depth: keycapDepth, height: keycapHeight };
 
 type SceneColors = {
   theme: Theme;
@@ -121,9 +129,14 @@ function useInView(ref: RefObject<HTMLElement | null>): boolean {
  * A 2D canvas instead of a 3D text library: it uses the page's own self-hosted fonts and needs no font download,
  * no worker and no CSP exception.
  */
-function drawLegend(keycap: Keycap, colors: SceneColors, active: boolean): CanvasTexture {
+function drawLegend(
+  keycap: Keycap,
+  colors: SceneColors,
+  active: boolean,
+  keycapSize: KeycapSize,
+): CanvasTexture {
   const width = 512;
-  const height = Math.round((width * keycapDepth) / keycapWidth);
+  const height = Math.round((width * keycapSize.depth) / keycapSize.width);
   const canvas = document.createElement("canvas");
   canvas.width = width;
   canvas.height = height;
@@ -144,7 +157,8 @@ function drawLegend(keycap: Keycap, colors: SceneColors, active: boolean): Canva
     size *= maxWidth / measured;
     context.font = `600 ${size}px ${colors.sans}`;
   }
-  context.fillStyle = active ? colors.accent : colors.text;
+  // The top row's names are muted until active, like the poster's: the main stack leads.
+  context.fillStyle = active ? colors.accent : keycap.row === "also" ? colors.muted : colors.text;
   context.textAlign = "center";
   context.textBaseline = "middle";
   context.fillText(keycap.name, width / 2, height * 0.56);
@@ -160,6 +174,7 @@ function drawLegend(keycap: Keycap, colors: SceneColors, active: boolean): Canva
 
 type KeycapMeshProps = {
   keycap: Keycap;
+  size: KeycapSize;
   position: [number, number];
   active: boolean;
   down: boolean;
@@ -170,6 +185,7 @@ type KeycapMeshProps = {
 
 function KeycapMesh({
   keycap,
+  size,
   position,
   active,
   down,
@@ -179,9 +195,12 @@ function KeycapMesh({
 }: KeycapMeshProps) {
   const group = useRef<Group>(null);
   const material = useRef<MeshStandardMaterial>(null);
-  const restY = caseHeight / 2 + keycapHeight / 2;
+  const restY = caseHeight / 2 + size.height / 2;
 
-  const legend = useMemo(() => drawLegend(keycap, colors, active), [keycap, colors, active]);
+  const legend = useMemo(
+    () => drawLegend(keycap, colors, active, size),
+    [keycap, colors, active, size],
+  );
   // GPU memory isn't garbage-collected: a texture that is replaced must be freed by hand.
   useEffect(() => () => legend.dispose(), [legend]);
 
@@ -204,7 +223,7 @@ function KeycapMesh({
   return (
     <group ref={group} position={[position[0], restY, position[1]]}>
       <RoundedBox
-        args={[keycapWidth, keycapHeight, keycapDepth]}
+        args={[size.width, size.height, size.depth]}
         radius={0.1}
         smoothness={4}
         onPointerOver={(event) => {
@@ -228,11 +247,11 @@ function KeycapMesh({
         />
       </RoundedBox>
       <mesh
-        position={[0, keycapHeight / 2 + 0.002, 0]}
+        position={[0, size.height / 2 + 0.002, 0]}
         rotation={[-Math.PI / 2, 0, 0]}
         raycast={noRaycast}
       >
-        <planeGeometry args={[keycapWidth * 0.92, keycapDepth * 0.92]} />
+        <planeGeometry args={[size.width * 0.92, size.depth * 0.92]} />
         <meshBasicMaterial map={legend} transparent toneMapped={false} depthWrite={false} />
       </mesh>
     </group>
@@ -397,7 +416,8 @@ type KeyboardSceneProps = {
 };
 
 /**
- * The 3D keyboard (React Three Fiber): a case, one keycap per technology in the poster's grid, soft RGB light.
+ * The 3D keyboard (React Three Fiber): a case, one keycap per technology in the poster's grid (the main stack, and
+ * the smaller "also used" row behind it), soft RGB light.
  * It shows the state KeyboardHero owns (which key is down, whose card is open) and reports pointer input back;
  * it keeps no state of its own about the keycaps. Loaded lazily by KeyboardHero — this file and Three.js are one
  * chunk that the first paint never waits for.
@@ -419,9 +439,25 @@ export function KeyboardScene({
   const [pointing, setPointing] = useState(false);
   useCursor(pointing);
 
-  const { columns, rows } = keyboardLayout(keycaps.length);
-  const width = columns * keycapWidth + (columns - 1) * keyGap + 2 * casePadding;
-  const depth = rows * keycapDepth + (rows - 1) * keyGap + 2 * casePadding;
+  const main = keycapsIn(keycaps, "main");
+  const also = keycapsIn(keycaps, "also");
+  const { columns, rows } = keyboardLayout(main.length);
+  const gridWidth = columns * keycapWidth + (columns - 1) * keyGap;
+  // The top row spans the main grid's width; its keys share it.
+  const smallKeycap = useMemo<KeycapSize>(
+    () => ({
+      width: (gridWidth - (also.length - 1) * keyGap) / Math.max(also.length, 1),
+      depth: smallKeycapDepth,
+      height: smallKeycapHeight,
+    }),
+    [gridWidth, also.length],
+  );
+  const topRowDepth = also.length > 0 ? smallKeycapDepth + keyGap : 0;
+  const gridDepth = topRowDepth + rows * keycapDepth + (rows - 1) * keyGap;
+  const width = gridWidth + 2 * casePadding;
+  const depth = gridDepth + 2 * casePadding;
+  // z grows toward the viewer: the top row sits at the back edge, the main grid in front of it.
+  const backEdge = -gridDepth / 2;
   const dark = colors.theme === "dark";
 
   const hover = (id: string | null) => {
@@ -458,16 +494,33 @@ export function KeyboardScene({
               <RoundedBox args={[width, caseHeight, depth]} radius={0.18} smoothness={4}>
                 <meshStandardMaterial color={colors.surface2} roughness={0.85} />
               </RoundedBox>
-              {keycaps.map((keycap, index) => {
+              {also.map((keycap, index) => (
+                <KeycapMesh
+                  key={keycap.id}
+                  keycap={keycap}
+                  size={smallKeycap}
+                  position={[
+                    -gridWidth / 2 + smallKeycap.width / 2 + index * (smallKeycap.width + keyGap),
+                    backEdge + smallKeycapDepth / 2,
+                  ]}
+                  active={keycap.id === activeId}
+                  down={keycap.id === downId}
+                  colors={colors}
+                  onHover={hover}
+                  onSelect={onSelect}
+                />
+              ))}
+              {main.map((keycap, index) => {
                 const column = index % columns;
                 const row = Math.floor(index / columns);
                 return (
                   <KeycapMesh
                     key={keycap.id}
                     keycap={keycap}
+                    size={mainKeycap}
                     position={[
                       (column - (columns - 1) / 2) * (keycapWidth + keyGap),
-                      (row - (rows - 1) / 2) * (keycapDepth + keyGap),
+                      backEdge + topRowDepth + keycapDepth / 2 + row * (keycapDepth + keyGap),
                     ]}
                     active={keycap.id === activeId}
                     down={keycap.id === downId}

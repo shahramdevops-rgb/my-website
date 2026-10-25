@@ -71,6 +71,9 @@ reveal something real about the back-end. Details and rejected ideas: `roadmap.m
   intro via `parseContactRequestType` (unknown → general, never echoed); email obfuscated by `EmailLink` (client leaf,
   reversed char codes from `src/lib/contact/email.ts`, `mailto:` built after hydration; also in the footer);
   `e2e/contact.spec.ts`).
+  `P3-T10` (résumé `alsoUsed` beside `techStack` — one id space, ≤ 8, fa/en same ids; keyboard: small muted top
+  row in poster + scene (`Keycap.row` = `main|also`, `keycapsIn()`), main keys unchanged; separate small button group
+  "Also worked with"; résumé skills group of the same name; e2e mock has Python + Redis).
   `P3-T9` (keyboard sound, added 2026-10-25: `src/lib/sound/keyboard-sound.ts` synthesizes a clicky Blue-switch
   sound (click/tick/clack) with Web Audio per key down/up (pitch per key + jitter), silent before the first user activation; `SoundToggle` next to the
   language switcher, `localStorage.sound = "off"` mirrored as `data-sound="off"` by the pre-paint script, CSS variant
@@ -140,7 +143,8 @@ reveal something real about the back-end. Details and rejected ideas: `roadmap.m
 - **Waiting on Shahram:** contact links (`Site:Social:Email|GitHub|Telegram`); optional display face (P2-T8 left it out);
   real résumé facts — every `[placeholder]` and `2000-01` date in `src/PersonalSite.Api/Content/resume.*.json`;
   About story — the `[placeholder]` sentence and a review of the drafted text in `frontend/content/about.*.mdx`; a photo;
-  Decisions page — confirm every `[placeholder]` project fact (gym, cinema, microservices) in `frontend/content/decisions.*.mdx`.
+  Decisions page — confirm every `[placeholder]` project fact (gym, cinema, microservices) in `frontend/content/decisions.*.mdx`;
+  the drafted `alsoUsed` descriptions in `resume.*.json`, and which jobs used each (`experience[].tech`).
 - **Code today:** an API-only ASP.NET Core app (`/health`, `/health/ready`, `GET /api/site`, `GET /api/resume?lang=`; unknown paths → 404
   ProblemDetails; CSP `default-src 'none'`). Every build rewrites `openapi/v1.json` — commit it with contract changes.
   `frontend/` serves `/fa` and `/en` (header/footer shell + the Bento home from `/api/site` and `/api/resume`; nav

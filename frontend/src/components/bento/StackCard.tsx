@@ -19,7 +19,12 @@ export function StackCard({ keycaps }: { keycaps: Keycap[] }) {
       <p className="mt-2 mb-6 text-muted">{t("description")}</p>
       <KeyboardHero
         keycaps={keycaps}
-        labels={{ hint: t("hint"), usedIn: t("usedIn"), noProjects: t("noProjects") }}
+        labels={{
+          hint: t("hint"),
+          alsoUsed: t("alsoUsed"),
+          usedIn: t("usedIn"),
+          noProjects: t("noProjects"),
+        }}
       />
     </BentoCard>
   );

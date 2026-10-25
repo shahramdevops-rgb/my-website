@@ -62,6 +62,11 @@ function resume(lang: "fa" | "en"): Resume {
       { id: "dotnet", name: ".NET", description: "e2e" },
       { id: "react", name: "React", description: "e2e" },
     ],
+    // Must match e2e/keyboard.spec.ts: the small top row.
+    alsoUsed: [
+      { id: "python", name: "Python", description: "e2e" },
+      { id: "redis", name: "Redis", description: "e2e" },
+    ],
   };
 }
 

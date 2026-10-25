@@ -25,6 +25,7 @@ const resume: Resume = {
   experience: [],
   education: [],
   skills: [],
+  alsoUsed: [],
   techStack: [
     { id: "csharp", name: "C#", description: "C# description" },
     { id: "postgresql", name: "PostgreSQL", description: "PostgreSQL description" },

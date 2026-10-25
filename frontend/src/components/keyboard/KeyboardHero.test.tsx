@@ -4,6 +4,7 @@ import { buildKeycaps } from "@/lib/keyboard/keycaps";
 import { KeyboardHero } from "./KeyboardHero";
 
 const keycaps = buildKeycaps({
+  alsoUsed: [],
   techStack: [
     { id: "csharp", name: "C#", description: "C# description" },
     { id: "react", name: "React", description: "React description" },
@@ -20,7 +21,12 @@ const keycaps = buildKeycaps({
   ],
 });
 
-const labels = { hint: "Hint", usedIn: "Used in", noProjects: "No projects yet" };
+const labels = {
+  hint: "Hint",
+  alsoUsed: "Also worked with",
+  usedIn: "Used in",
+  noProjects: "No projects yet",
+};
 
 // jsdom has no matchMedia and no WebGL: the hero shows the poster, never the 3D scene.
 beforeEach(() => {

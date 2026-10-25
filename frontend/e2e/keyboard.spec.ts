@@ -1,7 +1,8 @@
 import { expect, type Page, test } from "@playwright/test";
 
-// The tech stack of e2e/mock-api.ts: C# (key C), .NET (N), React (R).
+// The tech stack of e2e/mock-api.ts: C# (key C), .NET (N), React (R); also used: Python (P), Redis (E).
 const technologies = ["C#", ".NET", "React"] as const;
+const alsoUsed = ["Python", "Redis"] as const;
 
 const stackCard = (page: Page) => page.getByRole("region", { name: "Tech stack", exact: true });
 const techButton = (page: Page, name: string) =>
@@ -36,8 +37,10 @@ test.describe("keyboard hero", () => {
 
       const poster = page.getByTestId("keyboard-poster");
       await expect(poster).toBeVisible();
-      for (const name of technologies) await expect(poster).toContainText(name);
-      await expect(stackCard(page).getByRole("button")).toHaveCount(technologies.length);
+      for (const name of [...technologies, ...alsoUsed]) await expect(poster).toContainText(name);
+      await expect(stackCard(page).getByRole("button")).toHaveCount(
+        technologies.length + alsoUsed.length,
+      );
     });
   });
 
@@ -90,7 +93,7 @@ test.describe("keyboard hero", () => {
     await page.goto("/fa");
     const card = page.getByRole("region", { name: "پشته فنی" });
 
-    for (const name of technologies) {
+    for (const name of [...technologies, ...alsoUsed]) {
       const button = card.getByRole("button", { name, exact: true });
       await button.click();
 

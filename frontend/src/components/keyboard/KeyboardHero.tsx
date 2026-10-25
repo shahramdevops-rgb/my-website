@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useId, useRef, useState } from "react";
-import type { Keycap } from "@/lib/keyboard/keycaps";
+import { type Keycap, keycapsIn } from "@/lib/keyboard/keycaps";
 import { playKeySound } from "@/lib/sound/keyboard-sound";
 import { cn } from "@/lib/ui/cn";
 import { KeyboardPoster } from "./KeyboardPoster";
@@ -18,6 +18,8 @@ const KeyboardScene = dynamic(
 
 export type KeyboardHeroLabels = {
   hint: string;
+  /** Heading of the smaller list: the technologies also used. */
+  alsoUsed: string;
   usedIn: string;
   noProjects: string;
 };
@@ -130,6 +132,39 @@ export function KeyboardHero({
 
   const toggle = (id: string) => setSelectedId((selected) => (selected === id ? null : id));
 
+  const alsoKeycaps = keycapsIn(keycaps, "also");
+  const alsoLabelId = useId();
+
+  // One button per technology. The top row's are quieter (outlined, muted), like their keycaps.
+  const techButton = (keycap: Keycap) => {
+    const expanded = keycap.id === selectedId;
+    const small = keycap.row === "also";
+    return (
+      <button
+        type="button"
+        aria-expanded={expanded}
+        aria-controls={cardId}
+        aria-keyshortcuts={keycap.key}
+        onClick={() => pressButton(keycap.id)}
+        className={cn(
+          "inline-flex items-center gap-2 rounded-full font-medium",
+          small ? "px-2.5 py-0.5 text-xs" : "px-3 py-1 text-sm",
+          expanded
+            ? "bg-accent text-bg"
+            : small
+              ? "border border-border text-muted hover:text-text"
+              : "bg-accent-soft text-accent hover:shadow-[0_0_0_3px_var(--color-accent-soft)]",
+        )}
+      >
+        <span dir="auto">{keycap.name}</span>
+        {/* The key is announced by aria-keyshortcuts; read out again it would join the name ("C# C"). */}
+        <kbd aria-hidden="true" className="text-xs">
+          {keycap.key}
+        </kbd>
+      </button>
+    );
+  };
+
   // The list's buttons don't push a keycap down, so a click there plays a whole keystroke itself.
   const pressButton = (id: string) => {
     playKeySound("down", id);
@@ -172,33 +207,22 @@ export function KeyboardHero({
 
       <p className="mt-4 text-sm text-muted">{labels.hint}</p>
       <ul className="mt-3 flex flex-wrap gap-2">
-        {keycaps.map((keycap) => {
-          const expanded = keycap.id === selectedId;
-          return (
-            <li key={keycap.id}>
-              <button
-                type="button"
-                aria-expanded={expanded}
-                aria-controls={cardId}
-                aria-keyshortcuts={keycap.key}
-                onClick={() => pressButton(keycap.id)}
-                className={cn(
-                  "inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-medium",
-                  expanded
-                    ? "bg-accent text-bg"
-                    : "bg-accent-soft text-accent hover:shadow-[0_0_0_3px_var(--color-accent-soft)]",
-                )}
-              >
-                <span dir="auto">{keycap.name}</span>
-                {/* The key is announced by aria-keyshortcuts; read out again it would join the name ("C# C"). */}
-                <kbd aria-hidden="true" className="text-xs">
-                  {keycap.key}
-                </kbd>
-              </button>
-            </li>
-          );
-        })}
+        {keycapsIn(keycaps, "main").map((keycap) => (
+          <li key={keycap.id}>{techButton(keycap)}</li>
+        ))}
       </ul>
+      {alsoKeycaps.length > 0 && (
+        <>
+          <p id={alsoLabelId} className="mt-4 text-xs text-muted">
+            {labels.alsoUsed}
+          </p>
+          <ul aria-labelledby={alsoLabelId} className="mt-2 flex flex-wrap gap-1.5">
+            {alsoKeycaps.map((keycap) => (
+              <li key={keycap.id}>{techButton(keycap)}</li>
+            ))}
+          </ul>
+        </>
+      )}
 
       {/*
         The card comes after the buttons in the DOM, so a screen reader meets it right after the button it opened.

@@ -12,7 +12,8 @@ public sealed record ResumeProfile(
     IReadOnlyList<ResumeExperience> Experience,
     IReadOnlyList<ResumeEducation> Education,
     IReadOnlyList<ResumeSkillGroup> Skills,
-    IReadOnlyList<ResumeTech> TechStack);
+    IReadOnlyList<ResumeTech> TechStack,
+    IReadOnlyList<ResumeTech> AlsoUsed);
 
 /// <summary>Who: name (ADR-017), one-line headline, short summary, location.</summary>
 public sealed record ResumeBasics(string Name, string Headline, string Summary, string Location);
@@ -22,7 +23,7 @@ public sealed record ResumeLink(string Label, Uri Url);
 
 /// <summary>
 /// A job or engagement. <c>end</c> = <c>null</c> means "present". <c>tech</c> holds ids from
-/// <c>techStack</c>, so the keyboard hero can list the work that used each technology.
+/// <c>techStack</c> or <c>alsoUsed</c>, so the keyboard hero can list the work that used each technology.
 /// </summary>
 public sealed record ResumeExperience(
     string Organization,
@@ -46,7 +47,10 @@ public sealed record ResumeEducation(
 public sealed record ResumeSkillGroup(string Category, IReadOnlyList<string> Items);
 
 /// <summary>
-/// One technology of the stack (a keycap of the keyboard hero). <c>id</c> is a language-neutral slug
-/// (<c>csharp</c>, <c>postgresql</c>), identical in both files; <c>name</c> and <c>description</c> are localized.
+/// One technology (a keycap of the keyboard hero). <c>id</c> is a language-neutral slug (<c>csharp</c>,
+/// <c>postgresql</c>), identical in both files; <c>name</c> and <c>description</c> are localized.
+/// <c>techStack</c> = the main stack, what the site sells (ADR-022): the keyboard's big keys. <c>alsoUsed</c> =
+/// technologies worked with besides it (P3-T10): a smaller row above them, so breadth shows without diluting the
+/// main message.
 /// </summary>
 public sealed record ResumeTech(string Id, string Name, string Description);

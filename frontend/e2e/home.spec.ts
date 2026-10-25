@@ -90,6 +90,7 @@ test.describe("home Bento grid", () => {
     const names = await stack
       .getByRole("button")
       .evaluateAll((buttons) => buttons.map((button) => button.querySelector("span")?.textContent));
-    expect(names).toEqual(["C#", ".NET", "React"]);
+    // The main stack first, then the smaller "also used" group.
+    expect(names).toEqual(["C#", ".NET", "React", "Python", "Redis"]);
   });
 });

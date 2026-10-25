@@ -53,6 +53,10 @@
     {
       "category": "Practices",
       "items": ["Clean Architecture", "Automated testing (xUnit, Testcontainers, Playwright)", "Typed API contracts"]
+    },
+    {
+      "category": "Also worked with",
+      "items": ["Python & Django", "MySQL", "MongoDB", "Redis", "Git & GitHub"]
     }
   ],
   "techStack": [
@@ -95,6 +99,38 @@
       "id": "docker",
       "name": "Docker",
       "description": "Containers for every service, built in CI and run the same way locally and in production."
+    }
+  ],
+  "alsoUsed": [
+    {
+      "id": "python",
+      "name": "Python",
+      "description": "A language I've used for back-end work and scripts, besides C#."
+    },
+    {
+      "id": "django",
+      "name": "Django",
+      "description": "Python's web framework: models, admin and server-rendered pages or APIs."
+    },
+    {
+      "id": "mysql",
+      "name": "MySQL",
+      "description": "A relational database I've worked with besides PostgreSQL."
+    },
+    {
+      "id": "mongodb",
+      "name": "MongoDB",
+      "description": "A document database, for data whose shape varies more than a table's."
+    },
+    {
+      "id": "redis",
+      "name": "Redis",
+      "description": "An in-memory store for caching and fast shared state between services."
+    },
+    {
+      "id": "git",
+      "name": "Git & GitHub",
+      "description": "Version control and collaboration: branches, pull requests and CI with GitHub Actions."
     }
   ]
 }

@@ -10,6 +10,9 @@ namespace PersonalSite.Application.Resume;
 /// </summary>
 public sealed partial class ResumeContentValidator : IValidateOptions<ResumeContent>
 {
+    /// <summary>The keyboard's small top row: more keys than this would be too narrow to read.</summary>
+    public const int MaxAlsoUsed = 8;
+
     public ValidateOptionsResult Validate(string? name, ResumeContent options)
     {
         ArgumentNullException.ThrowIfNull(options);
@@ -49,16 +52,12 @@ public sealed partial class ResumeContentValidator : IValidateOptions<ResumeCont
             check.True(link.Url is { IsAbsoluteUri: true, Scheme: "https" }, $"links[{i}].url must be an absolute https URL.");
         }
 
+        // One id space for both lists: a technology is either in the main stack or "also used", never both.
         var techIds = new HashSet<string>(StringComparer.Ordinal);
         check.True(profile.TechStack.Count > 0, "techStack must not be empty.");
-        for (var i = 0; i < profile.TechStack.Count; i++)
-        {
-            var tech = profile.TechStack[i];
-            check.True(TechIdPattern().IsMatch(tech.Id ?? string.Empty), $"techStack[{i}].id must be a lowercase slug (e.g. \"csharp\", \"entity-framework\").");
-            check.True(techIds.Add(tech.Id ?? string.Empty), $"techStack[{i}].id \"{tech.Id}\" is used twice.");
-            check.Text(tech.Name, $"techStack[{i}].name");
-            check.Text(tech.Description, $"techStack[{i}].description");
-        }
+        check.Tech(profile.TechStack, "techStack", techIds);
+        check.True(profile.AlsoUsed.Count <= MaxAlsoUsed, $"alsoUsed has room for at most {MaxAlsoUsed} technologies (one row of the keyboard).");
+        check.Tech(profile.AlsoUsed, "alsoUsed", techIds);
 
         check.True(profile.Experience.Count > 0, "experience must not be empty.");
         for (var i = 0; i < profile.Experience.Count; i++)
@@ -77,7 +76,7 @@ public sealed partial class ResumeContentValidator : IValidateOptions<ResumeCont
 
             foreach (var id in job.Tech)
             {
-                check.True(techIds.Contains(id ?? string.Empty), $"{path}.tech: \"{id}\" is not an id in techStack.");
+                check.True(techIds.Contains(id ?? string.Empty), $"{path}.tech: \"{id}\" is not an id in techStack or alsoUsed.");
             }
         }
 
@@ -117,6 +116,7 @@ public sealed partial class ResumeContentValidator : IValidateOptions<ResumeCont
         }
 
         Same(fa.TechStack.Select(t => t.Id).SequenceEqual(en.TechStack.Select(t => t.Id)), "techStack ids (and their order)");
+        Same(fa.AlsoUsed.Select(t => t.Id).SequenceEqual(en.AlsoUsed.Select(t => t.Id)), "alsoUsed ids (and their order)");
         Same(fa.Links.Select(l => l.Url).SequenceEqual(en.Links.Select(l => l.Url)), "links (urls and order)");
         Same(fa.Skills.Count == en.Skills.Count, "the number of skill groups");
 
@@ -149,6 +149,18 @@ public sealed partial class ResumeContentValidator : IValidateOptions<ResumeCont
 
         public void Text(string? value, string path) =>
             True(!string.IsNullOrWhiteSpace(value), $"{path} must not be empty.");
+
+        public void Tech(IReadOnlyList<ResumeTech> list, string name, HashSet<string> ids)
+        {
+            for (var i = 0; i < list.Count; i++)
+            {
+                var tech = list[i];
+                True(TechIdPattern().IsMatch(tech.Id ?? string.Empty), $"{name}[{i}].id must be a lowercase slug (e.g. \"csharp\", \"entity-framework\").");
+                True(ids.Add(tech.Id ?? string.Empty), $"{name}[{i}].id \"{tech.Id}\" is used twice.");
+                Text(tech.Name, $"{name}[{i}].name");
+                Text(tech.Description, $"{name}[{i}].description");
+            }
+        }
 
         // "yyyy-MM" strings compare correctly as plain text, so ordinal comparison is a date comparison.
         public void Period(string start, string? end, string path)

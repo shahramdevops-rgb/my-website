@@ -53,6 +53,10 @@
     {
       "category": "روش‌ها",
       "items": ["Clean Architecture", "تست خودکار (xUnit، Testcontainers، Playwright)", "قرارداد API تایپ‌شده"]
+    },
+    {
+      "category": "همچنین کار کرده‌ام با",
+      "items": ["Python و Django", "MySQL", "MongoDB", "Redis", "Git و GitHub"]
     }
   ],
   "techStack": [
@@ -95,6 +99,38 @@
       "id": "docker",
       "name": "Docker",
       "description": "کانتینر برای هر سرویس؛ در CI ساخته می‌شود و محلی و در production یکسان اجرا می‌شود."
+    }
+  ],
+  "alsoUsed": [
+    {
+      "id": "python",
+      "name": "Python",
+      "description": "زبانی که در کنار C#\u200e برای کارهای بک‌اند و اسکریپت‌نویسی از آن استفاده کرده‌ام."
+    },
+    {
+      "id": "django",
+      "name": "Django",
+      "description": "فریم‌ورک وب پایتون: مدل‌ها، پنل ادمین و صفحه‌های سمت سرور یا API."
+    },
+    {
+      "id": "mysql",
+      "name": "MySQL",
+      "description": "پایگاه داده‌ای رابطه‌ای که در کنار PostgreSQL با آن کار کرده‌ام."
+    },
+    {
+      "id": "mongodb",
+      "name": "MongoDB",
+      "description": "پایگاه داده‌ای سندمحور، برای داده‌هایی که شکلشان از یک جدول متغیرتر است."
+    },
+    {
+      "id": "redis",
+      "name": "Redis",
+      "description": "ذخیره‌ساز درون‌حافظه‌ای برای کش و وضعیت مشترک سریع بین سرویس‌ها."
+    },
+    {
+      "id": "git",
+      "name": "Git & GitHub",
+      "description": "کنترل نسخه و کار تیمی: شاخه‌ها، pull request و CI با GitHub Actions."
     }
   ]
 }

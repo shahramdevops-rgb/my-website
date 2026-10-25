@@ -60,7 +60,48 @@ public sealed class ResumeContentValidatorTests
 
         var result = _validator.Validate(name: null, Content(profile, profile));
 
-        FailuresOf(result).ShouldContain("fa: experience[0].tech: \"cobol\" is not an id in techStack.");
+        FailuresOf(result).ShouldContain("fa: experience[0].tech: \"cobol\" is not an id in techStack or alsoUsed.");
+    }
+
+    [Fact]
+    public void Validate_JobUsesAlsoUsedTech_Succeeds()
+    {
+        var profile = Profile() with { Experience = [Job() with { Tech = ["csharp", "python"] }] };
+
+        var result = _validator.Validate(name: null, Content(profile, profile));
+
+        result.Succeeded.ShouldBeTrue(string.Join(" ", FailuresOf(result)));
+    }
+
+    [Fact]
+    public void Validate_SameTechInBothLists_Fails()
+    {
+        var profile = Profile() with { AlsoUsed = [Tech("csharp")] };
+
+        var result = _validator.Validate(name: null, Content(profile, profile));
+
+        FailuresOf(result).ShouldContain("fa: alsoUsed[0].id \"csharp\" is used twice.");
+    }
+
+    [Fact]
+    public void Validate_AlsoUsedLongerThanOneRow_Fails()
+    {
+        var profile = Profile() with
+        {
+            AlsoUsed = [.. Enumerable.Range(0, ResumeContentValidator.MaxAlsoUsed + 1).Select(i => Tech($"tool-{i}"))],
+        };
+
+        var result = _validator.Validate(name: null, Content(profile, profile));
+
+        FailuresOf(result).ShouldContain($"fa: alsoUsed has room for at most {ResumeContentValidator.MaxAlsoUsed} technologies (one row of the keyboard).");
+    }
+
+    [Fact]
+    public void Validate_LanguagesDisagreeOnAlsoUsed_Fails()
+    {
+        var result = _validator.Validate(name: null, Content(Profile(), Profile() with { AlsoUsed = [Tech("django")] }));
+
+        FailuresOf(result).ShouldContain("fa/en: alsoUsed ids (and their order) must be the same in both languages.");
     }
 
     [Theory]
@@ -108,7 +149,8 @@ public sealed class ResumeContentValidatorTests
         Experience: [Job()],
         Education: [new ResumeEducation("University of Guilan", "BSc", "Electrical Engineering", "2010-09", "2014-06")],
         Skills: [new ResumeSkillGroup("Back-end", ["C#", "PostgreSQL"])],
-        TechStack: [Tech("csharp"), Tech("postgresql")]);
+        TechStack: [Tech("csharp"), Tech("postgresql")],
+        AlsoUsed: [Tech("python")]);
 
     private static ResumeExperience Job() =>
         new("Example Co", "Engineer", "2021-01", "Built things.", ["Shipped a thing."], ["csharp"]);

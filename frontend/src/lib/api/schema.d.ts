@@ -178,7 +178,7 @@ export interface components {
         };
         /**
          * @description A job or engagement. `end` = `null` means "present". `tech` holds ids from
-         *     `techStack`, so the keyboard hero can list the work that used each technology.
+         *     `techStack` or `alsoUsed`, so the keyboard hero can list the work that used each technology.
          */
         ResumeExperience: {
             organization: string;
@@ -204,6 +204,7 @@ export interface components {
             education: components["schemas"]["ResumeEducation"][];
             skills: components["schemas"]["ResumeSkillGroup"][];
             techStack: components["schemas"]["ResumeTech"][];
+            alsoUsed: components["schemas"]["ResumeTech"][];
         };
         /** @description A category of skills ("Back-end", "Front-end" …) with its items, in display order. */
         ResumeSkillGroup: {
@@ -211,8 +212,11 @@ export interface components {
             items: string[];
         };
         /**
-         * @description One technology of the stack (a keycap of the keyboard hero). `id` is a language-neutral slug
-         *     (`csharp`, `postgresql`), identical in both files; `name` and `description` are localized.
+         * @description One technology (a keycap of the keyboard hero). `id` is a language-neutral slug (`csharp`,
+         *     `postgresql`), identical in both files; `name` and `description` are localized.
+         *     `techStack` = the main stack, what the site sells (ADR-022): the keyboard's big keys. `alsoUsed` =
+         *     technologies worked with besides it (P3-T10): a smaller row above them, so breadth shows without diluting the
+         *     main message.
          */
         ResumeTech: {
             id: string;
