@@ -344,9 +344,14 @@
 
 ## Phase 6 — Projects, case studies & live demos
 
-- [ ] **P6-T1 Domain: Project & MediaFile**
+- [x] **P6-T1 Domain: Project & MediaFile**
   Scope: entities per architecture §4 (nullable `HealthUrl` https only, nullable `DemoKey`), `ProjectStatus`, `Slug` value object, domain methods (`Feature()`, `Archive()`, `Reorder()`), unit tests.
   Done when: tests pass.
+  Status: done 2026-10-25. `DemoKey` is a closed enum (`Cinema`, `Gym`), links are `Uri` (absolute, no user info;
+  health https only), an archived project is never featured; bad input throws (`Common/Guard.cs`) because
+  Application validates first. Max lengths are `const`s on the entities for the EF config and validators to reuse.
+  `TechStack` holds **résumé tech ids** (`dotnet`, `ef-core`), not display names (Shahram, 2026-10-25): names come
+  from the résumé and a keyboard key can list its projects.
 
 - [ ] **P6-T2 Persistence for projects & media**
   Scope: EF configurations (indexes, `text[]` tech stack, unique `(language, slug)`), migration.
@@ -358,7 +363,7 @@
   Learn: never trust extensions or content-type.
 
 - [ ] **P6-T4 Result pattern & ProjectAdminService**
-  Scope: `Result`/`Error`, create/update commands + FluentValidation, Markdown body via `IMarkdownRenderer`, slug uniqueness, admin endpoints.
+  Scope: `Result`/`Error`, create/update commands + FluentValidation, Markdown body via `IMarkdownRenderer`, slug uniqueness, tech ids must exist in the résumé (`techStack` or `alsoUsed`), admin endpoints.
   Depends on: **P7-T1** (Markdown renderer) — do that first; it has no other dependencies.
   Done when: service tests cover create/update/duplicate slug.
 

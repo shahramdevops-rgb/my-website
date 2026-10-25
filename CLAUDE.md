@@ -147,6 +147,13 @@ reveal something real about the back-end. Details and rejected ideas: `roadmap.m
   `safeNextPath` against open redirects; `ToastProvider`/`useToast` + `setFlash`; sidebar sections `ready: false` until
   their phase (`src/lib/admin/navigation.ts`); `e2e/admin.spec.ts` forwards browser `/api` calls to the mock with
   `page.route`; API JSON numbers strict → OpenAPI `integer`).
+- **Done in P6:** `P6-T1` (Domain only: `Common/Slug` value object (`[a-z0-9]` words + single hyphens, ≤ 80,
+  `TryCreate`/`Create`), internal `Common/Guard` (bad input in an entity method = bug → `ArgumentException`);
+  `Projects/Project` (+ `ProjectStatus`, closed enum `DemoKey` Cinema|Gym, links as `Uri`: absolute, no user info,
+  `HealthUrl` https only, tech stack = résumé tech ids (slug shape, distinct, ≤ 20; existence checked in P6-T4),
+  archived ⇒ never featured,
+  `Feature`/`Unfeature`/`Archive`/`Reorder`); `Media/MediaFile` (relative storage key only, width + height together);
+  max lengths as `const`s on the entities for P6-T2's EF config and P6-T4's validators).
 - **Done in P13 (pulled forward):** `P13-T3` (`.github/dependabot.yml` weekly grouped updates for NuGet/npm/Actions/
   Docker, majors + held-back TS/ESLint ignored; CI fails on vulnerable NuGet packages (transitive too) and on
   high/critical `pnpm audit --prod`).
@@ -154,8 +161,8 @@ reveal something real about the back-end. Details and rejected ideas: `roadmap.m
 - **Server rules:** the VPS runs the gym system in production — gym backup before any change, every server command
   explained and approved first, never touch the gym's containers/volumes, nothing but the edge on 80/443.
 - **Next task:** Shahram: server checklist A–B in `deploy/SHARED-SERVER.md §4` (read-only checks + prep), then the gym
-  repo's part (§3) and the cut-over; then tag `v0.2.0` and deploy (`P4-T4`). Claude: `P6-T1` (Domain: Project &
-  MediaFile). Shahram may still retune the keyboard by ear/eye (P3-T12 hues in `globals.css`, P3-T13 switch values in
+  repo's part (§3) and the cut-over; then tag `v0.2.0` and deploy (`P4-T4`). Claude: `P6-T2` (Persistence for
+  projects & media). Shahram may still retune the keyboard by ear/eye (P3-T12 hues in `globals.css`, P3-T13 switch values in
   `keyboard-sound.ts`).
 - **Accent color:** electric blue (`#4DB5FF` dark / `#0A63C9` light), picked by Claude at Shahram's request; easy to change (`architecture.md §8.1`).
 - **Waiting on Shahram:** contact links (`Site:Social:Email|GitHub|Telegram`); optional display face (P2-T8 left it out);

@@ -38,6 +38,18 @@ var result = await posts.CreateAsync(cmd, ct);
 if (result.IsFailure) { ModelState.AddModelError("", L[result.Error.Key]); return Page(); }
 ```
 
+### 1.6 Value objects and two lines of defence (P6-T1)
+**What:** A *value object* is a small type defined only by its value, valid by construction: `Slug` can't hold
+`"Gym System"` because its only constructor is private and the factories check the rule. Two slugs with the same text
+are equal (`record`). An entity property typed `Slug` instead of `string` means "already checked" — nobody re-validates.
+```csharp
+if (!Slug.TryCreate(input, out var slug)) return Error("project.slug_invalid"); // Application: expected → Result
+project.ChangeSlug(slug);                                                       // Domain: can't be wrong any more
+```
+**Why two lines:** the Application validator turns bad *user* input into a friendly `Result` error; the entity's own
+checks (`Guard`, `Slug.Create`) throw, because reaching them with bad data means a bug in our code. The domain stays
+correct even if a future caller forgets to validate.
+
 ### 1.5 Why no MediatR / AutoMapper / FluentAssertions
 All three moved to commercial licences for new versions in 2025. Beyond licensing: MediatR adds indirection (you can't "Go to definition" from a page to its logic) and AutoMapper hides mapping bugs until runtime. Hand-written `Select(p => new PostDto(...))` is explicit and lets EF generate efficient SQL.
 

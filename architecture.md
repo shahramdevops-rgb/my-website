@@ -140,9 +140,10 @@ frontend ──HTTP (typed client)──► Api ──► Application ──► 
 
 ```
 PersonalSite.Domain/
-├─ Common/            Entity.cs (Id, CreatedAt, UpdatedAt), IAuditable, Slug.cs (value object), Language.cs (enum Fa/En)
+├─ Common/            Entity.cs (Id, CreatedAt, UpdatedAt), IAuditable, Slug.cs (value object), Language.cs (enum Fa/En),
+│                     Guard.cs (internal input checks: bad input in an entity method is a bug → exception)
 ├─ Blog/              Post.cs, PostStatus.cs, Tag.cs, Comment.cs, CommentStatus.cs
-├─ Projects/          Project.cs, ProjectStatus.cs
+├─ Projects/          Project.cs, ProjectStatus.cs, DemoKey.cs (closed list: Cinema, Gym)
 ├─ Demos/             CinemaSeat.cs, GymMember.cs, Locker.cs … (sandbox entities for live demos, ADR-027)
 ├─ Contact/           ContactMessage.cs
 ├─ Newsletter/        Subscriber.cs, SubscriberStatus.cs
@@ -238,8 +239,8 @@ title, summary, body_markdown, body_html  (body = case study: Problem · Archite
 status: Live | InProgress | Archived
 live_url, source_url (nullable)            contact_messages
 health_url (nullable, https; P6-T8)        ────────────────
-demo_key (nullable: cinema | gym …)        id, name, email, message
-tech_stack (text[])                        type: Hiring | Project | Other
+demo_key (nullable enum: Cinema | Gym)     id, name, email, message
+tech_stack (text[], résumé tech ids)       type: Hiring | Project | Other
 cover_image_id FK → media_files            status: New | Read | Archived
 is_featured, sort_order                    ip_hash, created_at
 started_on, finished_on (date, nullable)
@@ -281,6 +282,8 @@ created_at, confirmed_at, unsubscribed_at
 ### 4.2 Slugs
 Slugs are latin `[a-z0-9-]` only, entered/edited by the admin (with a suggestion field). Reason: Persian
 slugs become long percent-encoded URLs when shared (e.g. in Telegram). See learning.md §Slugs.
+The `Slug` value object (P6-T1) is the one place the rule lives: words of `a-z0-9` joined by single hyphens, at most
+80 characters, no trimming or lowercasing (the admin sees exactly what the URL will be).
 
 ## 5. Request flow
 
