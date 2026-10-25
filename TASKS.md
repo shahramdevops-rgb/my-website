@@ -202,6 +202,8 @@
   (16:10 from `sm`), and the 3D camera now fits by projecting the case's corners, then a lens shift
   (`setViewOffset`) puts the keyboard on the bottom margin. Skills "Also worked with" gained RabbitMQ and Nginx
   (Tailwind CSS and Linux were already in Front-end/Delivery). The four descriptions are drafts for Shahram.
+  Follow-up (Shahram, after P3-T14): the glass card covered the keys → from sm it opens in a band above the stage;
+  related technologies apart → one keyboard row per category (main keys, then "also" keys 0.8 wide).
 
 - [x] **P3-T12 Keyboard: category colors (a soft keycap colorway)**
   Scope: like a real GMK-style keycap set — each category tints the keycap body (soft, mixed into the surface color),
@@ -213,7 +215,7 @@
   Done when: contrast test covers every legend/body pair in both themes; screenshots of both themes in the report.
   Status: done 2026-10-25. Tokens `--color-cat-{backend,frontend,database,devops}` (mark: dots, legend, ripple) and
   `…-soft` (keycap body = mark mixed into `surface`, 16 % dark / 12 % light); dark violet `#a78bfa`, teal `#2dd4bf`,
-  amber `#fbbf24`, coral `#ff8a65`; light `#7c3aed`, `#0f766e`, `#b45309`, `#c2410c`. Class map in
+  amber `#fbbf24`, coral `#ff8a65`; light `#7c3aed`, `#0f766e`, `#b45309`, `#be123c` (rose: coral read too close to the amber). Class map in
   `components/keyboard/category-colors.ts`; `CategoryLegend` + `CategoryMark`. Contrast test: text/muted/accent on
   every body (4.5:1), every mark on bg/surface/surface-2/its body (3:1).
 

@@ -104,7 +104,9 @@ describe("KeyboardHero", () => {
     fireEvent.click(csharp);
 
     expect(csharp).toHaveAttribute("aria-expanded", "false");
-    expect(cardOf(csharp)).toBeEmptyDOMElement();
+    // Closed: the card's box holds only the hint again.
+    expect(within(cardOf(csharp)).queryByRole("heading")).not.toBeInTheDocument();
+    expect(cardOf(csharp)).toHaveTextContent("Hint");
   });
 
   it("opens a card from its real key while focus is in the list, and closes it on Escape", () => {

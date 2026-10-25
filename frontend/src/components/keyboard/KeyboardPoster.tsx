@@ -1,5 +1,5 @@
 import type { PointerEvent } from "react";
-import { type Keycap, keyboardLayout, keycapsIn } from "@/lib/keyboard/keycaps";
+import { type Keycap, keyboardLayout } from "@/lib/keyboard/keycaps";
 import { cn } from "@/lib/ui/cn";
 import { categoryColors } from "./category-colors";
 import { type Ripple, rippleDelayMs } from "./ripple";
@@ -19,7 +19,7 @@ type KeyboardPosterProps = {
 
 /**
  * The keyboard drawn with HTML and CSS: the first paint, the stand-in while the 3D scene loads, and the keyboard
- * itself for reduced motion or without WebGL. Same box as the scene, same keycaps in the same grid, tilted with a
+ * itself for reduced motion or without WebGL. Same box as the scene, same keycaps in the same rows, tilted with a
  * CSS perspective so the swap reads as the picture coming alive rather than being replaced.
  * Decorative (aria-hidden): the list of buttons next to it is what assistive technology uses.
  */
@@ -31,9 +31,7 @@ export function KeyboardPoster({
   ripple,
   covered,
 }: KeyboardPosterProps) {
-  const main = keycapsIn(keycaps, "main");
-  const also = keycapsIn(keycaps, "also");
-  const { columns } = keyboardLayout(main.length);
+  const layout = keyboardLayout(keycaps);
 
   // A touch has no "over": a tap would leave the key pushed down. Taps go through the list of buttons instead.
   const hover = (id: string | null) => (event: PointerEvent) => {
@@ -67,45 +65,60 @@ export function KeyboardPoster({
       )}
     >
       <div className="w-full origin-bottom rounded-2xl border border-border bg-surface-2 p-[3%] [transform:perspective(60rem)_rotateX(25deg)]">
-        {/* What was also used: the main grid's columns (so the names are as readable), shorter keys — like a
-            keyboard's function row above the letters. */}
-        {also.length > 0 && (
-          <div
-            className="mb-[3%] grid gap-[3%]"
-            style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
-          >
-            {also.map((keycap) => (
-              <PosterKey key={keycap.id} keycap={keycap} {...keyState(keycap)} small />
+        {/*
+          One row per category. Each key sits in a slot as wide as its share of the plate; the slot's padding is the
+          gap (a percentage of the row's width, so it scales with the keyboard). Every keycap is as tall as a main
+          one, so a row's narrower "also" keys line up with its big ones.
+        */}
+        {layout.rows.map(({ category, keys }) => (
+          <div key={category} className="flex">
+            {keys.map(({ keycap, width }) => (
+              <div
+                key={keycap.id}
+                className="p-[1.2%]"
+                style={{ width: `${(width / layout.width) * 100}%` }}
+              >
+                <PosterKey
+                  keycap={keycap}
+                  {...keyState(keycap)}
+                  aspectRatio={keyAspect(width, layout.width)}
+                  small={keycap.row === "also"}
+                />
+              </div>
             ))}
           </div>
-        )}
-        <div
-          className="grid gap-[3%]"
-          style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
-        >
-          {main.map((keycap) => (
-            <PosterKey key={keycap.id} keycap={keycap} {...keyState(keycap)} />
-          ))}
-        </div>
+        ))}
       </div>
     </div>
   );
 }
 
+/** The slots' padding on each side, in % of the row's width (the p-[1.2%] above). */
+const slotPadding = 1.2;
+
+/** A keycap's width : height, so that a key `width` main keys wide is as tall as a main 8:5 keycap. */
+function keyAspect(width: number, plateWidth: number): string {
+  const inner = (keys: number) => (keys / plateWidth) * 100 - 2 * slotPadding;
+  return `${inner(width)} / ${(inner(1) * 5) / 8}`;
+}
+
 type PosterKeyProps = {
   keycap: Keycap;
+  /** CSS aspect-ratio of the keycap (keyAspect). */
+  aspectRatio: string;
   active: boolean;
   down: boolean;
   onEnter: (event: PointerEvent) => void;
   onLeave: (event: PointerEvent) => void;
   /** The light ripple passing over this key: when it arrives, in which color, and whether it started here. */
   light: { seq: number; color: string; delayMs: number; origin: boolean } | null;
-  /** The "also used" keys: as wide as the main ones but shorter, so the main stack leads. */
+  /** The "also used" keys: narrower and set lighter, so the main stack leads its row. */
   small?: boolean;
 };
 
 function PosterKey({
   keycap,
+  aspectRatio,
   active,
   down,
   onEnter,
@@ -115,6 +128,7 @@ function PosterKey({
 }: PosterKeyProps) {
   return (
     <div
+      style={{ aspectRatio }}
       onPointerEnter={onEnter}
       onPointerLeave={onLeave}
       className={cn(
@@ -123,7 +137,6 @@ function PosterKey({
         "@container relative flex items-center justify-center rounded-lg border",
         categoryColors[keycap.category].body,
         "shadow-[0_0.3rem_0_var(--color-border)] motion-safe:transition-[translate,box-shadow] motion-safe:duration-100",
-        small ? "aspect-[8/3.5]" : "aspect-[8/5]",
         active ? "border-accent text-accent" : "border-border text-text",
         down && "translate-y-[0.3rem] shadow-none",
       )}
@@ -144,11 +157,15 @@ function PosterKey({
           style={{ animationDelay: `${light.delayMs}ms` }}
         />
       )}
-      <span className="absolute start-[7%] top-[6%] font-mono text-[11cqw] text-muted">
+      <span className="absolute start-[7%] top-[6%] font-mono text-[10cqw] text-muted">
         {keycap.key}
       </span>
+      {/* A narrower keycap gets a larger share of its width, so its name is nearly as big as a main key's. */}
       <span
-        className={cn("relative text-[12cqw]", small ? "mt-[6%] font-medium" : "font-semibold")}
+        className={cn(
+          "relative",
+          small ? "text-[14cqw] font-medium" : "text-[12cqw] font-semibold",
+        )}
       >
         {keycap.name}
       </span>

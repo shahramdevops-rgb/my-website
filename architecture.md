@@ -526,15 +526,17 @@ with a shared secret (`Revalidate__Secret`).
   not in the main navigation.
 - **Keyboard hero (P3-T3):** `lib/keyboard/keycaps.ts` turns the résumé into `Keycap`s on the server (`buildKeycaps`:
   each tech gets the first free letter/digit of its name as its key — C# → C, Next.js → X once N is taken — and the
-  `experience` entries whose `tech` lists it; `keyboardLayout`: ≤ 4 per row). `components/keyboard/KeyboardHero`
+  `experience` entries whose `tech` lists it; `keyboardLayout`: one row per category since 2026-10-25 — main keys
+  first, then the "also" keys at 0.8 of their width — shared by poster, scene, sound and ripple). `components/keyboard/KeyboardHero`
   (client) owns the state (selected / hovered / held / ripple) and renders: a stage with fixed `aspect-ratio` (4/3
-  on phones, 16/10 from sm, 5/4 at lg; `dir="ltr"`, `aria-hidden`) holding `KeyboardPoster` (HTML/CSS keycaps with a CSS perspective, first paint) and,
+  on phones, 16/9 from sm, 12rem below the top there: that band is where the card opens; `dir="ltr"`, `aria-hidden`) holding `KeyboardPoster` (HTML/CSS keycaps with a CSS perspective, first paint) and,
   when `useSceneAllowed` says so (WebGL + no reduced motion; false on the server), `KeyboardScene` via
   `next/dynamic({ ssr: false })` — R3F + drei `RoundedBox` keycaps, legends drawn on 2D canvases with the page's own
   fonts (no troika/font download/worker), colors read from the CSS tokens and re-read on theme change, soft hue-cycling
   underglow + point lights, `frameloop="never"` while off screen, error boundary → poster; then a hint, the
   accessible list (one `<button>` per tech: `aria-expanded`, `aria-controls` → card, `aria-keyshortcuts`) and the glass
-  `TechCard` (after the list in the DOM; floats over the stage's top from sm, in flow below the list on phones).
+  `TechCard` (after the list in the DOM; from sm in the band above the stage — never over the keys — holding the
+  hint in a dashed outline while nothing is chosen; in flow below the list on phones).
   Real keys (`KeyboardEvent.code`) work while the pointer is over the stage or focus is in the hero (WCAG 2.1.4);
   modifiers and editable targets are ignored; Esc closes. `e2e/keyboard.spec.ts`: poster without JS, zero layout
   shift while the scene loads, real keys, every card reachable from the list, reduced motion → no canvas.
@@ -576,7 +578,7 @@ Neutrals are slightly cool so the blue feels at home.
 | `--color-cat-backend` / `-soft` | `#A78BFA` / `#29263C` | `#7C3AED` / `#EFE7FD` | keyboard category: mark / keycap body (P3-T12) |
 | `--color-cat-frontend` / `-soft` | `#2DD4BF` / `#153233` | `#0F766E` / `#E2EFEE` | 〃 |
 | `--color-cat-database` / `-soft` | `#FBBF24` / `#362F1A` | `#B45309` / `#F6EAE1` | 〃 |
-| `--color-cat-devops` / `-soft` | `#FF8A65` / `#372624` | `#C2410C` / `#F8E8E2` | 〃 |
+| `--color-cat-devops` / `-soft` | `#FF8A65` / `#372624` | `#BE123C` / `#F7E3E8` | 〃 (light: rose, coral read too close to the amber) |
 
 The category colors are a keycap colorway, not a second accent: they tint keycap bodies and mark categories (dots,
 legend, light ripple); the accent still alone marks the active key and everything interactive. `-soft` = the mark

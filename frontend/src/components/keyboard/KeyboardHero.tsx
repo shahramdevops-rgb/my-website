@@ -224,7 +224,8 @@ export function KeyboardHero({
     <div ref={rootRef} className="relative">
       {/*
         One box for poster and scene: its aspect ratio is fixed before any script runs, so the swap moves nothing.
-        Taller on phones (4:3): a narrow keyboard with five rows would be tiny in a 16:10 box.
+        Taller on phones (4:3): a narrow keyboard would be tiny in a 16:9 box. From sm up it starts 12rem lower:
+        that band above it is where the glass card opens, so the card never covers a key.
         dir="ltr": a keyboard is a physical object with Latin legends, the same way round in both languages.
       */}
       <div
@@ -232,7 +233,7 @@ export function KeyboardHero({
         dir="ltr"
         aria-hidden="true"
         data-testid="keyboard-stage"
-        className="relative aspect-[4/3] overflow-hidden rounded-xl sm:aspect-[16/10] lg:aspect-[5/4]"
+        className="relative aspect-[4/3] overflow-hidden rounded-xl sm:mt-48 sm:aspect-[16/9]"
       >
         <KeyboardPoster
           keycaps={keycaps}
@@ -262,7 +263,8 @@ export function KeyboardHero({
         </span>
       ))}
       <CategoryLegend labels={labels.categories} />
-      <p className="mt-3 text-sm text-muted">{labels.hint}</p>
+      {/* From sm up the hint waits in the card's band instead (below), so the band is never an empty hole. */}
+      <p className="mt-3 text-sm text-muted sm:hidden">{labels.hint}</p>
       <ul className="mt-3 flex flex-wrap gap-2">
         {keycapsIn(keycaps, "main").map((keycap) => (
           <li key={keycap.id}>{techButton(keycap)}</li>
@@ -283,16 +285,17 @@ export function KeyboardHero({
 
       {/*
         The card comes after the buttons in the DOM, so a screen reader meets it right after the button it opened.
-        From sm up it floats over the top of the stage (same box, so it can't change the card's height while
-        hovering); on phones there is no room over the keyboard and it opens below the buttons.
-        pointer-events-none: the pointer reaches the keys under the card.
+        From sm up it opens in the band reserved above the stage (absolute, so it can't change the card's height
+        while hovering); on phones there is no room for the band and it opens below the buttons. A card longer than
+        the band overlaps the keyboard's back row instead of pushing the page down.
+        pointer-events-none: the pointer reaches the keys under such a card.
       */}
       <div
         id={cardId}
-        className="mt-4 sm:pointer-events-none sm:absolute sm:inset-x-0 sm:top-0 sm:mt-0 sm:aspect-[16/10] sm:p-3 lg:aspect-[5/4]"
+        className="mt-4 sm:pointer-events-none sm:absolute sm:inset-x-0 sm:top-0 sm:z-10 sm:mt-0"
       >
-        {active && (
-          <div className="sm:max-h-full sm:max-w-sm sm:overflow-hidden">
+        {active ? (
+          <div className="sm:max-w-sm">
             <TechCard
               keycap={active}
               categoryLabel={labels.categories[active.category]}
@@ -300,6 +303,11 @@ export function KeyboardHero({
               noProjectsLabel={labels.noProjects}
             />
           </div>
+        ) : (
+          // The card's outline, holding the hint until a key is chosen (display: none on phones, so read once).
+          <p className="hidden rounded-xl border border-dashed border-border p-4 text-sm text-muted sm:block sm:max-w-sm">
+            {labels.hint}
+          </p>
         )}
       </div>
     </div>

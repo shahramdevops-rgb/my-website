@@ -29,7 +29,6 @@ import {
 import {
   type Keycap,
   keyboardLayout,
-  keycapsIn,
   type TechCategory,
   techCategories,
 } from "@/lib/keyboard/keycaps";
@@ -41,13 +40,11 @@ import { cn } from "@/lib/ui/cn";
 const keycapWidth = 1.6;
 const keycapDepth = 1;
 const keycapHeight = 0.42;
-/**
- * The "also used" keycaps (P3-T10): as wide as the main ones, in the main grid's columns, so their names are just as
- * readable — but shallower and lower, like a keyboard's function row, so the main stack still leads.
- */
-const smallKeycapDepth = 0.7;
+/** The "also used" keycaps: narrower (alsoKeyWidth) and lower than the main ones in their row, so the main stack leads. */
 const smallKeycapHeight = 0.3;
 const keyGap = 0.22;
+/** One main keycap plus its gap: the step from one key to the next. */
+const keySpacing = keycapWidth + keyGap;
 const casePadding = 0.36;
 const caseHeight = 0.5;
 /** How far a keycap travels when pushed. */
@@ -60,13 +57,6 @@ const noRaycast = () => null;
 
 /** A keycap's outer size in scene units. */
 type KeycapSize = { width: number; depth: number; height: number };
-
-const mainKeycap: KeycapSize = { width: keycapWidth, depth: keycapDepth, height: keycapHeight };
-const smallKeycap: KeycapSize = {
-  width: keycapWidth,
-  depth: smallKeycapDepth,
-  height: smallKeycapHeight,
-};
 
 type SceneColors = {
   theme: Theme;
@@ -176,7 +166,8 @@ function drawLegend(
 
   // A shallow keycap has a short canvas: its name gets a larger share of the height, so it ends up the same size as
   // a main keycap's name.
-  let size = height * (keycap.row === "also" ? 0.42 : 0.3);
+  // Every keycap is as deep as the next, so a share of the canvas's height is the same size on all of them.
+  let size = height * 0.3;
   context.font = `600 ${size}px ${colors.sans}`;
   const maxWidth = width * 0.84;
   const measured = context.measureText(keycap.name).width;
@@ -187,7 +178,7 @@ function drawLegend(
   context.fillStyle = active ? colors.accent : colors.text;
   context.textAlign = "center";
   context.textBaseline = "middle";
-  context.fillText(keycap.name, width / 2, height * (keycap.row === "also" ? 0.6 : 0.56));
+  context.fillText(keycap.name, width / 2, height * 0.56);
 
   context.font = `500 ${height * 0.17}px ${colors.mono}`;
   context.fillStyle = colors.muted;
@@ -530,18 +521,31 @@ export function KeyboardScene({
   const [pointing, setPointing] = useState(false);
   useCursor(pointing);
 
-  const main = keycapsIn(keycaps, "main");
-  const also = keycapsIn(keycaps, "also");
-  const { columns, rows } = keyboardLayout(main.length);
-  const gridWidth = columns * keycapWidth + (columns - 1) * keyGap;
-  // The top row spans the main grid's width; its keys share it.
-  const alsoRows = Math.ceil(also.length / columns);
-  const topRowDepth = alsoRows * (smallKeycapDepth + keyGap);
-  const gridDepth = topRowDepth + rows * keycapDepth + (rows - 1) * keyGap;
+  // The poster's rows (one per category), in scene units: a key `width` main keys wide spans that many pitches minus
+  // one gap; z grows toward the viewer, the first row at the back.
+  // Memoized: a new size object would make every keycap redraw its legend texture on each hover.
+  const { gridWidth, gridDepth, placements } = useMemo(() => {
+    const layout = keyboardLayout(keycaps);
+    const gridWidth = layout.width * keySpacing - keyGap;
+    const gridDepth = layout.rows.length * (keycapDepth + keyGap) - keyGap;
+    const placements = layout.rows.flatMap(({ keys }) =>
+      keys.map(({ keycap, row, start, width: keys }) => {
+        const size: KeycapSize = {
+          width: keys * keySpacing - keyGap,
+          depth: keycapDepth,
+          height: keycap.row === "also" ? smallKeycapHeight : keycapHeight,
+        };
+        const position: [number, number] = [
+          -gridWidth / 2 + start * keySpacing + size.width / 2,
+          -gridDepth / 2 + keycapDepth / 2 + row * (keycapDepth + keyGap),
+        ];
+        return { keycap, size, position };
+      }),
+    );
+    return { gridWidth, gridDepth, placements };
+  }, [keycaps]);
   const width = gridWidth + 2 * casePadding;
   const depth = gridDepth + 2 * casePadding;
-  // z grows toward the viewer: the top row sits at the back edge, the main grid in front of it.
-  const backEdge = -gridDepth / 2;
   const dark = colors.theme === "dark";
 
   const hover = (id: string | null) => {
@@ -588,17 +592,12 @@ export function KeyboardScene({
               <RoundedBox args={[width, caseHeight, depth]} radius={0.18} smoothness={4}>
                 <meshStandardMaterial color={colors.surface2} roughness={0.85} />
               </RoundedBox>
-              {also.map((keycap, index) => (
+              {placements.map(({ keycap, size, position }) => (
                 <KeycapMesh
                   key={keycap.id}
                   keycap={keycap}
-                  size={smallKeycap}
-                  position={[
-                    ((index % columns) - (columns - 1) / 2) * (keycapWidth + keyGap),
-                    backEdge +
-                      smallKeycapDepth / 2 +
-                      Math.floor(index / columns) * (smallKeycapDepth + keyGap),
-                  ]}
+                  size={size}
+                  position={position}
                   active={keycap.id === activeId}
                   down={keycap.id === downId}
                   colors={colors}
@@ -607,27 +606,6 @@ export function KeyboardScene({
                   onSelect={onSelect}
                 />
               ))}
-              {main.map((keycap, index) => {
-                const column = index % columns;
-                const row = Math.floor(index / columns);
-                return (
-                  <KeycapMesh
-                    key={keycap.id}
-                    keycap={keycap}
-                    size={mainKeycap}
-                    position={[
-                      (column - (columns - 1) / 2) * (keycapWidth + keyGap),
-                      backEdge + topRowDepth + keycapDepth / 2 + row * (keycapDepth + keyGap),
-                    ]}
-                    active={keycap.id === activeId}
-                    down={keycap.id === downId}
-                    colors={colors}
-                    light={lightOf(keycap)}
-                    onHover={hover}
-                    onSelect={onSelect}
-                  />
-                );
-              })}
             </Tilt>
             <FirstFrame
               onFirstFrame={() => {

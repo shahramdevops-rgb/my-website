@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildKeycaps,
   keyboardLayout,
-  type Keycap,
+  alsoKeyWidth,
   keyDistance,
   keyPosition,
   type TechCategory,
@@ -118,53 +118,81 @@ describe("buildKeycaps with alsoUsed", () => {
 });
 
 describe("keyboardLayout", () => {
-  it.each([
-    [1, 1, 1],
-    [3, 3, 1],
-    [4, 4, 1],
-    [5, 3, 2],
-    [8, 4, 2],
-    [10, 4, 3],
-  ])("puts %i keycaps in %i columns and %i rows", (count, columns, rows) => {
-    expect(keyboardLayout(count)).toEqual({ columns, rows });
+  // The site's real mix: main keys and narrower "also" keys in all four categories.
+  const keycaps = buildKeycaps({
+    techStack: [
+      tech("csharp", "C#"),
+      tech("postgresql", "PostgreSQL", "database"),
+      tech("react", "React", "frontend"),
+      tech("docker", "Docker", "devops"),
+      tech("dotnet", ".NET"),
+    ],
+    alsoUsed: [
+      tech("python", "Python"),
+      tech("mysql", "MySQL", "database"),
+      tech("git", "Git", "devops"),
+      tech("nginx", "Nginx", "devops"),
+    ],
+    experience: [],
   });
-});
+  const layout = keyboardLayout(keycaps);
+  const byId = (id: string) => {
+    const keycap = keycaps.find((candidate) => candidate.id === id);
+    if (!keycap) throw new Error(`No keycap ${id}`);
+    return keycap;
+  };
 
-describe("keyPosition", () => {
-  it("places keys across the plate (-1 … 1) and from the back row (0) to the front row (1)", () => {
-    const keycaps = buildKeycaps({
-      techStack: ["a", "b", "c", "d", "e", "f", "g", "h"].map((id) => tech(id, id.toUpperCase())),
-      alsoUsed: [tech("p", "P"), tech("q", "Q"), tech("r", "R"), tech("s", "S"), tech("t", "T")],
+  it("gives each category one row, in the legend's order, main keys first", () => {
+    expect(
+      layout.rows.map(({ category, keys }) => [category, keys.map(({ keycap }) => keycap.id)]),
+    ).toEqual([
+      ["backend", ["csharp", "dotnet", "python"]],
+      ["frontend", ["react"]],
+      ["database", ["postgresql", "mysql"]],
+      ["devops", ["docker", "git", "nginx"]],
+    ]);
+  });
+
+  it("makes the also keys narrower and the plate as wide as the longest row", () => {
+    const backend = layout.rows[0]?.keys ?? [];
+
+    expect(backend.map(({ start, width }) => [start, width])).toEqual([
+      [0, 1],
+      [1, 1],
+      [2, alsoKeyWidth],
+    ]);
+    expect(layout.width).toBeCloseTo(2 + alsoKeyWidth);
+  });
+
+  it("leaves out categories without technologies", () => {
+    const onlyBackend = buildKeycaps({
+      techStack: [tech("csharp", "C#")],
+      alsoUsed: [],
       experience: [],
     });
-    const at = (id: string) => {
-      const keycap = keycaps.find((candidate) => candidate.id === id);
-      if (!keycap) throw new Error(`No keycap ${id}`);
-      return keyPosition(keycaps, keycap);
-    };
 
-    // 4 columns; also rows: P Q R S / T; main rows: A B C D / E F G H — four rows in all.
-    expect(at("p")).toEqual({ x: -1, y: 0 });
-    expect(at("s")).toEqual({ x: 1, y: 0 });
-    expect(at("t").y).toBeCloseTo(1 / 3);
-    expect(at("b").x).toBeCloseTo(-1 / 3);
-    expect(at("a").y).toBeCloseTo(2 / 3);
-    expect(at("h")).toEqual({ x: 1, y: 1 });
+    expect(keyboardLayout(onlyBackend)).toMatchObject({
+      rows: [{ category: "backend" }],
+      width: 1,
+    });
   });
 
-  it("measures the light ripple's distance in keys, across the also and main rows", () => {
-    const keycaps = buildKeycaps({
-      techStack: ["a", "b", "c", "d"].map((id) => tech(id, id.toUpperCase())),
-      alsoUsed: [tech("p", "P")],
-      experience: [],
-    });
-    const [a, b, , d, p] = keycaps as [Keycap, Keycap, Keycap, Keycap, Keycap];
+  it("places keys across the plate (-1 … 1, at their middle) and from the back row (0) to the front (1)", () => {
+    expect(keyPosition(keycaps, byId("csharp"))).toEqual({ x: (0.5 / layout.width) * 2 - 1, y: 0 });
+    expect(keyPosition(keycaps, byId("react")).y).toBeCloseTo(1 / 3);
+    expect(keyPosition(keycaps, byId("nginx")).y).toBe(1);
+    expect(keyPosition(keycaps, byId("python")).x).toBeGreaterThan(
+      keyPosition(keycaps, byId("dotnet")).x,
+    );
+  });
 
-    expect(keyDistance(keycaps, a, a)).toBe(0);
-    expect(keyDistance(keycaps, a, b)).toBe(1);
-    expect(keyDistance(keycaps, a, d)).toBe(3);
-    // P is right above A.
-    expect(keyDistance(keycaps, p, a)).toBe(1);
-    expect(keyDistance(keycaps, p, d)).toBeCloseTo(Math.hypot(3, 1));
+  it("measures the light ripple's distance in keys, middle to middle", () => {
+    expect(keyDistance(keycaps, byId("csharp"), byId("csharp"))).toBe(0);
+    expect(keyDistance(keycaps, byId("csharp"), byId("dotnet"))).toBe(1);
+    // React is right below C#, one row on.
+    const down = keyDistance(keycaps, byId("csharp"), byId("react"));
+    expect(down).toBeGreaterThan(0);
+    expect(down).toBeLessThan(1);
+    expect(keyDistance(keycaps, byId("csharp"), byId("nginx"))).toBeGreaterThan(down);
   });
 });

@@ -78,7 +78,9 @@ reveal something real about the back-end. Details and rejected ideas: `roadmap.m
   `P3-T11` (every `ResumeTech` has a `category` = C# `TechCategory` → OpenAPI enum → TS union
   `backend|frontend|database|devops`, same in fa/en; `alsoUsed` + Linux, Nginx, RabbitMQ, Tailwind CSS (≤ 12 = three
   rows); card shows the category, buttons have it as accessible description (`home.stack.categories.*`); stage 4:3 on
-  phones; 3D camera fits by projecting the case's corners + lens shift `setViewOffset` onto the bottom margin).
+  phones; 3D camera fits by projecting the case's corners + lens shift `setViewOffset` onto the bottom margin;
+  follow-up at Shahram's request: one keyboard row per category (`keyboardLayout(keycaps)`, "also" keys 0.8 wide) and
+  the card opens in a 12rem band above the stage (hint in a dashed outline when closed), never over the keys).
   `P3-T12` (category colorway: tokens `--color-cat-*` (mark) + `--color-cat-*-soft` (keycap body) in dark/light/print,
   class map `components/keyboard/category-colors.ts`, `CategoryLegend` under the stage, `CategoryMark` dot on buttons
   and the card; scene reads the same tokens; accent still only the active key; contrast test covers every pair).

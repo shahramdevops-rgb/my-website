@@ -134,8 +134,8 @@
     --color-cat-frontend-soft: #e2efee;
     --color-cat-database: #b45309;
     --color-cat-database-soft: #f6eae1;
-    --color-cat-devops: #c2410c;
-    --color-cat-devops-soft: #f8e8e2;
+    --color-cat-devops: #be123c;
+    --color-cat-devops-soft: #f7e3e8;
   }
 
   /*
@@ -163,8 +163,8 @@
       --color-cat-frontend-soft: #e2efee;
       --color-cat-database: #b45309;
       --color-cat-database-soft: #f6eae1;
-      --color-cat-devops: #c2410c;
-      --color-cat-devops-soft: #f8e8e2;
+      --color-cat-devops: #be123c;
+      --color-cat-devops-soft: #f7e3e8;
     }
   }
 
