@@ -353,9 +353,16 @@
   `TechStack` holds **résumé tech ids** (`dotnet`, `ef-core`), not display names (Shahram, 2026-10-25): names come
   from the résumé and a keyboard key can list its projects.
 
-- [ ] **P6-T2 Persistence for projects & media**
+- [x] **P6-T2 Persistence for projects & media**
   Scope: EF configurations (indexes, `text[]` tech stack, unique `(language, slug)`), migration.
   Done when: migration applied; SQL reviewed.
+  Status: done 2026-11-05. Migration `AddProjectsAndMediaFiles`; tables `projects` + `media_files` (DbSets on
+  `AppDbContext`; `IAppDbContext` gets them in P6-T4, which first uses them). Converters in
+  `Persistence/Conversions/`: `Language` → `fa`/`en`, `Slug` → its value (re-checked on read), `Uri` →
+  `OriginalString`. Tech stack = `character varying(40)[]` (array with the domain's element length). Indexes: unique
+  `(language, slug)`, unique `(translation_group, language)`, `(language, sort_order)`, unique `storage_key`.
+  Cover FK `ON DELETE RESTRICT`. Check constraints repeat domain rules (period, `sort_order >= 0`, archived ⇒ not
+  featured, size > 0, width + height together). `Projects/ProjectPersistenceTests` (8 tests on PostgreSQL).
 
 - [ ] **P6-T3 File storage & image upload**
   Scope: `IFileStorage` + `LocalFileStorage`, upload validator (jpg/png/webp, magic bytes, ≤ 5 MB), dimensions, `MediaFile`, `GET /media/{key}` with long cache headers.

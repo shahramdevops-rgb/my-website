@@ -843,3 +843,19 @@ shared with the gym, every limit answers: *if someone runs code in this containe
   else, in either direction. The frontend isn't on it, so it can't even resolve the name `db`.
 - **What's left:** a kernel bug escapes any container (keep the host patched), and anyone in the `docker` group is
   root on the host (protect the deploy key).
+
+### 7.18 Mapping a rich domain to PostgreSQL: converters, arrays, constraints (P6-T2)
+- **Value converters** translate a domain type into a column type and back. Reading goes through the type's own
+  factory, so a bad row fails loudly instead of creating an invalid entity:
+  ```csharp
+  internal sealed class SlugConverter() : ValueConverter<Slug, string>(s => s.Value, v => Slug.Create(v));
+  ```
+- **Arrays instead of a join table.** Tech ids belong to the project and are never queried on their own, so
+  `tech_stack varchar(40)[]` keeps them in the row, in order — one table, one read.
+- **Constraints as a second line.** The domain already refuses bad values; a `CHECK` catches what bypasses it (a
+  bug, a manual `UPDATE`). PostgreSQL names the broken rule, which tests can assert:
+  ```
+  UPDATE projects SET status = 'Archived' WHERE ...   → 23514 ck_projects_archived_not_featured
+  ```
+- **`ON DELETE RESTRICT`** on the cover image: deleting a file in use fails (23503) instead of silently leaving a
+  page without its picture (`SET NULL`) or deleting the project (`CASCADE`).

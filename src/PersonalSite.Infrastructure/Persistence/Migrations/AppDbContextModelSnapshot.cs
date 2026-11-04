@@ -184,6 +184,200 @@ namespace PersonalSite.Infrastructure.Persistence.Migrations
                     b.ToTable("asp_net_user_tokens", (string)null);
                 });
 
+            modelBuilder.Entity("PersonalSite.Domain.Media.MediaFile", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("AltText")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("alt_text");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("content_type");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<int?>("Height")
+                        .HasColumnType("integer")
+                        .HasColumnName("height");
+
+                    b.Property<string>("OriginalFileName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("original_file_name");
+
+                    b.Property<long>("SizeBytes")
+                        .HasColumnType("bigint")
+                        .HasColumnName("size_bytes");
+
+                    b.Property<string>("StorageKey")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("storage_key");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<int?>("Width")
+                        .HasColumnType("integer")
+                        .HasColumnName("width");
+
+                    b.HasKey("Id")
+                        .HasName("pk_media_files");
+
+                    b.HasIndex("StorageKey")
+                        .IsUnique()
+                        .HasDatabaseName("ix_media_files_storage_key");
+
+                    b.ToTable("media_files", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_media_files_dimensions", "(width IS NULL AND height IS NULL) OR (width > 0 AND height > 0)");
+
+                            t.HasCheckConstraint("ck_media_files_size_bytes", "size_bytes > 0");
+                        });
+                });
+
+            modelBuilder.Entity("PersonalSite.Domain.Projects.Project", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("BodyHtml")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("body_html");
+
+                    b.Property<string>("BodyMarkdown")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("body_markdown");
+
+                    b.Property<Guid?>("CoverImageId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("cover_image_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("DemoKey")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("demo_key");
+
+                    b.Property<DateOnly?>("FinishedOn")
+                        .HasColumnType("date")
+                        .HasColumnName("finished_on");
+
+                    b.Property<string>("HealthUrl")
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)")
+                        .HasColumnName("health_url");
+
+                    b.Property<bool>("IsFeatured")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_featured");
+
+                    b.Property<string>("Language")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)")
+                        .HasColumnName("language");
+
+                    b.Property<string>("LiveUrl")
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)")
+                        .HasColumnName("live_url");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasColumnName("slug");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("sort_order");
+
+                    b.Property<string>("SourceUrl")
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)")
+                        .HasColumnName("source_url");
+
+                    b.Property<DateOnly?>("StartedOn")
+                        .HasColumnType("date")
+                        .HasColumnName("started_on");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("status");
+
+                    b.Property<string>("Summary")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("summary");
+
+                    b.PrimitiveCollection<string[]>("TechStack")
+                        .IsRequired()
+                        .HasColumnType("character varying(40)[]")
+                        .HasColumnName("tech_stack");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("title");
+
+                    b.Property<Guid>("TranslationGroup")
+                        .HasColumnType("uuid")
+                        .HasColumnName("translation_group");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_projects");
+
+                    b.HasIndex("CoverImageId")
+                        .HasDatabaseName("ix_projects_cover_image_id");
+
+                    b.HasIndex("Language", "Slug")
+                        .IsUnique()
+                        .HasDatabaseName("ix_projects_language_slug");
+
+                    b.HasIndex("Language", "SortOrder")
+                        .HasDatabaseName("ix_projects_language_sort_order");
+
+                    b.HasIndex("TranslationGroup", "Language")
+                        .IsUnique()
+                        .HasDatabaseName("ix_projects_translation_group_language");
+
+                    b.ToTable("projects", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_projects_archived_not_featured", "NOT (is_featured AND status = 'Archived')");
+
+                            t.HasCheckConstraint("ck_projects_period", "finished_on IS NULL OR started_on IS NULL OR started_on <= finished_on");
+
+                            t.HasCheckConstraint("ck_projects_sort_order", "sort_order >= 0");
+                        });
+                });
+
             modelBuilder.Entity("PersonalSite.Infrastructure.Identity.AppUser", b =>
                 {
                     b.Property<Guid>("Id")
@@ -320,6 +514,15 @@ namespace PersonalSite.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_asp_net_user_tokens_asp_net_users_user_id");
+                });
+
+            modelBuilder.Entity("PersonalSite.Domain.Projects.Project", b =>
+                {
+                    b.HasOne("PersonalSite.Domain.Media.MediaFile", null)
+                        .WithMany()
+                        .HasForeignKey("CoverImageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_projects_media_files_cover_image_id");
                 });
 #pragma warning restore 612, 618
         }

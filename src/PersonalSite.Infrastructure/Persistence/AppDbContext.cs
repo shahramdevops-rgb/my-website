@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using PersonalSite.Application.Common.Abstractions;
+using PersonalSite.Domain.Media;
+using PersonalSite.Domain.Projects;
 using PersonalSite.Infrastructure.Identity;
 
 namespace PersonalSite.Infrastructure.Persistence;
@@ -16,6 +18,11 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
 {
     /// <summary>Key under <c>ConnectionStrings</c> (env var: <c>ConnectionStrings__Default</c>).</summary>
     public const string ConnectionStringName = "Default";
+
+    // The property names are also the table names (snake_case convention): projects, media_files.
+    public DbSet<Project> Projects => Set<Project>();
+
+    public DbSet<MediaFile> MediaFiles => Set<MediaFile>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

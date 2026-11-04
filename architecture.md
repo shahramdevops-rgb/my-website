@@ -240,10 +240,12 @@ status: Live | InProgress | Archived
 live_url, source_url (nullable)            contact_messages
 health_url (nullable, https; P6-T8)        ────────────────
 demo_key (nullable enum: Cinema | Gym)     id, name, email, message
-tech_stack (text[], résumé tech ids)       type: Hiring | Project | Other
+tech_stack (varchar(40)[], résumé tech ids) type: Hiring | Project | Other
 cover_image_id FK → media_files            status: New | Read | Archived
 is_featured, sort_order                    ip_hash, created_at
 started_on, finished_on (date, nullable)
+UNIQUE(translation_group, language), INDEX(language, sort_order); cover FK ON DELETE RESTRICT
+CHECK: started_on <= finished_on, sort_order >= 0, NOT (is_featured AND status = 'Archived')   (P6-T2)
 
 demo schema (ADR-027) — sandbox data for live demos, never mixed with real content
 ───────────
@@ -260,7 +262,8 @@ media_files                                resume_documents
 id, storage_key (relative path)            id, language, media_file_id FK
 original_file_name, content_type           is_current (partial unique index: one current per language)
 size_bytes, width, height (images)         uploaded_at
-alt_text, created_at
+alt_text, created_at, updated_at
+UNIQUE(storage_key); CHECK size_bytes > 0, width + height together
 
 subscribers (newsletter)                   Identity tables (asp_net_users, …)
 ───────────                                ─────────────────────────────────
