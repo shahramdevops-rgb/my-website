@@ -164,19 +164,26 @@ reveal something real about the back-end. Details and rejected ideas: `roadmap.m
   keys must stay under the root); `POST /api/admin/media` (own 5 MB + 64 KB body limit, `DisableAntiforgery`) and
   `GET /media/{**key}` (immutable, 1 year); `Result<T>`/`Error`/`ErrorKind` in `Application/Common/Results` →
   `ErrorResults.ToProblem()`; Application now references EF Core (ADR-004), `IAppDbContext.MediaFiles`).
+- **Done in P7:** `P7-T1` (`IMarkdownRenderer` → `RenderedMarkdown(Html, TableOfContents, ReadingMinutes)`;
+  `Infrastructure/Markdown/MarkdigRenderer` singleton: Markdig 1.6 with `DisableHtml` + an explicit extension list
+  (GitHub heading ids that keep Persian letters, pipe tables, emphasis extras, task lists, autolinks, footnotes, list
+  extras) → HtmlSanitizer 10 allow-list (`SanitizeDom` with its own CSS-aware parser; only `text-align` styles;
+  http/https/mailto) → own DOM pass (`dir`, `rel`, external images removed, checkboxes disabled, known classes only);
+  `MarkdigRendererTests` = XSS payloads through both layers, checked on the parsed output).
 - **Done in P13 (pulled forward):** `P13-T3` (`.github/dependabot.yml` weekly grouped updates for NuGet/npm/Actions/
   Docker, majors + held-back TS/ESLint ignored; CI fails on vulnerable NuGet packages (transitive too) and on
   high/critical `pnpm audit --prod`).
 - **GitHub:** `main` pushed on 2026-10-23 (fast-forward to the stacked branches); CI green there for the first time.
-  Pushed again on 2026-11-05 up to `P6-T2`.
+  Pushed again on 2026-11-05 up to `P6-T3`.
 - **Server rules:** the VPS runs the gym system in production — gym backup before any change, every server command
   explained and approved first, never touch the gym's containers/volumes, nothing but the edge on 80/443.
 - **Next task:** Shahram: server checklist A–B in `deploy/SHARED-SERVER.md §4` (read-only checks + prep), then the gym
-  repo's part (§3) and the cut-over; then tag `v0.2.0` and deploy (`P4-T4`). Claude: `P7-T1` (Markdown renderer:
-  Markdig + HtmlSanitizer), which `P6-T4` needs first. Shahram may still retune the keyboard by ear/eye (P3-T12 hues in `globals.css`, P3-T13 switch values in
+  repo's part (§3) and the cut-over; then tag `v0.2.0` and deploy (`P4-T4`). Claude: `P6-T4` (ProjectAdminService:
+  commands + FluentValidation, Markdown body via `IMarkdownRenderer`, admin endpoints). Shahram may still retune the keyboard by ear/eye (P3-T12 hues in `globals.css`, P3-T13 switch values in
   `keyboard-sound.ts`).
 - **Accent color:** electric blue (`#4DB5FF` dark / `#0A63C9` light), picked by Claude at Shahram's request; easy to change (`architecture.md §8.1`).
-- **Waiting on Shahram:** contact links (`Site:Social:Email|GitHub|Telegram`); optional display face (P2-T8 left it out);
+- **Waiting on Shahram:** before the first real image upload, decide whether uploads are re-encoded (strips EXIF/GPS;
+  needs an image library — a new dependency); until then he strips EXIF himself (agreed 2026-11-05); contact links (`Site:Social:Email|GitHub|Telegram`); optional display face (P2-T8 left it out);
   real résumé facts — every `[placeholder]` and `2000-01` date in `src/PersonalSite.Api/Content/resume.*.json`;
   About story — the `[placeholder]` sentence and a review of the drafted text in `frontend/content/about.*.mdx`; a photo;
   Decisions page — confirm every `[placeholder]` project fact (gym, cinema, microservices) in `frontend/content/decisions.*.mdx`;

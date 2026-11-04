@@ -27,6 +27,10 @@
     <PackageVersion Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="10.0.13" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
 
+    <!-- Markdown: render (Markdig), then allow-list the HTML (HtmlSanitizer) (P7-T1) -->
+    <PackageVersion Include="HtmlSanitizer" Version="10.0.1120" />
+    <PackageVersion Include="Markdig" Version="1.6.0" />
+
     <!-- Identity: single admin account, cookie sign-in (P5-T1) -->
     <PackageVersion Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.13" />
 

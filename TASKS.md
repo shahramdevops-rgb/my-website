@@ -424,10 +424,18 @@
 
 ## Phase 7 — Blog
 
-- [ ] **P7-T1 Markdown renderer**
+- [x] **P7-T1 Markdown renderer**
   Scope: `IMarkdownRenderer` → `MarkdigRenderer` (advanced extensions, `DisableHtml`, heading ids, `dir="auto"` on paragraphs, `dir="ltr"` on code blocks, external links `rel="noopener nofollow"`), HtmlSanitizer allow-list, TOC extraction, reading time; unit tests with XSS payloads.
   Done when: `<script>`/`javascript:` payloads are stripped in tests.
   Learn: XSS, defense in depth.
+  Status: done 2026-11-05. Markdig 1.6.0 + HtmlSanitizer 10.0.1120 (AngleSharp 1.9 transitively; no known
+  vulnerabilities). `Application/Common/Abstractions/IMarkdownRenderer` → `Infrastructure/Markdown/MarkdigRenderer`
+  (singleton). Extensions chosen one by one instead of `UseAdvancedExtensions` (no media iframes, math, diagrams,
+  generic attributes, custom containers). Heading ids GitHub-style (Persian letters kept). Post-sanitize pass: `dir`,
+  external `rel` (host ≠ `Site:BaseUrl`), external/`data:` images removed (CSP `img-src 'self'`), inline code also
+  `dir="ltr"`. TOC = top-level h2/h3; reading time = words / 200, rounded, min 1. 28 payloads in
+  `MarkdigRendererTests` (16 Markdown, 12 raw HTML straight into the sanitizer), checked on the parsed DOM.
+  Server-side code highlighting stays with the post page (roadmap P7).
 
 - [ ] **P7-T2 Domain & persistence: Post, Tag**
   Scope: entities, `PostStatus` transitions, `GrowthStage` (default `Seedling`, `post.SetGrowthStage(stage)`), many-to-many tags, indexes, migration.

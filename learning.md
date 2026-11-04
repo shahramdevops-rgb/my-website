@@ -875,3 +875,18 @@ content type all come from what it found. So `virus.exe` renamed to `photo.png` 
   storage still checks that every resolved path stays under its root (defence in depth).
 - **Limit:** headers are checked, pixels are not decoded. Re-encoding every upload (an image library) would also
   remove hidden extras such as EXIF GPS coordinates.
+
+### 7.20 Three layers against XSS in Markdown (P7-T1)
+Each layer assumes the one before it failed:
+1. **Markdig with `DisableHtml()`.** `<script>` typed into a post is shown as text: `&lt;script&gt;`.
+2. **HtmlSanitizer allow-list.** Only listed tags, attributes and URL schemes survive. An allow-list fails safe: a
+   new browser feature (a tag or attribute nobody thought of) is removed because it isn't on the list; a block-list
+   would let it through.
+   ```
+   <a href="javascript:alert(1)">x</a>   →   <a>x</a>
+   ```
+3. **Our own DOM pass** only adds fixed values (`dir`, `rel`) or removes things — it never copies input into markup.
+
+**Testing it:** check the *parsed* output, not the text. `&lt;img onerror=…&gt;` contains the word `onerror` but is
+harmless text; a real `onerror` attribute is not. And test layer 2 on its own with raw HTML, so it is known to hold
+even if layer 1 someday doesn't.

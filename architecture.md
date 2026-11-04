@@ -61,7 +61,7 @@ behind a flag — the AI assistant's provider (ADR-015). Both have timeouts and 
 | DB | PostgreSQL 17 | via Npgsql EF Core provider |
 | ORM | EF Core 10 + `EFCore.NamingConventions` (snake_case) | code-first migrations |
 | Auth | ASP.NET Core Identity (cookie), single admin | same-origin cookie; no JWT in the browser |
-| Markdown | Markdig → HtmlSanitizer (in the API) | rendered HTML cached in a DB column |
+| Markdown | Markdig → HtmlSanitizer (in the API) | rendered HTML cached in a DB column; `IMarkdownRenderer` → `Infrastructure/Markdown/MarkdigRenderer` (P7-T1): raw HTML off, explicit extension list (no iframes/math/generic attributes), allow-list sanitizer, then `dir="auto"` on blocks, `dir="ltr"` on code, `rel="noopener nofollow"` on external links, no external images, known classes only; also TOC (h2/h3) + reading minutes (200 wpm) |
 | Validation | FluentValidation (Application layer) | the API is the real gate; client validation is UX only |
 | Feature flags | Microsoft.FeatureManagement (API) | public flags exposed to the front-end by `GET /api/site` |
 | Logging | Serilog → console (JSON in prod) (API); Next.js stdout | Docker collects stdout |

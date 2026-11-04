@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using PersonalSite.Application.Common.Abstractions;
 using PersonalSite.Infrastructure.Files;
+using PersonalSite.Infrastructure.Markdown;
 using PersonalSite.Infrastructure.Persistence;
 using PersonalSite.Infrastructure.Persistence.Interceptors;
 using PersonalSite.Infrastructure.Persistence.Seed;
@@ -23,6 +24,9 @@ public static class DependencyInjection
 
         services.AddPersistence();
         services.AddFileStorage();
+
+        // Stateless after construction (pipeline and sanitizer are configured once): one instance for the app.
+        services.AddSingleton<IMarkdownRenderer, MarkdigRenderer>();
 
         return services;
     }
