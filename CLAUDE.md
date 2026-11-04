@@ -157,17 +157,23 @@ reveal something real about the back-end. Details and rejected ideas: `roadmap.m
   `P6-T2` (migration `AddProjectsAndMediaFiles`: `projects` + `media_files`, configs in `Persistence/Configurations/`,
   converters in `Persistence/Conversions/` (language `fa`/`en`, slug, `Uri.OriginalString`), tech stack
   `varchar(40)[]`, unique `(language, slug)` + `(translation_group, language)` + `storage_key`, cover FK `RESTRICT`,
-  check constraints mirror domain rules; `IAppDbContext` DbSets come with P6-T4; `Projects/ProjectPersistenceTests`).
+  check constraints mirror domain rules; `Projects/ProjectPersistenceTests`).
+  `P6-T3` (`Application/Media`: `ImageInspector` = format + size from magic bytes/header (JPEG, PNG, WebP), `MediaService`
+  upload (≤ 5 MB, ≤ 10,000 px, key `yyyy/MM/<uuid7>.<real ext>`, bytes then record) + open (only keys with a record);
+  `Infrastructure/Files/LocalFileStorage` (`Media:UploadsPath` = `data/uploads` → `/app/data/uploads`, temp + rename,
+  keys must stay under the root); `POST /api/admin/media` (own 5 MB + 64 KB body limit, `DisableAntiforgery`) and
+  `GET /media/{**key}` (immutable, 1 year); `Result<T>`/`Error`/`ErrorKind` in `Application/Common/Results` →
+  `ErrorResults.ToProblem()`; Application now references EF Core (ADR-004), `IAppDbContext.MediaFiles`).
 - **Done in P13 (pulled forward):** `P13-T3` (`.github/dependabot.yml` weekly grouped updates for NuGet/npm/Actions/
   Docker, majors + held-back TS/ESLint ignored; CI fails on vulnerable NuGet packages (transitive too) and on
   high/critical `pnpm audit --prod`).
 - **GitHub:** `main` pushed on 2026-10-23 (fast-forward to the stacked branches); CI green there for the first time.
-  Pushed again on 2026-11-05 up to `P6-T1`.
+  Pushed again on 2026-11-05 up to `P6-T2`.
 - **Server rules:** the VPS runs the gym system in production — gym backup before any change, every server command
   explained and approved first, never touch the gym's containers/volumes, nothing but the edge on 80/443.
 - **Next task:** Shahram: server checklist A–B in `deploy/SHARED-SERVER.md §4` (read-only checks + prep), then the gym
-  repo's part (§3) and the cut-over; then tag `v0.2.0` and deploy (`P4-T4`). Claude: `P6-T3` (File storage &
-  image upload; `P6-T4` needs `P7-T1` first). Shahram may still retune the keyboard by ear/eye (P3-T12 hues in `globals.css`, P3-T13 switch values in
+  repo's part (§3) and the cut-over; then tag `v0.2.0` and deploy (`P4-T4`). Claude: `P7-T1` (Markdown renderer:
+  Markdig + HtmlSanitizer), which `P6-T4` needs first. Shahram may still retune the keyboard by ear/eye (P3-T12 hues in `globals.css`, P3-T13 switch values in
   `keyboard-sound.ts`).
 - **Accent color:** electric blue (`#4DB5FF` dark / `#0A63C9` light), picked by Claude at Shahram's request; easy to change (`architecture.md §8.1`).
 - **Waiting on Shahram:** contact links (`Site:Social:Email|GitHub|Telegram`); optional display face (P2-T8 left it out);

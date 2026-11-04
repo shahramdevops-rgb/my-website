@@ -99,6 +99,7 @@ try
     app.UseAuthorization();
 
     app.MapHealthEndpoints();
+    app.MapMediaEndpoints();
     app.MapApiEndpoints();
 
     await app.RunAsync();

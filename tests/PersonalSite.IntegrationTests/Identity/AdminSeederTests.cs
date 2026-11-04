@@ -89,6 +89,7 @@ public sealed class AdminSeederTests(WebAppFactory factory)
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
                 [$"ConnectionStrings:{AppDbContext.ConnectionStringName}"] = "Host=localhost",
+                ["Media:UploadsPath"] = "data/uploads",
                 [$"{AdminSeedOptions.SectionName}:{nameof(AdminSeedOptions.Email)}"] = "admin@example.com",
             })
             .Build();

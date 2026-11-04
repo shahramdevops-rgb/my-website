@@ -23,4 +23,10 @@ public static class Routes
     /// <summary>Admin endpoints (P5-T4): the whole group requires the <c>Admin</c> policy.</summary>
     public const string Admin = "/admin";
     public const string Dashboard = "/dashboard";
+
+    /// <summary>
+    /// Uploaded files: served at <c>/media/{key}</c> (outside <see cref="Api"/>, like an ordinary static file; Caddy
+    /// routes it to the API) and uploaded at <c>/api/admin/media</c>.
+    /// </summary>
+    public const string Media = "/media";
 }

@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using PersonalSite.Application.Common.Abstractions;
+using PersonalSite.Infrastructure.Files;
 using PersonalSite.Infrastructure.Persistence;
 using PersonalSite.Infrastructure.Persistence.Interceptors;
 using PersonalSite.Infrastructure.Persistence.Seed;
@@ -21,8 +22,19 @@ public static class DependencyInjection
         ArgumentNullException.ThrowIfNull(services);
 
         services.AddPersistence();
+        services.AddFileStorage();
 
         return services;
+    }
+
+    private static void AddFileStorage(this IServiceCollection services)
+    {
+        services.AddOptions<FileStorageOptions>()
+            .BindConfiguration(FileStorageOptions.SectionName)
+            .Validate(options => !string.IsNullOrWhiteSpace(options.UploadsPath), "Media:UploadsPath is not set.")
+            .ValidateOnStart();
+
+        services.AddSingleton<IFileStorage, LocalFileStorage>();
     }
 
     private static void AddPersistence(this IServiceCollection services)

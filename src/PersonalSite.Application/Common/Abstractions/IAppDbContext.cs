@@ -1,3 +1,6 @@
+using Microsoft.EntityFrameworkCore;
+using PersonalSite.Domain.Media;
+
 namespace PersonalSite.Application.Common.Abstractions;
 
 /// <summary>
@@ -6,5 +9,7 @@ namespace PersonalSite.Application.Common.Abstractions;
 /// </summary>
 public interface IAppDbContext
 {
+    DbSet<MediaFile> MediaFiles { get; }
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }

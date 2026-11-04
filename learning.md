@@ -859,3 +859,19 @@ shared with the gym, every limit answers: *if someone runs code in this containe
   ```
 - **`ON DELETE RESTRICT`** on the cover image: deleting a file in use fails (23503) instead of silently leaving a
   page without its picture (`SET NULL`) or deleting the project (`CASCADE`).
+
+### 7.19 Never trust a file's name or Content-Type: magic bytes (P6-T3)
+An upload carries three claims — the file name, the `Content-Type` of its part, and the bytes. The first two are
+typed by the sender; only the bytes are the file. Every format starts with a fixed **signature** ("magic bytes"):
+```
+PNG   89 50 4E 47 0D 0A 1A 0A      JPEG  FF D8 FF      WebP  "RIFF" …. "WEBP"      .exe  "MZ"
+```
+`ImageInspector` checks the signature and reads the pixel size from the header; the stored key, extension and
+content type all come from what it found. So `virus.exe` renamed to `photo.png` is refused, and a PNG named
+`cover.JPG` is stored and served as `image/png`.
+- **Serving side:** `X-Content-Type-Options: nosniff` stops the browser from second-guessing the type, and the
+  API's CSP `default-src 'none'` means a file opened directly can't run scripts.
+- **Keys from us, not the user:** `2026/11/<uuid7>.png` — no name can collide, overwrite or contain `../`. The
+  storage still checks that every resolved path stays under its root (defence in depth).
+- **Limit:** headers are checked, pixels are not decoded. Re-encoding every upload (an image library) would also
+  remove hidden extras such as EXIF GPS coordinates.

@@ -407,7 +407,8 @@ configured locales (`fa`, `en`), anything else is a 404. Admin routes live under
 | `/api/status` | public status JSON (P11) |
 | `/api/auth/*`, `/api/admin/*` | login/logout/me; admin (policy `Admin`) |
 | `/mcp` | MCP server, read-only (P12, flag `Ai.Mcp`) |
-| `/media/{key}` | uploaded files (long cache headers) |
+| `/media/{key}` | uploaded files: only keys with a `media_files` row; `public, max-age=31536000, immutable` (P6-T3) |
+| `/api/admin/media` | `POST` multipart (`file`, `altText`): JPEG/PNG/WebP by magic bytes, ≤ 5 MB, ≤ 10,000 px; own body limit (P6-T3) |
 | `/health`, `/health/ready` | infra (not routed publicly by Caddy in prod except `/health`) |
 
 `/internal/*` on the front-end (revalidation hook) is blocked by Caddy; only the API calls it over the docker network

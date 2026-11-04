@@ -30,6 +30,9 @@ public sealed class WebAppFactory : WebApplicationFactory<Program>, IAsyncLifeti
 
     private readonly PostgresFixture _postgres = new();
 
+    /// <summary>Uploaded files of this test run; a fresh directory, deleted when the run ends.</summary>
+    public string UploadsPath { get; } = Path.Combine(Path.GetTempPath(), $"personalsite-uploads-{Guid.NewGuid():N}");
+
     public async ValueTask InitializeAsync()
     {
         await _postgres.InitializeAsync();
@@ -42,6 +45,10 @@ public sealed class WebAppFactory : WebApplicationFactory<Program>, IAsyncLifeti
     {
         await base.DisposeAsync();
         await _postgres.DisposeAsync();
+        if (Directory.Exists(UploadsPath))
+        {
+            Directory.Delete(UploadsPath, recursive: true);
+        }
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -60,6 +67,7 @@ public sealed class WebAppFactory : WebApplicationFactory<Program>, IAsyncLifeti
                 [$"FeatureManagement:{FeatureFlags.NewsletterSignup}"] = NewsletterSignupEnabled.ToString(),
                 [$"FeatureManagement:{FeatureFlags.AiSemanticSearch}"] = SemanticSearchEnabled.ToString(),
                 ["ReverseProxy:TrustedNetworks:0"] = TrustedProxyNetwork,
+                ["Media:UploadsPath"] = UploadsPath,
             }));
     }
 }

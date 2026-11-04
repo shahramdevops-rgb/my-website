@@ -364,13 +364,25 @@
   Cover FK `ON DELETE RESTRICT`. Check constraints repeat domain rules (period, `sort_order >= 0`, archived ⇒ not
   featured, size > 0, width + height together). `Projects/ProjectPersistenceTests` (8 tests on PostgreSQL).
 
-- [ ] **P6-T3 File storage & image upload**
+- [x] **P6-T3 File storage & image upload**
   Scope: `IFileStorage` + `LocalFileStorage`, upload validator (jpg/png/webp, magic bytes, ≤ 5 MB), dimensions, `MediaFile`, `GET /media/{key}` with long cache headers.
   Done when: tests reject a renamed `.exe`; a valid image is stored and served.
   Learn: never trust extensions or content-type.
+  Status: done 2026-11-05. `Application/Media/ImageInspector` (magic bytes + size from the header: PNG IHDR, JPEG SOF
+  after skipping segments, WebP VP8/VP8L/VP8X) → `MediaService.UploadAsync` (≤ 5 MB, ≤ 10,000 px a side, key
+  `yyyy/MM/<uuid7>.<real ext>`, bytes first then record, file removed if the record fails) and `OpenAsync` (only
+  keys with a record). `Infrastructure/Files/LocalFileStorage` (`Media:UploadsPath`, default `data/uploads` =
+  `/app/data/uploads` in the image; temp file + rename; keys resolved and checked to stay under the root).
+  `POST /api/admin/media` (multipart `file` + `altText`; own body limit 5 MB + 64 KB via `RequestSizeLimitAttribute`;
+  `DisableAntiforgery` — CSRF covered by P5-T3) → 201 `MediaFileDto`; `GET /media/{**key}` (outside `/api` and the
+  OpenAPI doc; `public, max-age=31536000, immutable`). `Result<T>`/`Error` (+ `ErrorKind` → status in
+  `Api/Infrastructure/ErrorResults`) pulled forward from P6-T4. Not done: re-encoding (would strip EXIF/GPS; needs an
+  image library, so it is a separate decision). Tests: `ImageInspectorTests`, `LocalFileStorageTests`, `MediaEndpointsTests`.
+  The real Kestrel 413 above the limit is not covered (the in-memory test server has no body limit); the test
+  checks the endpoint metadata.
 
 - [ ] **P6-T4 Result pattern & ProjectAdminService**
-  Scope: `Result`/`Error`, create/update commands + FluentValidation, Markdown body via `IMarkdownRenderer`, slug uniqueness, tech ids must exist in the résumé (`techStack` or `alsoUsed`), admin endpoints.
+  Scope: `Result`/`Error` (exist since P6-T3: `Application/Common/Results`), create/update commands + FluentValidation, Markdown body via `IMarkdownRenderer`, slug uniqueness, tech ids must exist in the résumé (`techStack` or `alsoUsed`), admin endpoints.
   Depends on: **P7-T1** (Markdown renderer) — do that first; it has no other dependencies.
   Done when: service tests cover create/update/duplicate slug.
 

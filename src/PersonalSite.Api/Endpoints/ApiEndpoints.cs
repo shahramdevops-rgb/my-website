@@ -29,6 +29,7 @@ public static class ApiEndpoints
             .ProducesProblem(StatusCodes.Status403Forbidden);
 
         admin.MapAdminDashboardEndpoints();
+        admin.MapAdminMediaEndpoints();
 
         return endpoints;
     }
